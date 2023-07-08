@@ -43,5 +43,5 @@ No ETA for big updates also because i don't know actually if im going to be able
 
 ## About
 -  By the way to anyone who ask's about the Ultimate-Menu script, is not entire mine, there is actually in credits every single person who i taked code from and who helped me with this.
-## Last Ultimate Menu Kiddions update: 7/05/2023
-## Last Ultimate Menu Stand update: 8/07/2023
+## Latest Ultimate Menu Kiddions update was on: 7/05/2023
+## Latest Ultimate Menu Stand update was on: 8/07/2023
