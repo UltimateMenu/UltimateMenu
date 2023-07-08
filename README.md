@@ -1,4 +1,4 @@
-# Ultimate-Menu
+<h1 align="center">Ultimate Menu</h1>
 
 # How To Use Ulttimate Menu Script
 For every Version of the ultimate menu (Kiddion/YimMenu) there is a different use and ways to fully Run It. 
