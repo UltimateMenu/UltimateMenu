@@ -4198,24 +4198,24 @@ L7NEGAPARTMENT:add_action("Skip Current Apartment Heist Preps", function() stats
 L7NEGAPCUT = L7NEGAPARTMENT:add_submenu("Apartmen Cuts Editor")
 
 
-L7NEGAPCUT:add_int_range("Apt Player 1", 1.0, 15, 100, function() return globals.get_int(1940667) end, function(value) globals.set_int(1940667, value) end) 
+L7NEGAPCUT:add_int_range("Apt Player 1", 1.0, 15, 100, function() return globals.get_int(1938365) end, function(value) globals.set_int(1938365, value) end) 
 L7NEGAPCUT:add_int_range("Apt Player 2", 1.0, 15, 100, function() return globals.get_int(1940668) end, function(value) globals.set_int(1940668, value) end) 
 L7NEGAPCUT:add_int_range("Apt Player 3", 1.0, 15, 100, function() return globals.get_int(1940669) end, function(value) globals.set_int(1940669, value) end) 
-L7NEGAPCUT:add_int_range("Apt Player 4", 1.0, 15, 100, function() return globals.get_int(1940670) end, function(value) globals.set_int(1940670, value) end) 
+L7NEGAPCUT:add_int_range("Apt Player 4", 1.0, 15, 100, function() return globals.get_int(1941365) end, function(value) globals.set_int(1941365, value) end) 
 
 
-L7NEGAPCUT:add_action("All 200", function() for i = 1940667, 1940670 do globals.set_int(i, 200) end end)
+L7NEGAPCUT:add_action("All 200", function() for i = 1938365, 1941365 do globals.set_int(i, 200) end end)
 
-L7NEGAPCUT:add_action("All 179", function() for i = 1940667, 1940670 do globals.set_int(i, 179) end end)
-L7NEGAPCUT:add_action("All 150", function() for i = 1940667, 1940670 do globals.set_int(i, 150) end end)
-L7NEGAPCUT:add_action("All 120", function() for i = 1940667, 1940670 do globals.set_int(i, 120) end end)
-L7NEGAPCUT:add_action("All 100", function() for i = 1940667, 1940670 do globals.set_int(i, 100) end end)
+L7NEGAPCUT:add_action("All 179", function() for i = 1938365, 1941365 do globals.set_int(i, 179) end end)
+L7NEGAPCUT:add_action("All 150", function() for i = 1938365, 1941365 do globals.set_int(i, 150) end end)
+L7NEGAPCUT:add_action("All 120", function() for i = 1938365, 1941365 do globals.set_int(i, 120) end end)
+L7NEGAPCUT:add_action("All 100", function() for i = 1938365, 1941365 do globals.set_int(i, 100) end end)
 
-L7NEGAPCUT:add_action("All 85", function() for i = 1940667, 1940670 do globals.set_int(i, 85) end end)
-L7NEGAPCUT:add_action("All 75", function() for i = 1940667, 1940670 do globals.set_int(i, 75) end end)
-L7NEGAPCUT:add_action("All 50", function() for i = 1940667, 1940670 do globals.set_int(i, 50) end end)
-L7NEGAPCUT:add_action("All 25", function() for i = 1940667, 1940670 do globals.set_int(i, 25) end end)
-L7NEGAPCUT:add_action("All 0", function() for i = 1940667, 1940670 do globals.set_int(i, 0) end end)
+L7NEGAPCUT:add_action("All 85", function() for i = 1938365, 1941365 do globals.set_int(i, 85) end end)
+L7NEGAPCUT:add_action("All 75", function() for i = 1938365, 1941365 do globals.set_int(i, 75) end end)
+L7NEGAPCUT:add_action("All 50", function() for i = 1938365, 1941365 do globals.set_int(i, 50) end end)
+L7NEGAPCUT:add_action("All 25", function() for i = 1938365, 1941365 do globals.set_int(i, 25) end end)
+L7NEGAPCUT:add_action("All 0", function() for i = 1938365, 1941365 do globals.set_int(i, 0) end end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4413,32 +4413,32 @@ end
 Text("--------------Casino Cuts--------------------")
  
 L7NEGCASINO:add_int_range("Casino Player1 Cut", 5.0, 15, 100, function() 
-	return globals.get_int(1970895+2325+1)
+	return globals.get_int(1971696+2325+1)
 end, function(value)
-	globals.set_int(1970895+2325+1, value)
+	globals.set_int(1971696+2325+1, value)
 H3C1 = p1
 end)
  
 L7NEGCASINO:add_int_range("Casino Player2 Cut", 5.0, 15, 100, function() 
-	return globals.get_int(1970895+2325+1+1)
+	return globals.get_int(1971696+2325+1+1)
 end, function(value)
-	globals.set_int(1970895+2325+1+1, value)
+	globals.set_int(1971696+2325+1+1, value)
 H3C2 = p2
 
 end)
  
 L7NEGCASINO:add_int_range("Casino Player3 Cut", 5.0, 15, 100, function() 
-	return globals.get_int(1970895+2325 + 1 + 1 + 1)
+	return globals.get_int(1971696+2325 + 1 + 1 + 1)
 end, function(value)
-	globals.set_int(1970895+2325 + 1 + 1 + 1, value)
+	globals.set_int(1971696+2325 + 1 + 1 + 1, value)
 H3C3 = p3
 
 end)
  
 L7NEGCASINO:add_int_range("Casino Player4 Cut", 5.0, 15, 100, function() 
-	return globals.get_int(1970895+2325+ 1 + 1 + 1 + 1)
+	return globals.get_int(1971696+2325+ 1 + 1 + 1 + 1)
 end, function(value)
-	globals.set_int(1970895+2325 + 1 + 1 + 1 + 1, value)
+	globals.set_int(1971696+2325 + 1 + 1 + 1 + 1, value)
 H3C4 = p4
 
 end)
@@ -4748,7 +4748,7 @@ L7NEGCAYO:add_array_item("Approach Vehicles", {"Kosatka", "Alkonost", "Velum", "
 L7NEGCAYO:add_array_item("Difficulty", {"Normal", "Hard"}, function() return xox_5 end, function(value) if value == 1 then stats.set_int(MPX .. "H4_PROGRESS", 126823) elseif value == 2 then stats.set_int(MPX .. "H4_PROGRESS", 131055) end xox_5 = value end)
 L7NEGCAYO:add_action("       ---> Complete Preps - Finale <---", function() stats.set_int(MPX .. "H4CNF_UNIFORM", -1) stats.set_int(MPX .. "H4CNF_GRAPPEL", -1) stats.set_int(MPX .. "H4CNF_TROJAN", 5) stats.set_int(MPX .. "H4CNF_WEP_DISRP", 3) stats.set_int(MPX .. "H4CNF_ARM_DISRP", 3) stats.set_int(MPX .. "H4CNF_HEL_DISRP", 3) end)
 L7NEGCAYO:add_action("All POI", function() stats.set_int(MPX .. "H4CNF_BS_GEN", -1) stats.set_int(MPX .. "H4CNF_BS_ENTR", 63) stats.set_int(MPX .. "H4CNF_APPROACH", -1) end) L7NEGCAYO:add_action("---", function() end)
-L7NEGCAYO:add_action("Instant Finish $$", function() fmC2020:set_int(42280, 51338752) fmC2020:set_int(43655, 50) end) --Local_42279.f_1375[1] & Local_42279.f_1
+L7NEGCAYO:add_action("Instant Finish $$", function() fmC2020:set_int(45450, 51338752) fmC2020:set_int(46829, 50) end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4783,8 +4783,20 @@ L7NEGCAYO1911:add_action("Skip Cayo Cooldown (Friends Mode)", function()
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 L7NEGCAYO:add_action("(Wait 5 secs to use after cutscene)", function() end)L7NEGCAYO:add_action("---", function() end) local function npcC(e) if not localplayer then return end if e then globals.set_float(RPN1, 0) globals.set_float(RPN2, 0) else globals.set_float(RPN1, -0.1) globals.set_float(RPN2, -0.02) end end L7NEGCAYO:add_toggle("Remove Pavel n Fencing Cut", function() return e28 end, function() e28 = not e28 npcC(e28) end) local function Cctv(e) if not localplayer then return end if e then menu.remove_cctvs() else menu.remove_cctvs(nil) end end
-L7NEGCAYO:add_toggle("Remove CCTV", function() return e6 end, function() e6 = not e6 Cctv(e6) end) L7NEGCAYO:add_action("Skip Drainage cut", function() if fmC2020:is_active() then if fmC2020:get_int(26746) >= 3 or fmC2020:get_int(26746) <= 6 then fmC2020:set_int(26746, 6) end end end) L7NEGCAYO:add_action("Bypass Fingerprint Cloner ", function() if fmC2020 and fmC2020:is_active() then if fmC2020:get_int(22032) == 4 then fmC2020:set_int(22032, 5) end end end)
-L7NEGCAYO:add_action("Quick Plasma Cutter", function() fmC2020:set_float(27985 + 3, 99.9) end) L7NEGCAYO:add_int_range("Cayo Lifes - Self", 1.0, 1, 999999999, function() return fmC2020:get_int(48647 + 865 + 1) end, function(life) if fmC2020 and fmC2020:is_active() then fmC2020:set_int(48647 + 865 + 1, life) end end) L7NEGCAYO:add_action("Kill mission npcs", function() menu.kill_all_mission_peds() end) L7NEGCAYO:add_action("Kill all npcs", function() menu.kill_all_npcs() end) L7NEGCAYO:add_action("---", function() end)
+L7NEGCAYO:add_toggle("Remove CCTV", function() return e6 end, function() e6 = not e6 Cctv(e6) end) 
+L7NEGCAYO:add_action("Skip Drainage cut", function() if fmC2020:is_active() then if fmC2020:get_int(26746) >= 3 or fmC2020:get_int(26746) <= 6 then fmC2020:set_int(26746, 6) end end end) 
+L7NEGCAYO:add_action("Bypass Fingerprint Cloner ", function() if fmC2020 and fmC2020:is_active() then if fmC2020:get_int(22032) == 4 then fmC2020:set_int(22032, 5) end end end)
+L7NEGCAYO:add_action("Quick Plasma Cutter", function() fmC2020:set_float(27985 + 3, 99.9) end) 
+L7NEGCAYO:add_int_range("Cayo Lifes - Self", 1.0, 1, 999999999, function() return fmC2020:get_int(48647 + 865 + 1) end, function(life) if fmC2020 and fmC2020:is_active() then fmC2020:set_int(48647 + 865 + 1, life) end end) L7NEGCAYO:add_action("Kill mission npcs", function() menu.kill_all_mission_peds() end) 
+L7NEGCAYO:add_action("Kill all npcs", function() menu.kill_all_npcs() end)
+RestartKosatkaBoard = 1526
+ 
+L7NEGCAYO:add_action("Reset Kosatka Board", function()
+	if script("heist_island_planning"):is_active() then
+		script("heist_island_planning"):set_int(RestartKosatkaBoard, 2)
+	end
+end) 
+L7NEGCAYO:add_action("---", function() end)
 L7NEGCAYO:add_int_range("Real Take", 289700, 100000, 8691000, function() return fmC2020:get_int(45687+1392+53) end, function(v) fmC2020:set_int(45687+1392+53, v) end)
 L7NEGCAYO:add_array_item("TP's Scope Out", {"Communications Tower", "Control Tower", "Power Station", "Bolt Cutters #1", "Bolt Cutters #2", "Bolt Cutters #3", "Bolt Cutters #4", "Bolt Cutters #5", "Bolt Cutters #6", "Bolt Cutters #7", "Bolt Cutters #8", "Bolt Cutters #9", "Bolt Cutters #10", "Bolt Cutters #11", "Bolt Cutters #12", "Bolt Cutters #13", "Bolt Cutters #14", "Bolt Cutters #15", "Cutting Powder #1", "Cutting Powder #2", "Cutting Powder #3", "Grappling Hook #1", "Grappling Hook #2", "Grappling Hook #3", "Grappling Hook #4", "Grappling Hook #5", "Grappling Hook #6", "Grappling Hook #7", "Grappling Hook #8", "Grappling Hook #9", "Grappling Hook #10", "Guard Clothes #1", "Guard Clothes #2", "Guard Clothes #3", "Guard Clothes #4", "Guard Clothes #5", "Guard Clothes #6", "Guard Clothes #7", "Signal Box #1", "Signal Box #2", "Signal Box #3", "Supply Truck #1", "Supply Truck #2", "Supply Truck #3", "Supply Truck #4", "Water Tower #1 (North Dock)", "Water Tower #2 (Main Dock)"}, function()
 return xox_6 end, function(value)
@@ -4836,6 +4848,7 @@ elseif value == 45 then TP(5152.886719, -5143.897949, 0.997772, -0.205993, -0.00
 elseif value == 46 then TP(5108.437012, -4580.132812, 28.417776, 1.720010, -0.000000, 0.000000)
 elseif value == 47 then TP(4903.939453, -5337.220703, 34.306366, 0.821753, -0.000000, 0.000000)
 end xox_6 = value end)
+
 L7NEGCAYO:add_array_item("TP's Heist", {"Drainage Pipe", "Entry Drain", "Cayo Office", "Cayo Primary", "Basement Storage", "North Storage", "West Storage", "South Storage", "Cayo Gate", "Escaped"}, function() return xox_7 end, function(value)
 if value == 1 then menu.end_cutscene() TP(5045.980957, -5816.833984, -11.489866, 0.884011, -0.000000, 0.000121)
 elseif value == 2 then TP(5052.879395, -5771.335938, -6.004176, 1.169803, -0.000000, 0.001638)
@@ -4847,10 +4860,30 @@ elseif value == 7 then TP(5030.722168, -5736.470703, 16.565588, 2.439484, -0.000
 elseif value == 8 then TP(5007.434570, -5787.255859, 16.531698, 0.680315, -0.000000, 0.000000)
 elseif value == 9 then menu.end_cutscene() TP(4990.194824, -5716.448730, 18.580215, 0.946360, -0.000000, 0.000000)
 elseif value == 10 then menu.end_cutscene() TP(4639.124023, -6010.004883, -7.475036, 1.930023, -0.000000, -0.000000)
+end xox_7 = value end)
 
-end xox_7 = value end) cutsMenu = L7NEGCAYO:add_submenu("Cuts") cutsMenu:add_array_item("Preset cuts", {"65 all", "80 all", "90 all", "100 all", "138 all-Panther only", "202 all-PinkD only"}, function() return xox_32 end, function(G) if G == 1 then for i = 1978573, 1978576 do globals.set_int(i, 65) end elseif G == 2 then for i = 1978573, 1978576 do globals.set_int(i, 80) end elseif G == 3 then for i = 1978573, 1978576 do globals.set_int(i, 90) end elseif G == 4 then for i = 1978573, 1978576 do globals.set_int(i, 100) end elseif G == 5 then for i = 1978573, 1978576 do globals.set_int(i, 138) end elseif G == 6 then for i = 1978573, 1978576 do globals.set_int(i, 202) end end xox_32 = value end)
-cutsMenu:add_int_range("Player 1", 1, 15, 300, function() return globals.get_int(1978573) end, function(value) globals.set_int(1978573, value) end) cutsMenu:add_int_range("Player 2", 1, 15, 300, function() return globals.get_int(1978574) end, function(value) globals.set_int(1978574, value) end) cutsMenu:add_int_range("Player 3", 1, 15, 300, function() return globals.get_int(1978575) end, function(value) globals.set_int(1978575, value) end) cutsMenu:add_int_range("Player 4", 1, 15, 300, function() return globals.get_int(1978576) end, function(value) globals.set_int(1978576, value) end) cutsMenu:add_int_range("Non-Host Self", 1, 15, 300, function() return globals.get_int(2722267) end, function(value) globals.set_int(2722267, value) end)
-CPVMenu = L7NEGCAYO:add_submenu("Size/Value Editor") CPVMenu:add_int_range("Bag Size", 900.0, 1800, 99999, function() return globals.get_int(BAS1) end, function(value) globals.set_int(BAS1, value) end) CPVMenu:add_int_range("Panther Statue", 50000, 1900000, 25500000, function() return globals.get_int(PAS1) end, function(value) globals.set_int(PAS1, value) end) CPVMenu:add_int_range("Pink Diamond", 50000, 1300000, 25500000, function() return globals.get_int(PID1) end, function(value) globals.set_int(PID1, value) end) CPVMenu:add_int_range("Bearer Bonds", 50000, 1100000, 25500000, function() return globals.get_int(BEB1) end, function(value) globals.set_int(BEB1, value) end) CPVMenu:add_int_range("Ruby Necklace", 50000, 1000000, 25500000, function() return globals.get_int(RUN1) end, function(value) globals.set_int(RUN1, value) end) CPVMenu:add_int_range("Tequila", 50000, 900000, 25500000, function() return globals.get_int(TEQ1) end, function(value) globals.set_int(TEQ1, value) end) CPVMenu:add_int_range("Gold", 82587, 330350, 5000000, function() return stats.get_int(MPX .. "H4LOOT_GOLD_V") end, function(value) stats.set_int(MPX .. "H4LOOT_GOLD_V", value) end) CPVMenu:add_int_range("Paintings", 50000, 189500, 5000000, function() return stats.get_int(MPX .. "H4LOOT_PAINT_V") end, function(value) stats.set_int(MPX .. "H4LOOT_PAINT_V", value) end) CPVMenu:add_int_range("Cocaine", 50000, 200095, 5000000, function() return stats.get_int(MPX .. "H4LOOT_COKE_V") end, function(value) stats.set_int(MPX .. "H4LOOT_COKE_V", value) end) CPVMenu:add_int_range("Weed", 50000, 147870, 5000000, function() return stats.get_int(MPX .. "H4LOOT_WEED_V") end, function(value) stats.set_int(MPX .. "H4LOOT_WEED_V", value) end) CPVMenu:add_int_range("Cash", 50000, 90000, 5000000, function() return stats.get_int(MPX .. "H4LOOT_CASH_V") end, function(value) stats.set_int(MPX .. "H4LOOT_CASH_V", value) end) CPVMenu:add_action("--For default values, Dont Change", function() end)
+cutsMenu = L7NEGCAYO:add_submenu("Cuts")
+cutsMenu:add_array_item("Preset cuts", {"65 all", "80 all", "90 all", "100 all", "138 all-Panther only", "202 all-PinkD only"}, function()
+return xox_32 end, function(G) if G == 1 then for i = 1978573, 1979376 do globals.set_int(i, 65) end elseif G == 2 then for i = 1978573, 1979376 do globals.set_int(i, 80) end elseif G == 3 then for i = 1978573, 1979376 do globals.set_int(i, 90) end elseif G == 4 then for i = 1978573, 1979376 do globals.set_int(i, 100) end elseif G == 5 then for i = 1978573, 1979376 do globals.set_int(i, 138) end elseif G == 6 then for i = 1978573, 1979376 do globals.set_int(i, 202) end end xox_32 = value end)
+
+cutsMenu:add_int_range("Player 1", 1, 15, 300, function() return globals.get_int(1978573) end, function(value) globals.set_int(1978573, value) end)
+cutsMenu:add_int_range("Player 2", 1, 15, 300, function() return globals.get_int(1978495) end, function(value) globals.set_int(1978495, value) end) 
+cutsMenu:add_int_range("Player 3", 1, 15, 300, function() return globals.get_int(1978575) end, function(value) globals.set_int(1978575, value) end) 
+cutsMenu:add_int_range("Player 4", 1, 15, 300, function() return globals.get_int(1979376) end, function(value) globals.set_int(1979376, value) end) 
+
+CPVMenu = L7NEGCAYO:add_submenu("Size/Value Editor") 
+CPVMenu:add_int_range("Bag Size", 900.0, 1800, 99999, function() return globals.get_int(BAS1) end, function(value) globals.set_int(BAS1, value) end) 
+CPVMenu:add_int_range("Panther Statue", 50000, 1900000, 25500000, function() return globals.get_int(PAS1) end, function(value) globals.set_int(PAS1, value) end) 
+CPVMenu:add_int_range("Pink Diamond", 50000, 1300000, 25500000, function() return globals.get_int(PID1) end, function(value) globals.set_int(PID1, value) end) 
+CPVMenu:add_int_range("Bearer Bonds", 50000, 1100000, 25500000, function() return globals.get_int(BEB1) end, function(value) globals.set_int(BEB1, value) end) 
+CPVMenu:add_int_range("Ruby Necklace", 50000, 1000000, 25500000, function() return globals.get_int(RUN1) end, function(value) globals.set_int(RUN1, value) end) 
+CPVMenu:add_int_range("Tequila", 50000, 900000, 25500000, function() return globals.get_int(TEQ1) end, function(value) globals.set_int(TEQ1, value) end) 
+CPVMenu:add_int_range("Gold", 82587, 330350, 5000000, function() return stats.get_int(MPX .. "H4LOOT_GOLD_V") end, function(value) stats.set_int(MPX .. "H4LOOT_GOLD_V", value) end) 
+CPVMenu:add_int_range("Paintings", 50000, 189500, 5000000, function() return stats.get_int(MPX .. "H4LOOT_PAINT_V") end, function(value) stats.set_int(MPX .. "H4LOOT_PAINT_V", value) end) 
+CPVMenu:add_int_range("Cocaine", 50000, 200095, 5000000, function() return stats.get_int(MPX .. "H4LOOT_COKE_V") end, function(value) stats.set_int(MPX .. "H4LOOT_COKE_V", value) end) 
+CPVMenu:add_int_range("Weed", 50000, 147870, 5000000, function() return stats.get_int(MPX .. "H4LOOT_WEED_V") end, function(value) stats.set_int(MPX .. "H4LOOT_WEED_V", value) end) 
+CPVMenu:add_int_range("Cash", 50000, 90000, 5000000, function() return stats.get_int(MPX .. "H4LOOT_CASH_V") end, function(value) stats.set_int(MPX .. "H4LOOT_CASH_V", value) end) 
+CPVMenu:add_action("--For default values, Dont Change", function() end)
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -9974,7 +10007,9 @@ local function funcCeoBanger(isRunning)
   while isRunning == true do
     local numLifetimeSales = stats.get_int(MPX .. "LIFETIME_SELL_COMPLETE")
     if scrWarehouse:is_active() then
-          globals.set_int(277873, 6000000)
+          globals.set_int(278108, 6000000)
+          globals.set_int(277873, 0)
+          globals.set_int(277874, 0)
         end
           globals.set_int(4536677,  0)
           globals.set_int(4536678,  0)
@@ -10302,7 +10337,7 @@ RUN1=262145+29983
 BEB1=262145+29984
 PID1=262145+29985
 PAS1=262145+29987
-BAS1=262145+29732
+BAS1=262145+29939
 RLC1=262145+28817
 RLC2=262145+28831
 RLC3=262145+28467
