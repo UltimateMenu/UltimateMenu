@@ -2,7 +2,7 @@
 
 <h1 align="center">For Original thread you can find it here====> https://www.unknowncheats.me/forum/grand-theft-auto-v/565688-1-64-ultimate-unlocker.html</h1>
 
-# How To Use Ulttimate Menu Script
+# How To Use Ultimate Menu Script
 For every Version of the ultimate menu (Kiddion/YimMenu) there is a different use and ways to fully Run It. 
 
 For Kiddions script is just puting the script into scripts directory, inside the Kiddions files.
