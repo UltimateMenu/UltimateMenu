@@ -10071,8 +10071,8 @@ L7NEGML = L7NEG7:add_submenu("Nighclub Money Loop 250k/10s")
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local isRunning = false
-local function safeLoop(state)
-    while state do
+local function safeLoop()
+    while isRunning do
         stats.set_int(MPX .. "CLUB_POPULARITY", 1000)
         stats.set_int(MPX .. "CLUB_PAY_TIME_LEFT", -1)
         sleep(1.5)
@@ -10098,7 +10098,7 @@ L7NEGML:add_toggle(
     end,
     function()
         isRunning = not isRunning
-        safeLoop(isRunning)
+        safeLoop()
     end
 )
 
