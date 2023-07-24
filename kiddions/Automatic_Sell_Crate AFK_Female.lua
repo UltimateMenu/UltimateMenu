@@ -5,7 +5,7 @@ local WH = script("am_mp_warehouse")
 local function Cloop(bool)
 	while bool do
 		if WH:is_active() then
-			menu.send_key_up(83)
+			menu.send_key_up(87)
 			menu.send_key_press(69)
 			sleep(1)
 			if not WH:is_active() then
@@ -15,12 +15,11 @@ local function Cloop(bool)
 		end
 	end
 end
-menu.add_toggle("Automatic Sell Crate Afk Male", function()
+
+menu.add_toggle("Automatic Sell Crate AFK Female", function()
 	return boolcl
 end, function()
 	boolcl = not boolcl
 	Cloop(boolcl)
 	
 end)
-
-
