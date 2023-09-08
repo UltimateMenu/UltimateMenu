@@ -1,1 +1,0 @@
-The Refill Inv_Armoury.lua is used with left mouse click if you wanna use it put it to kiddions scripts folder
