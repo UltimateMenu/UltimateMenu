@@ -811,6 +811,8 @@ normalstat = statMenu:add_submenu("Character Data Editor Menu")
 distancestat = statMenu:add_submenu("Distance Data Editor Menu")
 timestat = statMenu:add_submenu("Time Data Editor Menu")
 
+normalstat:add_int_range("Earned Money", 500000, 0, 1000000000, function() return stats.get_int("MPPLY_TOTAL_EVC") end, function(value) stats.set_int("MPPLY_TOTAL_EVC",value) end)
+normalstat:add_int_range("Spent Money", 500000, 0, 1000000000, function() return stats.get_int("MPPLY_TOTAL_SVC") end, function(value) stats.set_int("MPPLY_TOTAL_SVC",value) end)
 normalstat:add_int_range("Players Killed", 10, 0, 999999, function() return stats.get_int("MPPLY_KILLS_PLAYERS") end, function(value) stats.set_int("MPPLY_KILLS_PLAYERS", value) end)
 normalstat:add_int_range("Deatsh per player", 10, 0, 999999, function() return stats.get_int("MPPLY_DEATHS_PLAYER") end, function(value) stats.set_int("MPPLY_DEATHS_PLAYER", value) end)
 normalstat:add_float_range("PvP K/D Ratio", 0.01, 0, 9999, function() return stats.get_float("MPPLY_KILL_DEATH_RATIO") end, function(value) stats.set_float("MPPLY_KILL_DEATH_RATIO", value) end)
@@ -10973,7 +10975,7 @@ L7NEGMW29:add_action("Enable Event", function()
     globals.set_int(262145 + 34313, 1) -- Tunable: ENABLE_MAZEBANKSHOOTOUT_DLC22022
 end)
 
-weazel:add_action("Enable the Event V2 (By ShinyWasabi)", function() 
+L7NEGMW29:add_action("Enable the Event V2 (By ShinyWasabi)", function() 
     globals.set_int(1575020, 11) -- joining to invite only to reset the timer
     globals.set_int(1574589, 1)
     sleep(2)
