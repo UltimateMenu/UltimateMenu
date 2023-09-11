@@ -27,3 +27,5 @@ No ETA for big updates also because i don't know actually if im going to be able
 ## Latest Ultimate Menu YimMenu update was on: 18/08/2023
 --------------------------------------------------------------------------------------------------
 ## Valuable Tutorials For New Users Of Kiddions Modest Menu
+
+<h2 align="ceter">kiddions Scripts Install Tutorial</h2>
