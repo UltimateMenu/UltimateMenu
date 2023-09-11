@@ -18,6 +18,7 @@ For YimMenu it is actually the same way, but first before initiating the script 
 From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 
 --------------------------------------------------------------------------------------------------
+## When Your New Updates Will Be Out?
 No ETA for big updates also because i don't know actually if im going to be able to continue this script (boths) because i have a life and i need to study. This is a helpfull and fun project for everyone who wants to use it, is free and you can use my script has a template.
 
 ## About
