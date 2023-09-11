@@ -20,8 +20,10 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 --------------------------------------------------------------------------------------------------
 ## When Your New Updates Will Be Out?
 No ETA for big updates also because i don't know actually if im going to be able to continue this script (boths) because i have a life and i need to study. This is a helpfull and fun project for everyone who wants to use it, is free and you can use my script has a template.
-
+--------------------------------------------------------------------------------------------------
 ## About
 -  By the way to anyone who ask's about the Ultimate-Menu script, is not entire mine, there is actually in credits every single person who i taked code from and who helped me with this.
 ## Latest Ultimate Menu Kiddions update was on: 8/09/2023
 ## Latest Ultimate Menu YimMenu update was on: 18/08/2023
+--------------------------------------------------------------------------------------------------
+## Valuable Tutorials For New Users Of Kiddions Modest Menu
