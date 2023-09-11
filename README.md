@@ -1,7 +1,10 @@
-<h1 align="center">Ultimate Menu</h1>
 
 <div align="center">
   <h1><a href="https://www.unknowncheats.me/forum/grand-theft-auto-v/565688-ultimate-menu-script.html">Ultimate Menu</a></h1>
+</div>
+
+<div align="center">
+  <h1><a href="https://www.unknowncheats.me/forum/grand-theft-auto-v/597103-ultimate-menu-yimmenu.html">Ultimate Menu For YimMenu</a></h1>
 </div>
 
 
