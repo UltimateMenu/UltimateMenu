@@ -17,19 +17,6 @@ For YimMenu it is actually the same way, but first before initiating the script 
 
 From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 
-
---------------------------------------------------------------------------------------------------
-
-## Gta V Scripts 
-Im presenting you some Gta V Scripts for online or campaign, these are made by me so if you find an error please dm to discord. (@l7neg)
-
----------------------------------------------------------------------------------------------------
-
-- Meaning Emojis:
-🟢 Undetected
-🟠 Working on / In Progress / In Testing Stage
-🔴 Detected
-
 --------------------------------------------------------------------------------------------------
 No ETA for big updates also because i don't know actually if im going to be able to continue this script (boths) because i have a life and i need to study. This is a helpfull and fun project for everyone who wants to use it, is free and you can use my script has a template.
 
