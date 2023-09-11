@@ -28,4 +28,4 @@ No ETA for big updates also because i don't know actually if im going to be able
 --------------------------------------------------------------------------------------------------
 ## Valuable Tutorials For New Users Of Kiddions Modest Menu
 
-<h2 align="ceter">kiddions Scripts Install Tutorial</h2>
+<h1 align="ceter">kiddions Scripts Install Tutorial</h1>
