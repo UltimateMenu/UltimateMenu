@@ -25,9 +25,4 @@ No ETA for big updates also because i don't know actually if im going to be able
 -  By the way to anyone who ask's about the Ultimate-Menu script, is not entire mine, there is actually in credits every single person who i taked code from and who helped me with this.
 ## Latest Ultimate Menu Kiddions update was on: 8/09/2023
 ## Latest Ultimate Menu YimMenu update was on: 18/08/2023
---------------------------------------------------------------------------------------------------
-## Valuable Tutorials For New Users Of Kiddions Modest Menu
-
-<h1 align="center">kiddions Scripts Install Tutorial</h1>
-https://wup.l7neg.tk/W.mp4
 
