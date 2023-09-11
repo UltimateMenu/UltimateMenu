@@ -75,6 +75,22 @@ GodModeState = false
 		localplayer:set_godmode(GodModeState)
 	end)
 
+SemiGod=false
+SemiGodL=false
+
+function SemiGodF()
+	while true do
+		if localplayer:get_health() ~= localplayer:get_max_health() then
+			if SemiGod == true then
+				menu.heal_all()
+			end
+		end
+		sleep(0.2)
+	end
+end
+
+Self:add_toggle("Semi-Godmode", function() return SemiGod end, function(God) SemiGod = not SemiGod if SemiGodL == false then SemiGodF() else SemiGodL = true end end)
+
 Self:add_action("Heal Player", function() menu.heal_all() end)
 
 Self:add_action("Suicide", function() menu.suicide_player() end)
@@ -11533,6 +11549,7 @@ IND5=262145+8474
 
 --Required Stats--
 		
+		FMG = 262145 --main game global base
 		MPX = PI 
 		PI = stats.get_int("MPPLY_LAST_MP_CHAR") 
 		if PI == 0 then MPX = "MP0_" else MPX = "MP1_" end
