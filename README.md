@@ -29,5 +29,5 @@ No ETA for big updates also because i don't know actually if im going to be able
 ## Valuable Tutorials For New Users Of Kiddions Modest Menu
 
 <h1 align="center">kiddions Scripts Install Tutorial</h1>
-<video width="630" height="300" src="https://wup.l7neg.tk/W.mp4"></video>
+https://wup.l7neg.tk/W.mp4
 
