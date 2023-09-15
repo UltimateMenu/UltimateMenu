@@ -8440,22 +8440,22 @@ ddCMenu = L7NEGDOOMSDAY:add_submenu("Cuts")
  ddCMenu:add_array_item("Ma Cuts All Players", {"I:Data Breaches", "II:Bogdan Problem", "III:Doomsday Senario"}, function()
  return xox_23 end, function(value)
  if value == 1 then
- globals.set_int(1967630 + 812 + 56 + 1, 209)
- globals.set_int(1967630 + 812 + 56 + 2, 209)
- globals.set_int(1967630 + 812 + 56 + 3, 209)
- globals.set_int(1967630 + 812 + 56 + 4, 209)
+ globals.set_int(1967630 + 812 + 50 + 1, 209)
+ globals.set_int(1967630 + 812 + 50 + 2, 209)
+ globals.set_int(1967630 + 812 + 50 + 3, 209)
+ globals.set_int(1967630 + 812 + 50 + 4, 209)
  elseif
  value == 2 then
- globals.set_int(1967630 + 812 + 56 + 1, 143)
- globals.set_int(1967630 + 812 + 56 + 2, 143)
- globals.set_int(1967630 + 812 + 56 + 3, 143)
- globals.set_int(1967630 + 812 + 56 + 4, 143)
+ globals.set_int(1967630 + 812 + 50 + 1, 143)
+ globals.set_int(1967630 + 812 + 50 + 2, 143)
+ globals.set_int(1967630 + 812 + 50 + 3, 143)
+ globals.set_int(1967630 + 812 + 50 + 4, 143)
  elseif
  value == 3 then
- globals.set_int(1967630 + 812 + 56 + 1, 113)
- globals.set_int(1967630 + 812 + 56 + 2, 113)
- globals.set_int(1967630 + 812 + 56 + 3, 113)
- globals.set_int(1967630 + 812 + 56 + 4, 113)
+ globals.set_int(1967630 + 812 + 50 + 1, 113)
+ globals.set_int(1967630 + 812 + 50 + 2, 113)
+ globals.set_int(1967630 + 812 + 50 + 3, 113)
+ globals.set_int(1967630 + 812 + 50 + 4, 113)
  end
  xox_23 = value
  end)
@@ -8465,31 +8465,33 @@ ddCMenu:add_action("                      ~Manual Cuts ", function()
 
 ddCMenu:add_int_range("Doomsday Player 1", 1.0, 15, 313, function()
  return
- globals.get_int(1967630 + 812 + 56 + 1)
+ globals.get_int(1967630 + 812 + 50 + 1)
  end, function(value)
- globals.set_int(1967630 + 812 + 56 + 1, value)
+ globals.set_int(1967630 + 812 + 50 + 1, value)
  end) 
 
 ddCMenu:add_int_range("Doomsday Player 2", 1.0, 15, 313, function()
  return
- globals.get_int(1967630 + 812 + 56 + 2)
+ globals.get_int(1967630 + 812 + 50 + 2)
  end, function(value)
- globals.set_int(1967630 + 812 + 56 + 2, value)
+ globals.set_int(1967630 + 812 + 50 + 2, value)
  end) 
 
 ddCMenu:add_int_range("Doomsday Player 3", 1.0, 15, 313, function()
  return
- globals.get_int(1967630 + 812 + 56 + 3)
+ globals.get_int(1967630 + 812 + 50 + 3)
  end, function(value)
- globals.set_int(1967630 + 812 + 56 + 3, value)
+ globals.set_int(1967630 + 812 + 50 + 3, value)
  end) 
 
 ddCMenu:add_int_range("Doomsday Player 4", 1.0, 15, 313, function()
  return
- globals.get_int(1967630 + 812 + 56 + 4)
+ globals.get_int(1967630 + 812 + 50 + 4)
  end, function(value)
- globals.set_int(1967630 + 812 + 56 + 4, value)
+ globals.set_int(1967630 + 812 + 50 + 4, value)
  end)
+
+ddCMenu:add_int_range("Self (non-host)", 1, 0, 1000, function() return globals.get_int(2684820 + 6606) end, function(Cut) globals.set_int(2684820 + 6606, Cut) end)
 
 L7NEGDOOMSDAY:add_action("-----", function()
  end) 
