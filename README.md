@@ -19,14 +19,14 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 
 --------------------------------------------------------------------------------------------------
 <div align="center">
-  <h1> New Version ScreenShots</h1>
+  <h1> New ScreenShots V17</h1>
 </div>
 
 ![Ultimate Menu V17](https://i.imgur.com/5ovnXIS.png)
 ![Ultimate Menu V17](https://i.imgur.com/HtOYaT2.png)
 --------------------------------------------------------------------------------------------------
 <div align="center"> <h1> <details>
-  <summary>Ultimate Menu Old ScreenShots</summary>
+  <summary>Old Versions ScreenShots</summary>
   
 </details> </h1> </div>
 
