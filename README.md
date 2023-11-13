@@ -1,3 +1,6 @@
+<div align="center">
+  <img src="https://readme-typing-svg.vercel.app/?lines=Ultimate+Menu+Script;Most+Useful+Script;Written+By+L7NEG&font=Fira%20Code&center=true&width=380&height=50&duration=4000&pause=1000" alt="Readme Typing Svg Vercel Version By L7NEG">
+</div>
 
 <div align="center">
   <h1><a href="https://www.unknowncheats.me/forum/grand-theft-auto-v/565688-ultimate-menu-script.html">Ultimate Menu</a></h1>
