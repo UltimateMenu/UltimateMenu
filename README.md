@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://readme-typing-svg.vercel.app/?lines=Ultimate+Menu+Script;Most+Useful+Script;Written+By+L7NEG&font=Fira%20Code&center=true&width=380&height=50&duration=4000&pause=1000" alt="Readme Typing Svg Vercel Version By L7NEG">
+  <img src="https://readme-typing-svg.vercel.app/?lines=Ultimate+Menu+Script;Most+Useful+Script;Written+By+L7NEG&font=Fira%20Code&size=31&center=true&width=380&height=50&duration=4000&pause=1000" alt="Readme Typing Svg Vercel Version By L7NEG">
 </div>
 
 <div align="center">
