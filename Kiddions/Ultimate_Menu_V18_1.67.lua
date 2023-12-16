@@ -9670,7 +9670,7 @@ Text("Shooting Range After You Activate It")
 Text("Join a New Session To Apply ")
 Text("==========================")
 RONECLICKMenu:add_action("Stats Part 1", function()
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -12089,7 +12089,7 @@ RONECLICKMenu:add_action("Time Related Stats 1", function()
 	stats.set_int("MPPLY_TOTAL_TIME_IN_LOBBY", 1047483647)
 end)
 RONECLICKMenu:add_action("Time Related Stats 2", function()
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -12127,7 +12127,7 @@ RONECLICKMenu:add_action("Time Related Stats 2", function()
 end)
 Text("==========================")
 RONECLICKMenu:add_action("Bools Part 1", function()
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -16857,7 +16857,7 @@ end)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local L7NEGCASINO = L7NEGH:add_submenu("Casino Heist")
-PlayerIndex = globals.get_int(1574932)
+PlayerIndex = globals.get_int(1574925)
 
 if PlayerIndex == 0 then
 	MPX = "MP0_"
@@ -16873,7 +16873,7 @@ Text(" ___________Casino Setup________")
 L7NEGCASINO:add_int_range("Target - Cash1/Gold2/Art3/Diam4", 1, 1, 4, function()
 	return stats.get_int(MPX .. "H3OPT_TARGET")
 end, function(TGT)
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -16896,7 +16896,7 @@ L7NEGCASINO:add_int_range("Random Approach - Normal/Hard", 1, 1, 2, function()
 end, function(H3lvl)
 	LstAp = stats.get_int(MPX .. "H3_LAST_APPROACH")
 	HrdAp = stats.get_int(MPX .. "H3_HARD_APPROACH")
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -16923,7 +16923,7 @@ end)
 L7NEGCASINO:add_int_range("EasyApproach - Snk/BgCon/Aggr", 1, 1, 3, function()
 	return 1
 end, function(Approach)
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -16950,7 +16950,7 @@ end)
 L7NEGCASINO:add_int_range("HardApproach - Snk/BgCon/Aggr", 1, 1, 3, function()
 	return stats.get_int(MPX .. "H3_HARD_APPROACH")
 end, function(Approach)
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -16972,7 +16972,7 @@ end, function(Approach)
 end)
 
 L7NEGCASINO:add_action("             ---[[Complete Board1]]---", function()
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -16984,7 +16984,7 @@ end)
 L7NEGCASINO:add_int_range("Hacker - Rickie 3%/Avi 10%/Paige 9%", 1, 1, 3, function()
 	return stats.get_int(MPX .. "H3OPT_CREWHACKER")
 end, function(Hkr)
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -17003,7 +17003,7 @@ end)
 L7NEGCASINO:add_int_range("Grlla/Clwn/Anml9/Riot/OniF/Hockey", 1, 1, 12, function()
 	return stats.get_int(MPX .. "H3OPT_MASKS")
 end, function(H3Msk)
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -17016,7 +17016,7 @@ end)
 L7NEGCASINO:add_int_range("Weap-Karl/Gus/Char/Ches/Pat", 1, 1, 5, function()
 	return stats.get_int(MPX .. "H3OPT_CREWWEAP")
 end, function(H3Weap)
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -17027,7 +17027,7 @@ end, function(H3Weap)
 end)
 
 L7NEGCASINO:add_action("       ---[[Complete Board2 - Finale]]---", function()
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -21895,7 +21895,7 @@ L7NEG8 = L7NEG7:add_submenu("WareHouse Data Editor")
 
 L7NEG8:add_action("--------------Warehouse Profile Editor--------------", function() end)
 L7NEG8:add_int_range("Change Lifetime Sales", 1, 0, 10000, function()
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -21910,7 +21910,7 @@ end, function(value)
 end)
 
 L7NEG8:add_int_range("Change Lifetime Earnings Made", 200000.0, 0, 10000000, function()
-	PlayerIndex = globals.get_int(1574932)
+	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
