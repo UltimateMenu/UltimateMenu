@@ -568,7 +568,7 @@ end)
 L7NEG5 = L7NEG:add_tab("Missions Selector And cooldown Menu")
 
 L7NEG5:add_button("Remove Dax Missions CoolDown ", function()
-STATS.STAT_SET_INT(joaat(MPX .. "XM22JUGGALOWORKCDTIMER"), -1, true) 
+stats.set_int("MP"..mpx().."_XM22JUGGALOWORKCDTIMER", -1)
 end)
 
 L7NEG5:add_button("Remove VIP/MC Cool Down", function() 
