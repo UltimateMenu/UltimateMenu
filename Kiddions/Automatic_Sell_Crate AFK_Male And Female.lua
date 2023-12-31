@@ -1,5 +1,5 @@
 -- https://dsc.gg/l7neg-
--- https://l7neg.tk
+-- https://l7neg.is-a.dev
 --©️ 2023 L7NEG
 boolcl = false
 Cloop = false
