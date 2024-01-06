@@ -23956,7 +23956,7 @@ CashRemover:add_bare_item("", function()
 	end
 	return "Remove Cash: $" .. FormatMoney(CashToRemove)
 end, function()
-	globals.set_int(2707036 + 36, CashToRemove)
+	globals.set_int(2707037 + 36, CashToRemove)
 	sleep(1)
 	DefNum1Cur = 1
 	DefNum2Cur = 1
@@ -27098,13 +27098,19 @@ end, function(value)
 	end
 end)
 
-setupcayo:add_action("Complete Preps", function()
+setupcayo:add_action("Complete Preps Finale", function()
 	stats.set_int(MPX .. "H4CNF_UNIFORM", -1)
 	stats.set_int(MPX .. "H4CNF_GRAPPEL", -1)
 	stats.set_int(MPX .. "H4CNF_TROJAN", 5)
 	stats.set_int(MPX .. "H4CNF_WEP_DISRP", 3)
 	stats.set_int(MPX .. "H4CNF_ARM_DISRP", 3)
 	stats.set_int(MPX .. "H4CNF_HEL_DISRP", 3)
+end)
+
+setupcayo:add_action("Complete All POI", function()
+	stats.set_int(MPX .. "H4CNF_BS_GEN", -1)
+	stats.set_int(MPX .. "H4CNF_BS_ENTR", 63)
+	stats.set_int(MPX .. "H4CNF_APPROACH", -1)
 end)
 
 L7NEGCAYO:add_action("Reset Preps", function()
@@ -27115,7 +27121,7 @@ end)
 
 L7NEGCAYO:add_action("Instant Finish $$", function()
 	FMC2020:set_int(48513, 9)
-	FMC2020:set_int(49892, 50)
+  FMC2020:set_int(48513 + 1765 + 1, 50)
 end)
 
 L7NEGCAYO:add_action("---", function() end)
