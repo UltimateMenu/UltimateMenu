@@ -22,7 +22,7 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 
 --------------------------------------------------------------------------------------------------
 <div align="center">
-  <h1> New ScreenShots V19</h1>
+  <h1> New ScreenShots V2.0</h1>
 </div>
 
 [![Ultimate Menu V2.0](https://i.imgur.com/hxOYdxr.png)](https://i.imgur.com/hxOYdxr.png)
