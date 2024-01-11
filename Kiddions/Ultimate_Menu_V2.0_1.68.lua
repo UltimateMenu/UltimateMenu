@@ -27,7 +27,7 @@ local function Text(text)
 end
 
 Text("-----------------------------------------------------")
-Text("       ✅ Ultimate Menu 1.68 [V19] ✅ ")
+Text("       ✅ Ultimate Menu 1.68 [V2.0] ✅ ")
 Text("-----------------------------------------------------")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -152,6 +152,36 @@ end, function(BadSport)
 		globals.set_int(1574589, 0)
 	end
 	a74 = BadSport
+end)
+
+a74 = 1
+Self:add_array_item("Fast Run And Reload", { "Add", "Remove" }, function()
+	return a74
+end, function(FRAR)
+	if FRAR == 1 then
+	stats.set_int(MPX .. "CHAR_ABILITY_1_UNLCK", -1)
+	stats.set_int(MPX .. "CHAR_ABILITY_2_UNLCK", -1)
+	stats.set_int(MPX .. "CHAR_ABILITY_3_UNLCK", -1)
+	stats.set_int(MPX .. "CHAR_FM_ABILITY_1_UNLCK", -1)
+	stats.set_int(MPX .. "CHAR_FM_ABILITY_2_UNLCK", -1)
+	stats.set_int(MPX .. "CHAR_FM_ABILITY_3_UNLCK", -1)
+	globals.set_int(1575032, 1)
+	globals.set_int(1574589, 1)
+	sleep(0.2)
+	globals.set_int(1574589, 0)
+	elseif FRAR == 2 then
+	stats.set_int(MPX .. "CHAR_ABILITY_1_UNLCK", 0)
+	stats.set_int(MPX .. "CHAR_ABILITY_2_UNLCK", 0)
+	stats.set_int(MPX .. "CHAR_ABILITY_3_UNLCK", 0)
+	stats.set_int(MPX .. "CHAR_FM_ABILITY_1_UNLCK", 0)
+	stats.set_int(MPX .. "CHAR_FM_ABILITY_2_UNLCK", 0)
+	stats.set_int(MPX .. "CHAR_FM_ABILITY_3_UNLCK", 0)
+	globals.set_int(1575032, 1)
+	globals.set_int(1574589, 1)
+	sleep(0.2)
+	globals.set_int(1574589, 0)
+	end
+	a74 = FRAR
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -17277,36 +17307,6 @@ CrewRankNote:add_action("  Credits: SilentSalo", null)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-SelfRX = RMenu:add_submenu("Fast Run Ability Unlock Menu")
-
-SelfRX:add_action("Fast Run and Reload", function()
-	stats.set_int(MPX .. "CHAR_ABILITY_1_UNLCK", -1)
-	stats.set_int(MPX .. "CHAR_ABILITY_2_UNLCK", -1)
-	stats.set_int(MPX .. "CHAR_ABILITY_3_UNLCK", -1)
-	stats.set_int(MPX .. "CHAR_FM_ABILITY_1_UNLCK", -1)
-	stats.set_int(MPX .. "CHAR_FM_ABILITY_2_UNLCK", -1)
-	stats.set_int(MPX .. "CHAR_FM_ABILITY_3_UNLCK", -1)
-	globals.set_int(1575032, 1)
-	globals.set_int(1574589, 1)
-	sleep(0.2)
-	globals.set_int(1574589, 0)
-end)
-
-SelfRX:add_action("Reset Fast Run And Reload", function()
-	stats.set_int(MPX .. "CHAR_ABILITY_1_UNLCK", 0)
-	stats.set_int(MPX .. "CHAR_ABILITY_2_UNLCK", 0)
-	stats.set_int(MPX .. "CHAR_ABILITY_3_UNLCK", 0)
-	stats.set_int(MPX .. "CHAR_FM_ABILITY_1_UNLCK", 0)
-	stats.set_int(MPX .. "CHAR_FM_ABILITY_2_UNLCK", 0)
-	stats.set_int(MPX .. "CHAR_FM_ABILITY_3_UNLCK", 0)
-	globals.set_int(1575032, 1)
-	globals.set_int(1574589, 1)
-	sleep(0.2)
-	globals.set_int(1574589, 0)
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 statMenu = RMenu:add_submenu("Online Stats Editor Menu")
 normalstat = statMenu:add_submenu("Character Data Editor Menu")
 distancestat = statMenu:add_submenu("Distance Data Editor Menu")
@@ -23824,7 +23824,7 @@ end)
 CasinoServices:add_action("Lose Slot Machines", function()
 	for i = 3, 196 do
 		if i ~= 67 and i ~= 132 then
-			CS:set_int(CMSRRTl + i, math.random(0, 7))
+			CS:set_int(CMSRRTl + i, 0)
 		end
 	end
 end)
@@ -23836,17 +23836,17 @@ L7NEGMONEYREMOVER = L7NEG:add_submenu("Money Remover Menu")
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 L7NEGMONEYREMOVER:add_int_range("Set Ballastic Value", 1000000, 1000000, 2147483647, function()
-	return globals.get_int(262145 + 20498) ---156036296
+	return globals.get_int(BV)
 end, function(value)
-	globals.set_int(262145 + 20498, value)
+	globals.set_int(BV, value)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 L7NEGMONEYREMOVER:add_int_range("Set Casino Chips Buy Limit", 1000000, 0, 2147483647, function()
-	return globals.get_int(262145 + 27238) --VC_CASINO_CHIP_MAX_BUY_PENTHOUSE
+	return globals.get_int(CCBL)
 end, function(value)
-	globals.set_int(262145 + 27238, value)
+	globals.set_int(CCBL, value)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -26220,47 +26220,6 @@ end, function() end, function() end, function() end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEGREPORTSVIEWMENU:add_action("--------------------------------------------------", function() end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-L7NEGREPORTSVIEWMENU:add_action("Delete Reports", function()
-	stats.set_int("MPPLY_REPORT_STRENGTH", 0)
-	stats.set_int("MPPLY_COMMEND_STRENGTH", 0)
-	stats.set_int("MPPLY_GRIEFING", 0)
-	stats.set_int("MPPLY_VC_ANNOYINGME", 0)
-	stats.set_int("MPPLY_VC_HATE", 0)
-	stats.set_int("MPPLY_TC_ANNOYINGME", 0)
-	stats.set_int("MPPLY_TC_HATE", 0)
-	stats.set_int("MPPLY_OFFENSIVE_LANGUAGE", 0)
-	stats.set_int("MPPLY_OFFENSIVE_TAGPLATE", 0)
-	stats.set_int("MPPLY_OFFENSIVE_UGC", 0)
-	stats.set_int("MPPLY_BAD_CREW_NAME", 0)
-	stats.set_int("MPPLY_BAD_CREW_MOTTO", 0)
-	stats.set_int("MPPLY_BAD_CREW_STATUS", 0)
-	stats.set_int("MPPLY_BAD_CREW_EMBLEM", 0)
-	stats.set_int("MPPLY_GAME_EXPLOITS", 0)
-	stats.set_int("MPPLY_EXPLOITS", 0)
-	stats.set_int("MPPLY_BECAME_BADSPORT_NUM", 0)
-	stats.set_int("MPPLY_DESTROYED_PVEHICLES", 0)
-	stats.set_int("MPPLY_BECAME_CHEATER_NUM", 0)
-	stats.set_int("MPPLY_BADSPORT_MESSAGE", 0)
-	stats.set_int("MPPLY_GAME_EXPLOITS", 0)
-	stats.set_int("MPPLY_PLAYER_MENTAL_STATE", 0)
-	stats.set_int("MPPLY_PLAYERMADE_TITLE", 0)
-	stats.set_int("MPPLY_PLAYERMADE_DESC", 0)
-	stats.set_int("MPPLY_KILLS_PLAYERS_CHEATER", 0)
-	stats.set_int("MPPLY_DEATHS_PLAYERS_CHEATER", 0)
-	stats.set_bool("MPPLY_ISPUNISHED", false)
-	stats.set_bool("MPPLY_WAS_I_BAD_SPORT", false)
-	stats.set_bool("MPPLY_WAS_I_CHEATER", false)
-	stats.set_bool("MPPLY_CHAR_IS_BADSPORT", false)
-	stats.set_int("MPPLY_OVERALL_BADSPORT", 0)
-	stats.set_int("MPPLY_OVERALL_CHEAT", 0)
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 L7NEGH = L7NEG:add_submenu("Heists Data Editor")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -27121,7 +27080,7 @@ end)
 
 L7NEGCAYO:add_action("Instant Finish $$", function()
 	FMC2020:set_int(48513, 9)
-  FMC2020:set_int(48513 + 1765 + 1, 50)
+	FMC2020:set_int(48513 + 1765 + 1, 50)
 end)
 
 L7NEGCAYO:add_action("---", function() end)
@@ -29285,6 +29244,8 @@ local DeletedVehicles = {
 	262145 + 35674,
 	262145 + 35676,
 	262145 + 35678,
+	262145 + 31306,
+	262145 + 32221,
 }
 
 L7NEG3:add_toggle("Enable Deleted Vehicles 1.68", function()
@@ -29330,6 +29291,11 @@ end)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 L7NEGEVENTS = L7NEG:add_submenu("Events Menu")
+
+L7NEGEVENTS:add_action("Spawn Gooch", function()
+    globals.set_int(2698947 + 3 + 1, 171)
+    globals.set_int(2698947 + 2, 6)
+end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -29889,13 +29855,6 @@ end, function(Men)
 	stats.set_float(MPX .. "PLAYER_MENTAL_STATE", Men)
 end)
 
-CharMenu:add_action("", null)
-
-CharMenuNote = CharMenu:add_submenu("Read Me")
-
-CharMenuNote:add_action("                  Fast Run n Reload:", null)
-CharMenuNote:add_action("      Change session to apply the result", null)
-
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ---Facilities Unlocks Section---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -30014,10 +29973,6 @@ LSCMenu:add_action("", function() end)
 LSCNote = LSCMenu:add_submenu("Read Me")
 
 LSCNote:add_action("      Some colors may not be saved", function() end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-CSU:add_action("", function() end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -31155,15 +31110,11 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
---© 2023 L7NEG's Official Discord Server. All Rights Reserved--
+L7NEG5 = L7NEG:add_submenu("Missions Selector And CD Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG5 = L7NEG:add_submenu("Missions Selector And cooldown Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-L7NEG5:add_array_item("Auto Shop Heist Select>", {
+L7NEG5:add_array_item("Auto Shop Heist>", {
 	"Unselected",
 	"Union Depository",
 	"Superdollar Deal",
@@ -31181,7 +31132,7 @@ end, function(v)
 end)
 
 L7NEG5:add_array_item(
-	"ULP Contract Select>",
+	"ULP Contract >",
 	{ "Intelligece", "Counterintelligence", "Extraction", "Asset Seizure", "Operation Paper Trail", "CleanUp" },
 	function()
 		return stats.get_int(MPX .. "ULP_MISSION_CURRENT") + 1
@@ -31233,7 +31184,7 @@ end)
 --Story Characters Money Editor By Silent---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-StoryCharacters = L7NEG:add_submenu("Story Characters Money Editor Menu")
+StoryCharacters = L7NEG:add_submenu("Story Mode Money Editor Menu")
 
 StoryCharacters:add_int_range("Michael's Cash", 10000000, 0, 2147483646, function()
 	return stats.get_int("SP0_TOTAL_CASH")
@@ -31254,31 +31205,35 @@ end, function(MicCas)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CEOM = L7NEG7:add_submenu("CEO Manager Menu")
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Required Script Handles
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-boolCeoBanager = false
-funcCeoBanger = false
+boolCeoManager = false
+
 local scrWarehouse = script("am_mp_warehouse")
 local scrSellContraband = script("gb_contraband_sell")
 local scrSecuroServ = script("appsecuroserv")
 
-local function funcCeoBanger(isRunning)
-	while isRunning == true do
+local function funcCeoManager()
+	while boolCeoManager do
 		local numLifetimeSales = stats.get_int(MPX .. "LIFETIME_SELL_COMPLETE")
 		if scrWarehouse:is_active() then
-			globals.set_int(262145 + 15991, 6000000) --EXEC_CONTRABAND_SALE_VALUE_THRESHOLD1
-			globals.set_int(262145 + 15756, 0) --EXEC_BUY_COOLDOWN
-			globals.set_int(262145 + 15757, 0) --EXEC_SELL_COOLDOWN
+			globals.set_int(262145 + 15991, 6000000)
+			globals.set_int(262145 + 15756, 0)
+			globals.set_int(262145 + 15757, 0)
 		end
 		globals.set_int(4537356, 0)
 		globals.set_int(4537357, 0)
 		globals.set_int(4537358, 0)
 
 		if scrSecuroServ:is_active() then
-			scrSecuroServ:set_int(739, 1) --MP_WH_SELL
+			scrSecuroServ:set_int(739, 1)
 			sleep(1)
-			scrSecuroServ:set_int(740, 1) --MP_WH_SELL
+			scrSecuroServ:set_int(740, 1)
 			sleep(1)
 			scrSecuroServ:set_int(558, 3012)
 		end
@@ -31291,21 +31246,88 @@ local function funcCeoBanger(isRunning)
 			sleep(1)
 			scrSellContraband:set_int(543 + 1, 99999)
 		end
+		sleep(1)
 	end
 end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG7:add_toggle("Start Ceo Manager", function()
-	return boolCeoBanager
+CEOM:add_toggle("Start Ceo Manager", function()
+	return boolCeoManager
 end, function()
-	boolCeoBanager = not boolCeoBanager
-	funcCeoBanger(boolCeoBanager)
+	boolCeoManager = not boolCeoManager
+	if boolCeoManager then
+		funcCeoManager()
+	end
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG9 = L7NEG7:add_submenu("Ultimate Money Manager Settings")
+boolcl = false
+CloopActive = false
+
+local WH = script("am_mp_warehouse")
+
+local function Cloop()
+	while CloopActive do
+		if WH:is_active() then
+			menu.send_key_up(83)
+			menu.send_key_press(69)
+			sleep(2)
+			if not WH:is_active() then
+				menu.send_key_press(13)
+				menu.send_key_down(83)
+			end
+		end
+		sleep(2)
+	end
+end
+
+CEOM:add_toggle("Automatic Sell Crate Afk Male", function()
+	return boolcl
+end, function()
+	boolcl = not boolcl
+	if boolcl then
+		CloopActive = true
+		Cloop()
+	else
+		CloopActive = false
+	end
+end)
+
+boolclFemale = false
+CloopActiveFemale = false
+
+local function CloopFemale()
+	while CloopActiveFemale do
+		if WH:is_active() then
+			menu.send_key_up(87)
+			menu.send_key_press(69)
+			sleep(2)
+			if not WH:is_active() then
+				menu.send_key_press(13)
+				menu.send_key_down(83)
+			end
+		end
+		sleep(2)
+	end
+end
+
+CEOM:add_toggle("Automatic Sell Crate AFK Female", function()
+	return boolclFemale
+end, function()
+	boolclFemale = not boolclFemale
+	if boolclFemale then
+		CloopActiveFemale = true
+		CloopFemale()
+	else
+		CloopActiveFemale = false
+	end
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+L7NEG9 = CEOM:add_submenu("CEO Manager Settings Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -31383,80 +31405,6 @@ NightLoopNote:add_action("  Change this if you aren't getting money", function()
 NightLoopNote:add_action("              Bypass Transaction Error:", function() end)
 NightLoopNote:add_action(" Toggle this if you're still getting an error", function() end)
 NightLoopNote:add_action("Credits: Silent", function() end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-L7NEGMML = L7NEG7:add_submenu("NightClub Manual Safe Loop Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-local isRunning = false
-local function safeLoop()
-	while isRunning do
-		stats.set_int(MPX .. "CLUB_POPULARITY", 1000)
-		stats.set_int(MPX .. "CLUB_PAY_TIME_LEFT", -1)
-		sleep(1.5)
-		stats.set_int(MPX .. "CLUB_POPULARITY", 1000)
-		stats.set_int(MPX .. "CLUB_PAY_TIME_LEFT", -1)
-		sleep(1.5)
-		stats.set_int(MPX .. "CLUB_POPULARITY", 1000)
-		stats.set_int(MPX .. "CLUB_PAY_TIME_LEFT", -1)
-		sleep(1.5)
-		stats.set_int(MPX .. "CLUB_POPULARITY", 1000)
-		stats.set_int(MPX .. "CLUB_PAY_TIME_LEFT", -1)
-		sleep(1.5)
-		stats.set_int(MPX .. "CLUB_POPULARITY", 1000)
-		stats.set_int(MPX .. "CLUB_PAY_TIME_LEFT", -1)
-		sleep(4)
-	end
-end
-
-L7NEGMML:add_toggle("$250k/10s (AFK In Front Of NC Safe)", function()
-	return isRunning
-end, function()
-	isRunning = not isRunning
-	safeLoop()
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-MoneyDrop = L7NEG7:add_submenu("Money Drop Menu")
-
-local function PedDrop()
-	local position = localplayer:get_position()
-	position.z = position.z + 30
-
-	for p in replayinterface.get_peds() do
-		if p == nil or p == localplayer then
-			goto continue
-		end
-
-		if p:get_pedtype() < 4 then
-			goto continue
-		end
-
-		if p:is_in_vehicle() then
-			goto continue
-		end
-
-		p:set_position(position)
-
-		if p:get_health() > 99 then
-			p:set_position(position)
-			p:set_freeze_momentum(true)
-			p:set_health(0)
-			p:set_wallet(1000)
-			break
-		end
-
-		::continue::
-	end
-end
-
--- Uncomment the next line to drop a ped when pressing F3
--- menu.register_hotkey(114, PedDrop)
-
-MoneyDrop:add_action("Money Drop", PedDrop)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -31690,17 +31638,17 @@ L7NEG1:add_action("---Kiddion---", function() end)
 
 L7NEG1:add_action("---AppleVegas---", function() end)
 
-L7NEG1:add_action("---Discord:@B1GBOOM---", function() end)
+L7NEG1:add_action("---B1GBOOM---", function() end)
 
-L7NEG1:add_action("---Discord:@silentsalo---", function() end)
+L7NEG1:add_action("---silentsalo---", function() end)
 
-L7NEG1:add_action("---Discord:@eaztea---", function() end)
+L7NEG1:add_action("---eaztea---", function() end)
 
-L7NEG1:add_action("---Discord:@mxgta---", function() end)
+L7NEG1:add_action("---mxgta---", function() end)
 
-L7NEG1:add_action("---Discord:@generic.goose---", function() end)
+L7NEG1:add_action("---generic.goose---", function() end)
 
-L7NEG1:add_action("---github.com/@ezeholz---", function() end)
+L7NEG1:add_action("---ezeholz---", function() end)
 
 L7NEG1:add_action("https://l7neg.is-a.dev", function() end)
 
@@ -31721,18 +31669,26 @@ L7NEG10:add_action("1-10 per Press", function()
 end)
 
 GCv0 = false
+
 local function GCv1()
-	while GCv0 == true do
-		for i = 12, 16 do
-			stats.set_bool_masked(MPX .. "FIXERPSTAT_BOOL1", true, i, MPX)
-		end
-	end
+    while GCv0 do
+        for i = 12, 16 do
+            stats.set_bool_masked(MPX .. "FIXERPSTAT_BOOL1", true, i, MPX)
+        end
+        sleep(0.5)
+    end
 end
+
 L7NEG10:add_toggle("Crates Loop", function()
-	return GCv0
+    return GCv0
 end, function()
-	GCv0 = not GCv0
-	GCv1(GCv0)
+    GCv0 = not GCv0
+
+    if not GCv0 then
+        return
+    end
+
+    GCv1()
 end)
 
 GCv2 = 1
@@ -31752,22 +31708,18 @@ L7NEG10:add_action("", function() end)
 
 L7NEG10N = L7NEG10:add_submenu("Read Me")
 
-L7NEG10N:add_action("                       Crates Loop:", function() end)
-L7NEG10N:add_action("                	 To turn off the loop,", function() end)
-L7NEG10N:add_action("     close the menu via «Menu Settings»", function() end)
-L7NEG10N:add_action("", function() end)
 L7NEG10N:add_action("                       Instant Buy:", function() end)
 L7NEG10N:add_action("       Start the buy mission first, select", function() end)
 L7NEG10N:add_action("      the number of crates and activate", function() end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG8 = L7NEG7:add_submenu("WareHouse Data Editor")
+L7NEG8 = CEOM:add_submenu("WareHouse Data Editor Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 L7NEG8:add_action("--------------Warehouse Profile Editor--------------", function() end)
-L7NEG8:add_int_range("Change Lifetime Sales", 1, 0, 10000, function()
+L7NEG8:add_int_range("Change Lifetime Sales", 1, 0, 2147483647, function()
 	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
@@ -31782,7 +31734,7 @@ end, function(value)
 	stats.set_int(MPX .. "LIFETIME_SELL_UNDERTAKEN", value)
 end)
 
-L7NEG8:add_int_range("Change Lifetime Earnings Made", 200000.0, 0, 10000000, function()
+L7NEG8:add_int_range("Change Lifetime Earnings Made", 200000, 0, 2147483647, function()
 	PlayerIndex = globals.get_int(1574925)
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
@@ -31800,16 +31752,31 @@ L7NEG8:add_action("Auto-Reset stats-0/0Sales", function()
 	stats.set_int(MPX .. "LIFETIME_SELL_COMPLETE", 0)
 	stats.set_int(MPX .. "LIFETIME_SELL_UNDERTAKEN", 0)
 	stats.set_int(MPX .. "LIFETIME_CONTRA_EARNINGS", 0)
-	globals.set_int(1575032, 11) ----PlayerSessionBlank--------1575052
+	globals.set_int(1575032, 11) ----PlayerSessionBlank--------
 	globals.set_int(1574589, 1) ----PlayerSessionNew----------
 	sleep(0.2)
 	globals.set_int(1574589, 0) ----PlayerSessionNew------
 end)
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--CMSRRTl = casino master slots random results table local----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CMGLPl1 = 278 + 14 -- casino master lucky wheel win state local
-CMGLPl2 = 278 + 45 -- casino master lucky wheel prize state local
+CMSRRTl = 1346
+
+--CMGLPl1 = casino master lucky wheel win state local---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CMGLPl1 = 278 + 14
+
+--CMGLPl2 = casino master lucky wheel prize state local-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CMGLPl2 = 278 + 45
+
+--BV = Ballastic Value----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+BV = 262145 + 20498
+
+--CCBL = Casino Chips Buy Limit-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CCBL = 262145 + 27238
 
 --BAS=Bag Size------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32016,14 +31983,15 @@ end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG7N = L7NEG7:add_submenu("Tutorial ReadMe")
+CEOMN = CEOM:add_submenu("ReadMe")
 
-L7NEG7N:add_action("     Ceo Crates Method       ", function() end)
-L7NEG7N:add_action("   First Enter Your Warehouse   ", function() end)
-L7NEG7N:add_action("Next Start Ultimate Money Manager       ", function() end)
-L7NEG7N:add_action("     Finally Active The Auto Sell Afk       ", function() end)
-L7NEG7N:add_action("", function() end)
-L7NEG7N:add_action("https://l7neg.is-a.dev/discord", function() end)
+CEOMN:add_action("        Ceo Crates Method       ", function() end)
+CEOMN:add_action("   First Enter Your Large Warehouse   ", function() end)
+CEOMN:add_action("   Next Start Ceo Manager       ", function() end)
+CEOMN:add_action("     Finally Active The Auto Sell Afk       ", function() end)
+CEOMN:add_action("Toggle", function() end)
+CEOMN:add_action("", function() end)
+CEOMN:add_action("https://l7neg.is-a.dev/discord", function() end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
