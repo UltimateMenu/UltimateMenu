@@ -29246,6 +29246,10 @@ local DeletedVehicles = {
 	262145 + 35678,
 	262145 + 31306,
 	262145 + 32221,
+	262145 + 19350,
+	262145 + 19351,
+	262145 + 23080,
+	262145 + 23095,
 }
 
 L7NEG3:add_toggle("Enable Deleted Vehicles 1.68", function()
