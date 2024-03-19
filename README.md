@@ -25,13 +25,7 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
   <h1> New ScreenShots V2.0</h1>
 </div>
 
-[![Ultimate Menu V2.0](https://i.imgur.com/hxOYdxr.png)](https://i.imgur.com/hxOYdxr.png)
-[![Ultimate Menu V2.0](https://i.imgur.com/r58RXk0.png)](https://i.imgur.com/r58RXk0.png)
-[![Ultimate Menu V2.0](https://i.imgur.com/T7x7sLs.png)](https://i.imgur.com/T7x7sLs.png)
-[![Ultimate Menu V2.0](https://i.imgur.com/jJ6w7tT.png)](https://i.imgur.com/jJ6w7tT.png)
-[![Ultimate Menu V2.0](https://i.imgur.com/fBr07Gq.png)](https://i.imgur.com/fBr07Gq.png)
 [![Ultimate Menu V2.0](https://i.imgur.com/7LvCnPX.png)](https://i.imgur.com/7LvCnPX.png)
-[![Ultimate Menu V2.0](https://i.imgur.com/BU8RI1R.png)](https://i.imgur.com/BU8RI1R.png)
 --------------------------------------------------------------------------------------------------
 <div align="center"> <h1> <details>
   <summary>Old Versions ScreenShots</summary>
