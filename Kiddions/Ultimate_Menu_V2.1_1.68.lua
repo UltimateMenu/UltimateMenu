@@ -27,7 +27,7 @@ local function Text(text)
 end
 
 Text("-----------------------------------------------------")
-Text("       ✅ Ultimate Menu 1.68 [V2.0] ✅ ")
+Text("       ✅ Ultimate Menu 1.68 [V2.1] ✅ ")
 Text("-----------------------------------------------------")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -128,9 +128,9 @@ end, function(value)
 	end
 end)
 
-a74 = 1
+BadSportt = 1
 Self:add_array_item("Bad Sport", { "Add", "Remove" }, function()
-	return a74
+	return BadSportt
 end, function(BadSport)
 	if BadSport == 1 then
 		stats.set_int("MPPLY_BADSPORT_MESSAGE", -1)
@@ -151,12 +151,12 @@ end, function(BadSport)
 		sleep(3)
 		globals.set_int(1574589, 0)
 	end
-	a74 = BadSport
+	BadSportt = BadSport
 end)
 
-a74 = 1
+FRARR = 1
 Self:add_array_item("Fast Run And Reload", { "Add", "Remove" }, function()
-	return a74
+	return FRARR
 end, function(FRAR)
 	if FRAR == 1 then
 	stats.set_int(MPX .. "CHAR_ABILITY_1_UNLCK", -1)
@@ -181,7 +181,61 @@ end, function(FRAR)
 	sleep(0.2)
 	globals.set_int(1574589, 0)
 	end
-	a74 = FRAR
+	FRARR = FRAR
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+RIAAA = 1
+
+Self:add_array_item("Refill Inv/Armour", { "Max", "x1000" }, function()
+	return RIAAA
+end, function(RIAA)
+	if RIAA == 1 then
+	stats.set_int(MPX .. "NO_BOUGHT_YUM_SNACKS", 30)
+	stats.set_int(MPX .. "NO_BOUGHT_HEALTH_SNACKS", 15)
+	stats.set_int(MPX .. "NO_BOUGHT_EPIC_SNACKS", 5)
+	stats.set_int(MPX .. "NUMBER_OF_CHAMP_BOUGHT", 5)
+	stats.set_int(MPX .. "NUMBER_OF_ORANGE_BOUGHT", 11)
+	stats.set_int(MPX .. "NUMBER_OF_BOURGE_BOUGHT", 10)
+	stats.set_int(MPX .. "NUMBER_OF_SPRUNK_BOUGHT", 10)
+	stats.set_int(MPX .. "CIGARETTES_BOUGHT", 20)
+	stats.set_int(MPX .. "MP_CHAR_ARMOUR_1_COUNT", 10)
+	stats.set_int(MPX .. "MP_CHAR_ARMOUR_2_COUNT", 10)
+	stats.set_int(MPX .. "MP_CHAR_ARMOUR_3_COUNT", 10)
+	stats.set_int(MPX .. "MP_CHAR_ARMOUR_4_COUNT", 10)
+	stats.set_int(MPX .. "MP_CHAR_ARMOUR_5_COUNT", 10)
+	stats.set_int(MPX .. "BREATHING_APPAR_BOUGHT", 20)
+	elseif RIAA == 2 then
+	stats.set_int(MPX .. "NO_BOUGHT_YUM_SNACKS", 1000)
+	stats.set_int(MPX .. "NO_BOUGHT_HEALTH_SNACKS", 1000)
+	stats.set_int(MPX .. "NO_BOUGHT_EPIC_SNACKS", 1000)
+	stats.set_int(MPX .. "NUMBER_OF_CHAMP_BOUGHT", 1000)
+	stats.set_int(MPX .. "NUMBER_OF_ORANGE_BOUGHT", 1000)
+	stats.set_int(MPX .. "NUMBER_OF_BOURGE_BOUGHT", 1000)
+	stats.set_int(MPX .. "NUMBER_OF_SPRUNK_BOUGHT", 1000)
+	stats.set_int(MPX .. "CIGARETTES_BOUGHT", 1000)
+	stats.set_int(MPX .. "MP_CHAR_ARMOUR_1_COUNT", 1000)
+	stats.set_int(MPX .. "MP_CHAR_ARMOUR_2_COUNT", 1000)
+	stats.set_int(MPX .. "MP_CHAR_ARMOUR_3_COUNT", 1000)
+	stats.set_int(MPX .. "MP_CHAR_ARMOUR_4_COUNT", 1000)
+	stats.set_int(MPX .. "MP_CHAR_ARMOUR_5_COUNT", 1000)
+	stats.set_int(MPX .. "BREATHING_APPAR_BOUGHT", 1000)
+	end
+	RIAAA = RIAA
+end)
+
+PHASS = 1
+
+Self:add_array_item("Player", { "Heal", "Suicide" }, function()
+	return PHASS
+end, function(PHAS)
+	if PHAS == 1 then
+	menu.heal_all()
+	elseif PHAS == 2 then
+  menu.suicide_player()
+	end
+	PHASS = PHAS
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -221,14 +275,6 @@ end, function(God)
 	else
 		SemiGodL = true
 	end
-end)
-
-Self:add_action("Heal Player", function()
-	menu.heal_all()
-end)
-
-Self:add_action("Suicide", function()
-	menu.suicide_player()
 end)
 
 Self:add_action("Equip Ballastic Equipment Directly", function()
@@ -323,42 +369,6 @@ end, function(value)
 end)
 
 wantedlevel = 1
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-Self:add_action("Refill Inventory/Armour", function()
-	stats.set_int(MPX .. "NO_BOUGHT_YUM_SNACKS", 30)
-	stats.set_int(MPX .. "NO_BOUGHT_HEALTH_SNACKS", 15)
-	stats.set_int(MPX .. "NO_BOUGHT_EPIC_SNACKS", 5)
-	stats.set_int(MPX .. "NUMBER_OF_CHAMP_BOUGHT", 5)
-	stats.set_int(MPX .. "NUMBER_OF_ORANGE_BOUGHT", 11)
-	stats.set_int(MPX .. "NUMBER_OF_BOURGE_BOUGHT", 10)
-	stats.set_int(MPX .. "NUMBER_OF_SPRUNK_BOUGHT", 10)
-	stats.set_int(MPX .. "CIGARETTES_BOUGHT", 20)
-	stats.set_int(MPX .. "MP_CHAR_ARMOUR_1_COUNT", 10)
-	stats.set_int(MPX .. "MP_CHAR_ARMOUR_2_COUNT", 10)
-	stats.set_int(MPX .. "MP_CHAR_ARMOUR_3_COUNT", 10)
-	stats.set_int(MPX .. "MP_CHAR_ARMOUR_4_COUNT", 10)
-	stats.set_int(MPX .. "MP_CHAR_ARMOUR_5_COUNT", 10)
-	stats.set_int(MPX .. "BREATHING_APPAR_BOUGHT", 20)
-end)
-
-Self:add_action("Refill Inv/Armour x1000", function()
-	stats.set_int(MPX .. "NO_BOUGHT_YUM_SNACKS", 1000)
-	stats.set_int(MPX .. "NO_BOUGHT_HEALTH_SNACKS", 1000)
-	stats.set_int(MPX .. "NO_BOUGHT_EPIC_SNACKS", 1000)
-	stats.set_int(MPX .. "NUMBER_OF_CHAMP_BOUGHT", 1000)
-	stats.set_int(MPX .. "NUMBER_OF_ORANGE_BOUGHT", 1000)
-	stats.set_int(MPX .. "NUMBER_OF_BOURGE_BOUGHT", 1000)
-	stats.set_int(MPX .. "NUMBER_OF_SPRUNK_BOUGHT", 1000)
-	stats.set_int(MPX .. "CIGARETTES_BOUGHT", 1000)
-	stats.set_int(MPX .. "MP_CHAR_ARMOUR_1_COUNT", 1000)
-	stats.set_int(MPX .. "MP_CHAR_ARMOUR_2_COUNT", 1000)
-	stats.set_int(MPX .. "MP_CHAR_ARMOUR_3_COUNT", 1000)
-	stats.set_int(MPX .. "MP_CHAR_ARMOUR_4_COUNT", 1000)
-	stats.set_int(MPX .. "MP_CHAR_ARMOUR_5_COUNT", 1000)
-	stats.set_int(MPX .. "BREATHING_APPAR_BOUGHT", 1000)
-end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -17675,7 +17685,7 @@ Text("Shooting Range After You Activate It")
 Text("Join a New Session To Apply ")
 Text("==========================")
 RONECLICKMenu:add_action("Stats Part 1", function()
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -20094,7 +20104,7 @@ RONECLICKMenu:add_action("Time Related Stats 1", function()
 	stats.set_int("MPPLY_TOTAL_TIME_IN_LOBBY", 1047483647)
 end)
 RONECLICKMenu:add_action("Time Related Stats 2", function()
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -20132,7 +20142,7 @@ RONECLICKMenu:add_action("Time Related Stats 2", function()
 end)
 Text("==========================")
 RONECLICKMenu:add_action("Bools Part 1", function()
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -26500,7 +26510,7 @@ end)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local L7NEGCASINO = L7NEGH:add_submenu("Casino Heist")
-PlayerIndex = globals.get_int(1574925)
+PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 
 if PlayerIndex == 0 then
 	MPX = "MP0_"
@@ -26516,7 +26526,7 @@ Text(" ___________Casino Setup________")
 L7NEGCASINO:add_int_range("Target - Cash1/Gold2/Art3/Diam4", 1, 1, 4, function()
 	return stats.get_int(MPX .. "H3OPT_TARGET")
 end, function(TGT)
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -26539,7 +26549,7 @@ L7NEGCASINO:add_int_range("Random Approach - Normal/Hard", 1, 1, 2, function()
 end, function(H3lvl)
 	LstAp = stats.get_int(MPX .. "H3_LAST_APPROACH")
 	HrdAp = stats.get_int(MPX .. "H3_HARD_APPROACH")
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -26566,7 +26576,7 @@ end)
 L7NEGCASINO:add_int_range("EasyApproach - Snk/BgCon/Aggr", 1, 1, 3, function()
 	return 1
 end, function(Approach)
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -26593,7 +26603,7 @@ end)
 L7NEGCASINO:add_int_range("HardApproach - Snk/BgCon/Aggr", 1, 1, 3, function()
 	return stats.get_int(MPX .. "H3_HARD_APPROACH")
 end, function(Approach)
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -26615,7 +26625,7 @@ end, function(Approach)
 end)
 
 L7NEGCASINO:add_action("             ---[[Complete Board1]]---", function()
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -26627,7 +26637,7 @@ end)
 L7NEGCASINO:add_int_range("Hacker - Rickie 3%/Avi 10%/Paige 9%", 1, 1, 3, function()
 	return stats.get_int(MPX .. "H3OPT_CREWHACKER")
 end, function(Hkr)
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -26646,7 +26656,7 @@ end)
 L7NEGCASINO:add_int_range("Grlla/Clwn/Anml9/Riot/OniF/Hockey", 1, 1, 12, function()
 	return stats.get_int(MPX .. "H3OPT_MASKS")
 end, function(H3Msk)
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -26659,7 +26669,7 @@ end)
 L7NEGCASINO:add_int_range("Weap-Karl/Gus/Char/Ches/Pat", 1, 1, 5, function()
 	return stats.get_int(MPX .. "H3OPT_CREWWEAP")
 end, function(H3Weap)
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -26670,7 +26680,7 @@ end, function(H3Weap)
 end)
 
 L7NEGCASINO:add_action("       ---[[Complete Board2 - Finale]]---", function()
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -27438,7 +27448,11 @@ end)
 
 CPVMenu = L7NEGCAYO:add_submenu("Size/Value Editor")
 
-CPVMenu:add_int_range("Bag Size", 900.0, 1800, 999999999, function()
+CPVMenu:add_action("Max Bag Size", function()
+	globals.set_int(BAS1, 2147483646)
+end)
+
+CPVMenu:add_int_range("Bag Size", 900.0, 1800, 2147483646, function()
 	return globals.get_int(BAS1)
 end, function(value)
 	globals.set_int(BAS1, value)
@@ -29082,178 +29096,218 @@ L7NEG3:add_action("Unlock Police Cars Price Trade", function()
 	stats.set_int(MPX .. "SALV23_GEN_BS", -1)
 end)
 
-L7NEG3:add_action("Unlock 1.68 New Vehicles", function()
-	globals.set_int(262145 + 36301, 1)
-	globals.set_int(262145 + 36286, 1)
-	globals.set_int(262145 + 36291, 1)
-	globals.set_int(262145 + 36302, 1)
-	globals.set_int(262145 + 36296, 1)
-	globals.set_int(262145 + 36295, 1)
-	globals.set_int(262145 + 36300, 1)
-	globals.set_int(262145 + 36293, 1)
-	globals.set_int(262145 + 36296, 1)
-	globals.set_int(262145 + 36298, 1)
-	globals.set_int(262145 + 36292, 1)
-	globals.set_int(262145 + 36287, 1)
-	globals.set_int(262145 + 36285, 1)
-	globals.set_int(262145 + 36297, 1)
-	globals.set_int(262145 + 36304, 1)
-	globals.set_int(262145 + 36303, 1)
-	globals.set_int(262145 + 36289, 1)
-	globals.set_int(262145 + 36288, 1)
-	globals.set_int(262145 + 36290, 1)
-end)
-
 local DeletedVehicles = {
+	262145 + 23096,
 	262145 + 14944,
-	262145 + 17513,
-	262145 + 19350,
-	262145 + 19351,
-	262145 + 23080,
-	262145 + 23095,
-	262145 + 26066,
-	262145 + 31306,
-	262145 + 32221,
-	262145 + 35402,
-	262145 + 35404,
-	262145 + 35406,
-	262145 + 35408,
-	262145 + 35410,
+	262145 + 35450,
+	262145 + 35452,
+	262145 + 35530,
+	262145 + 35428,
+	262145 + 35606,
+	262145 + 35612,
+	262145 + 17686,
+	262145 + 17702,
+	262145 + 35668,
+	262145 + 35492,
+	262145 + 35494,
+	262145 + 35496,
+	262145 + 35544,
+	262145 + 35652,
+	262145 + 35578,
+	262145 + 35574,
+	262145 + 35572,
+	262145 + 35590,
+	262145 + 28910,
+	262145 + 35580,
 	262145 + 35412,
+	262145 + 35630,
+	262145 + 35632,
+	262145 + 35488,
+	262145 + 35444,
+	262145 + 35648,
+	262145 + 35650,
+	262145 + 24303,
+	262145 + 35480,
+	262145 + 17520,
+	262145 + 26040,
 	262145 + 35414,
 	262145 + 35416,
 	262145 + 35418,
 	262145 + 35420,
-	262145 + 35422,
-	262145 + 35424,
-	262145 + 35426,
-	262145 + 35428,
-	262145 + 35430,
-	262145 + 35432,
-	262145 + 35434,
-	262145 + 35436,
-	262145 + 35438,
-	262145 + 35440,
-	262145 + 35442,
-	262145 + 35444,
+	262145 + 35404,
+	262145 + 19350,
+	262145 + 19351,
+	262145 + 23095,
+	262145 + 17519,
 	262145 + 35446,
-	262145 + 35448,
-	262145 + 35450,
-	262145 + 35452,
-	262145 + 35454,
-	262145 + 35456,
-	262145 + 35458,
-	262145 + 35460,
-	262145 + 35462,
-	262145 + 35464,
-	262145 + 35466,
-	262145 + 35468,
-	262145 + 35470,
-	262145 + 35472,
-	262145 + 35474,
-	262145 + 35476,
-	262145 + 35478,
-	262145 + 35480,
-	262145 + 35482,
-	262145 + 35484,
-	262145 + 35486,
-	262145 + 35488,
-	262145 + 35490,
-	262145 + 35492,
-	262145 + 35494,
-	262145 + 35496,
-	262145 + 35498,
-	262145 + 35500,
-	262145 + 35502,
-	262145 + 35504,
-	262145 + 35506,
-	262145 + 35508,
+	262145 + 35410,
+	262145 + 22108,
+	262145 + 17694,
+	262145 + 26042,
 	262145 + 35510,
+	262145 + 35532,
+	262145 + 35576,
+	262145 + 26060,
+	262145 + 35534,
+	262145 + 35482,
+	262145 + 17685,
+	262145 + 35478,
+	262145 + 35402,
+	262145 + 35516,
+	262145 + 24294,
+	262145 + 17688,
+	262145 + 17700,
+	262145 + 35546,
 	262145 + 35512,
 	262145 + 35514,
-	262145 + 35516,
+	262145 + 35430,
+	262145 + 35490,
+	262145 + 35666,
+	262145 + 35644,
+	262145 + 35602,
+	262145 + 35448,
+	262145 + 35642,
+	262145 + 35638,
+	262145 + 35560,
+	262145 + 20422,
+	262145 + 35660,
+	262145 + 35656,
+	262145 + 23087,
+	262145 + 35664,
+	262145 + 35552,
+	262145 + 26059,
+	262145 + 23094,
+	262145 + 35536,
+	262145 + 35592,
+	262145 + 23088,
+	262145 + 28941,
+	262145 + 35484,
+	262145 + 35620,
+	262145 + 35538,
+	262145 + 35614,
+	262145 + 35508,
+	262145 + 26056,
 	262145 + 35518,
-	262145 + 35520,
+	262145 + 35466,
+	262145 + 35440,
+	262145 + 35636,
+	262145 + 35582,
+	262145 + 35662,
+	262145 + 29606,
+	262145 + 28909,
+	262145 + 26052,
+	262145 + 17522,
+	262145 + 35432,
+	262145 + 35634,
+	262145 + 24306,
+	262145 + 14939,
+	262145 + 26058,
+	262145 + 35550,
+	262145 + 26069,
 	262145 + 35522,
+	262145 + 35520,
+	262145 + 26070,
+	262145 + 35670,
+	262145 + 35554,
+	262145 + 35640,
+	262145 + 26062,
+	262145 + 35564,
+	262145 + 35646,
+	262145 + 35506,
+	262145 + 35608,
+	262145 + 35674,
+	262145 + 23091,
+	262145 + 35584,
+	262145 + 35434,
+	262145 + 35436,
+	262145 + 22112,
+	262145 + 17693,
+	262145 + 17703,
+	262145 + 35562,
+	262145 + 17513,
+	262145 + 35586,
+	262145 + 35610,
+	262145 + 22111,
+	262145 + 23089,
+	262145 + 23093,
+	262145 + 35672,
+	262145 + 35600,
+	262145 + 35456,
+	262145 + 35472,
+	262145 + 35548,
+	262145 + 35568,
+	262145 + 20424,
+	262145 + 35588,
+	262145 + 26066,
+	262145 + 35542,
+	262145 + 35540,
+	262145 + 17696,
+	262145 + 35594,
+	262145 + 23092,
+	262145 + 23085,
+	262145 + 35598,
+	262145 + 35424,
+	262145 + 35426,
+	262145 + 35626,
+	262145 + 35658,
+	262145 + 29607,
 	262145 + 35524,
+	262145 + 35654,
+	262145 + 35438,
+	262145 + 35558,
+	262145 + 24387,
+	262145 + 35618,
+	262145 + 35462,
+	262145 + 35460,
+	262145 + 35458,
+	262145 + 35624,
+	262145 + 23082,
+	262145 + 35422,
+	262145 + 35628,
+	262145 + 35604,
+	262145 + 24386,
+	262145 + 35616,
+	262145 + 35406,
+	262145 + 29953,
+	262145 + 21306,
+	262145 + 17701,
+	262145 + 26043,
+	262145 + 17511,
+	262145 + 35486,
+	262145 + 35556,
+	262145 + 27027,
+	262145 + 35454,
+	262145 + 30434,
+	262145 + 35566,
+	262145 + 23097,
+	262145 + 35476,
+	262145 + 35622,
+	262145 + 35596,
+	262145 + 17699,
+	262145 + 21304,
+	262145 + 35502,
+	262145 + 35504,
+	262145 + 35474,
 	262145 + 35526,
 	262145 + 35528,
-	262145 + 35530,
-	262145 + 35532,
-	262145 + 35534,
-	262145 + 35536,
-	262145 + 35538,
-	262145 + 35540,
-	262145 + 35542,
-	262145 + 35544,
-	262145 + 35546,
-	262145 + 35548,
-	262145 + 35550,
-	262145 + 35552,
-	262145 + 35554,
-	262145 + 35556,
-	262145 + 35558,
-	262145 + 35560,
-	262145 + 35562,
-	262145 + 35564,
-	262145 + 35566,
-	262145 + 35568,
+	262145 + 26057,
+	262145 + 17684,
+	262145 + 26054,
+	262145 + 23080,
+	262145 + 31306,
+	262145 + 32221,
+	262145 + 35408,
+	262145 + 35442,
+	262145 + 35464,
+	262145 + 35468,
+	262145 + 35470,
+	262145 + 35498,
+	262145 + 35500,
 	262145 + 35570,
-	262145 + 35572,
-	262145 + 35574,
-	262145 + 35576,
-	262145 + 35578,
-	262145 + 35580,
-	262145 + 35582,
-	262145 + 35584,
-	262145 + 35586,
-	262145 + 35588,
-	262145 + 35590,
-	262145 + 35592,
-	262145 + 35594,
-	262145 + 35596,
-	262145 + 35598,
-	262145 + 35600,
-	262145 + 35602,
-	262145 + 35604,
-	262145 + 35606,
-	262145 + 35608,
-	262145 + 35610,
-	262145 + 35612,
-	262145 + 35614,
-	262145 + 35616,
-	262145 + 35618,
-	262145 + 35620,
-	262145 + 35622,
-	262145 + 35624,
-	262145 + 35626,
-	262145 + 35628,
-	262145 + 35630,
-	262145 + 35632,
-	262145 + 35634,
-	262145 + 35636,
-	262145 + 35638,
-	262145 + 35640,
-	262145 + 35642,
-	262145 + 35644,
-	262145 + 35646,
-	262145 + 35648,
-	262145 + 35650,
-	262145 + 35652,
-	262145 + 35654,
-	262145 + 35656,
-	262145 + 35658,
-	262145 + 35660,
-	262145 + 35662,
-	262145 + 35664,
-	262145 + 35666,
-	262145 + 35668,
-	262145 + 35670,
-	262145 + 35672,
-	262145 + 35674,
 	262145 + 35676,
 	262145 + 35678,
 }
+
 
 L7NEG3:add_toggle("Enable Deleted Vehicles 1.68", function()
 	return globals.get_boolean(262145 + 35402)
@@ -29272,9 +29326,6 @@ end, function(value)
 	end
 	for e = DV9, DV10 do
 		globals.set_boolean(e, value)
-	end
-	for f = DV11, DV12 do
-		globals.set_boolean(f, value)
 	end
 	for q = 1, #DeletedVehicles do
 		globals.set_boolean(DeletedVehicles[q], value)
@@ -31415,6 +31466,149 @@ NightLoopNote:add_action("Credits: Silent", function() end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+RMMM = L7NEG7:add_submenu("Risky Money Methods Menu")
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+local m = 1961347 --SERVICE_SPEND_ORBITAL_AUTO
+local enable1 = false
+local enable2 = false
+local enable3 = false
+local enable4 = false
+local enable5 = false
+local MMmenu = RMMM:add_submenu("Money Loop Menu (Orb Refund)")
+
+local function Loop1()
+    if not localplayer then
+        return
+    end
+    while enable1 do
+        globals.set_int(m, 1)
+        sleep(3)
+        globals.set_int(m, 0)
+        sleep(30)
+    end
+end
+
+MMmenu:add_toggle("$$ 500k/ 30s", function()
+    return enable1
+end, function()
+    enable1 = not enable1
+    if enable1 then
+        Loop1()
+    end
+end)
+
+local function Loop2()
+    if not localplayer then
+        return
+    end
+    while enable2 do
+        globals.set_int(m, 2)
+        sleep(3)
+        globals.set_int(m, 0)
+        sleep(30)
+    end
+end
+
+MMmenu:add_toggle("$$ 750k/ 30s", function()
+    return enable2
+end, function()
+    enable2 = not enable2
+    if enable2 then
+        Loop2()
+    end
+end)
+
+local function Loop3()
+    if not localplayer then
+        return
+    end
+    while enable3 do
+        globals.set_int(m, 1)
+        sleep(3)
+        globals.set_int(m, 0)
+        sleep(3)
+        globals.set_int(m, 1)
+        sleep(3)
+        globals.set_int(m, 0)
+        sleep(60)
+    end
+end
+
+MMmenu:add_toggle("$$ 1M/ 60s", function()
+    return enable3
+end, function()
+    enable3 = not enable3
+    if enable3 then
+        Loop3()
+    end
+end)
+
+local function Loop4()
+    if not localplayer then
+        return
+    end
+    while enable4 do
+        globals.set_int(m, 2)
+        sleep(3)
+        globals.set_int(m, 0)
+        sleep(3)
+        globals.set_int(m, 2)
+        sleep(3)
+        globals.set_int(m, 0)
+        sleep(60)
+    end
+end
+
+MMmenu:add_toggle("$$ 1.5M/ 60s", function()
+    return enable4
+end, function()
+    enable4 = not enable4
+    if enable4 then
+        Loop4()
+    end
+end)
+
+local function Loop5()
+    if not localplayer then
+        return
+    end
+    while enable5 do
+        globals.set_int(m, 2)
+        sleep(3)
+        globals.set_int(m, 0)
+        sleep(3)
+        globals.set_int(m, 2)
+        sleep(3)
+        globals.set_int(m, 0)
+        sleep(3)
+        globals.set_int(m, 2)
+        sleep(3)
+        globals.set_int(m, 0)
+        sleep(3)
+        globals.set_int(m, 2)
+        sleep(3)
+        globals.set_int(m, 0)
+        sleep(120)
+    end
+end
+
+MMmenu:add_toggle("$$ 3M/ 120s", function()
+    return enable5
+end, function()
+    enable5 = not enable5
+    if enable5 then
+        Loop5()
+    end
+end)
+
+MMmenu:add_action("Choose only 1 loop at a time. To stop the", function() end)
+MMmenu:add_action("loop, just uncheck the toggle.", function() end)
+MMmenu:add_action("-----------------> Killa B <-------------------", function() end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 L7negWepMenu:add_action("Unlock Double Action Revolver", function()
 	if stats.get_masked_int(MPX .. "GANGOPSPSTAT_INT102", 24, 8) < 3 then
 		stats.set_masked_int(MPX .. "GANGOPSPSTAT_INT102", 3, 24, 8)
@@ -31661,7 +31855,7 @@ L7NEG1:add_action("https://l7neg.is-a.dev", function() end)
 
 L7NEG1:add_action("Discord Server For Any Help", function() end)
 
-L7NEG1:add_action("https://l7neg.is-a.dev/discord", function() end)
+L7NEG1:add_action("https://dsc.gg/l7neg", function() end)
 
 L7NEG1:add_action("https://discord.gg/wtVd2eNdd5", function() end)
 
@@ -31727,7 +31921,7 @@ L7NEG8 = CEOM:add_submenu("WareHouse Data Editor Menu")
 
 L7NEG8:add_action("--------------Warehouse Profile Editor--------------", function() end)
 L7NEG8:add_int_range("Change Lifetime Sales", 1, 0, 2147483647, function()
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -31742,7 +31936,7 @@ end, function(value)
 end)
 
 L7NEG8:add_int_range("Change Lifetime Earnings Made", 200000, 0, 2147483647, function()
-	PlayerIndex = globals.get_int(1574925)
+	PlayerIndex = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PlayerIndex == 0 then
 		MPX = "MP0_"
 	else
@@ -31814,15 +32008,13 @@ TEQUILA = 262145 + 30259
 DV1 = 262145 + 14936
 DV2 = 262145 + 14941
 DV3 = 262145 + 17682
-DV4 = 262145 + 17703
-DV5 = 262145 + 21304
-DV6 = 262145 + 21309
-DV7 = 262145 + 22103
-DV8 = 262145 + 22122
-DV9 = 262145 + 23071
-DV10 = 262145 + 23098
-DV11 = 262145 + 24292
-DV12 = 262145 + 24307
+DV4 = 262145 + 21309
+DV5 = 262145 + 22103
+DV6 = 262145 + 22122
+DV7 = 262145 + 23071
+DV8 = 262145 + 23098
+DV9 = 262145 + 24292
+DV10 = 262145 + 24307
 
 --HA=Unlock Hats----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -31998,7 +32190,7 @@ CEOMN:add_action("   Next Start Ceo Manager       ", function() end)
 CEOMN:add_action("     Finally Active The Auto Sell Afk       ", function() end)
 CEOMN:add_action("Toggle", function() end)
 CEOMN:add_action("", function() end)
-CEOMN:add_action("https://l7neg.is-a.dev/discord", function() end)
+CEOMN:add_action("https://dsc.gg/l7neg", function() end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

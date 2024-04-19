@@ -22,13 +22,15 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 
 --------------------------------------------------------------------------------------------------
 <div align="center">
-  <h1> New ScreenShots V2.0</h1>
+  <h1> New ScreenShots V2.1</h1>
 </div>
 
-[![Ultimate Menu V2.0](https://i.imgur.com/7LvCnPX.png)](https://i.imgur.com/7LvCnPX.png)
+[![Ultimate Menu V2.1](https://ibb.co/Rhzr2WC)](https://i.ibb.co/GscY7jV/Screenshot-2024-04-20-012839.png)
+[![Ultimate Menu V2.1](https://ibb.co/NY3SMjM)](https://i.ibb.co/GPJTq2q/Screenshot-2024-04-20-013110.png)
 --------------------------------------------------------------------------------------------------
 <div align="center"> <h1> <details>
   <summary>Old Versions ScreenShots</summary>
+
 
 [![Old Versions ScreenShots](https://i.imgur.com/M54nsX6.png)](https://i.imgur.com/M54nsX6.png)
 [![Old Versions ScreenShots](https://i.imgur.com/qszJJNK.png)](https://i.imgur.com/qszJJNK.png)
@@ -106,6 +108,6 @@ No ETA for big updates also because i don't know actually if im going to be able
 --------------------------------------------------------------------------------------------------
 ## About
 -  By the way to anyone who ask's about the Ultimate-Menu script, is not entire mine, there is actually in credits every single person who i taked code from and who helped me with this.
-## Latest Ultimate Menu Kiddions update was on: 12/01/2024
+## Latest Ultimate Menu Kiddions update was on: 20/04/2024
 ## Latest Ultimate Menu YimMenu update was on: 31/12/2023
 
