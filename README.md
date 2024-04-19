@@ -25,8 +25,8 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
   <h1> New ScreenShots V2.1</h1>
 </div>
 
-[![Ultimate Menu V2.1](https://ibb.co/Rhzr2WC)](https://i.ibb.co/GscY7jV/Screenshot-2024-04-20-012839.png)
-[![Ultimate Menu V2.1](https://ibb.co/NY3SMjM)](https://i.ibb.co/GPJTq2q/Screenshot-2024-04-20-013110.png)
+[![Ultimate Menu V2.1](https://i.ibb.co/GscY7jV/Screenshot-2024-04-20-012839.png)](https://ibb.co/Rhzr2WC)
+[![Ultimate Menu V2.1](https://i.ibb.co/GPJTq2q/Screenshot-2024-04-20-013110.png)](https://ibb.co/NY3SMjM)
 --------------------------------------------------------------------------------------------------
 <div align="center"> <h1> <details>
   <summary>Old Versions ScreenShots</summary>
