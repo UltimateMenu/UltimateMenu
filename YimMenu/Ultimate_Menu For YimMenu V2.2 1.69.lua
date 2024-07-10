@@ -8,6 +8,14 @@ else
 	MPX = "MP1_"
 end
 
+--Required Scripts--
+
+        FMC = "fm_mission_controller"
+        FMC2020 = "fm_mission_controller_2020"
+        HIP = "heist_island_planning"
+
+--Globals & Locals & Variables--
+
 FMg = 262145 -- free mode global ("CASH_MULTIPLIER") //correct
 ACg1 = 1928958 + 1 + 1 -- global apartment player 1 cut global
 ACg2 = 1928958 + 1 + 2 -- global apartment player 2 cut global
@@ -55,7 +63,33 @@ DCg2 = 1960755 + 812 + 50 + 2 -- doomsday player 2 cut global
 DCg3 = 1960755 + 812 + 50 + 3 -- doomsday player 3 cut global
 DCg4 = 1960755 + 812 + 50 + 4 -- doomsday player 4 cut global
 
+--BV = Ballastic Value----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 BV = 262145 + 20024
+
+--BAS=Bag Size------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+BAS1 = 262145 + 29211
+
+--PSV=Panther Statue-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PSV = 262145 + 29463
+
+--PDIAMOND=Pink Diamond---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PDIAMOND = 262145 + 29461
+
+--BB=Bearer Bonds---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+BB = 262145 + 29460
+
+--RN=Ruby Necklace--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+RN = 262145 + 29459
+
+--TEQUILA=Tequila---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+TEQUILA = 262145 + 29458
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -511,10 +545,10 @@ script.register_looped("Casino Pacino Thread", function (script)
         PAD.DISABLE_CONTROL_ACTION(0, 204, true)
     end
     if fm_mission_controller_cart_autograb then
-        if locals.get_int("fm_mission_controller", fm_mission_controller_cart_grab) == 3 then
-            locals.set_int("fm_mission_controller", fm_mission_controller_cart_grab, 4)
-        elseif locals.get_int("fm_mission_controller", fm_mission_controller_cart_grab) == 4 then
-            locals.set_float("fm_mission_controller", fm_mission_controller_cart_grab + fm_mission_controller_cart_grab_speed, 2)
+        if locals.get_int(FMC, fm_mission_controller_cart_grab) == 3 then
+            locals.set_int(FMC, fm_mission_controller_cart_grab, 4)
+        elseif locals.get_int(FMC, fm_mission_controller_cart_grab) == 4 then
+            locals.set_float(FMC, fm_mission_controller_cart_grab + fm_mission_controller_cart_grab_speed, 2)
         end
     end
 end)
@@ -4143,13 +4177,13 @@ ApartmentDataEditorMenu:add_separator()
 ApartmentDataEditorMenu:add_text("Extras")
 ApartmentDataEditorMenu:add_button("Bypass Fleeca Hack",
 function ()
-	locals.set_int("fm_mission_controller", AFHl, 7)
+	locals.set_int(FMC, AFHl, 7)
 end
 )
 ApartmentDataEditorMenu:add_sameline()
 ApartmentDataEditorMenu:add_button("Bypass Fleeca Drill",
 function ()
-	locals.set_float("fm_mission_controller", AFDl, 100)
+	locals.set_float(FMC, AFDl, 100)
 end
 )
 ApartmentDataEditorMenu:add_sameline()
@@ -4170,9 +4204,9 @@ end
 ApartmentDataEditorMenu:add_sameline()
 ApartmentDataEditorMenu:add_button("Instant Finish",
 function()
-	locals.set_int("fm_mission_controller", AIFl3, 12)
-	locals.set_int("fm_mission_controller", AIFl4, 99999)
-	locals.set_int("fm_mission_controller", AIFl5, 99999)
+	locals.set_int(FMC, AIFl3, 12)
+	locals.set_int(FMC, AIFl4, 99999)
+	locals.set_int(FMC, AIFl5, 99999)
 end
 )
 ApartmentDataEditorMenu:add_text("Note: After Clicking Unlock All jobs, restart the game")
@@ -4468,6 +4502,16 @@ function ()
 	locals.set_int("gb_casino_heist_planning", DCRBl, 2)
 end
 )
+
+CasinoHeistEditorMenu:add_separator()
+CasinoHeistEditorMenu:add_text("Instant Heist Passed")
+CasinoHeistEditorMenu:add_button("Instant Finish $$",
+function ()
+    locals.set_int(FMC2020, 50150, 9)
+    locals.set_int(FMC2020, 50150 + 1770 + 1, 50)
+    gui.show_message("Instant Heist Passed", "Activated")
+end)
+
 local CasinoHeistExtra = CasinoHeistEditorMenu:add_tab("Extras")
 CasinoHeistExtra:add_text("Make Lester, Driver, Hacker, and Gunman cut to 0%")
 CasinoHeistExtra:add_button("Make Fees to 0",
@@ -4481,23 +4525,23 @@ end
 CasinoHeistExtra:add_text("Hacks")
 CasinoHeistExtra:add_button("Bypass Casino Fingerprint Hack",
 function ()
-	if locals.get_int("fm_mission_controller",DCFHl) == 4 then
-		locals.set_int("fm_mission_controller",DCFHl, 5)
+	if locals.get_int(FMC,DCFHl) == 4 then
+		locals.set_int(FMC,DCFHl, 5)
 	end
 end
 )
 CasinoHeistExtra:add_sameline()
 CasinoHeistExtra:add_button("Bypass Keypad Hack",
 function ()
-	if locals.get_int("fm_mission_controller",DCKHl) ~= 4 then
-		locals.set_int("fm_mission_controller",DCKHl, 5)
+	if locals.get_int(FMC,DCKHl) ~= 4 then
+		locals.set_int(FMC,DCKHl, 5)
 	end
 end
 )
 CasinoHeistExtra:add_sameline()
 CasinoHeistExtra:add_button("Bypass Drill Vault Door",
 function ()
-	locals.set_int("fm_mission_controller",DCDVDl1, locals.get_int("fm_mission_controller",DCDVDl2))
+	locals.set_int(FMC,DCDVDl1, locals.get_int(FMC,DCDVDl2))
 end
 )
 
@@ -4807,7 +4851,7 @@ CayoHeistEditorMenu:add_button("Panther/Gold (L. Hard)", function()
 		
 		-- Payout Values // Set to "Normal" values.  Each value is multiplied by 8, bc there are 8 locations for them.
 		STATS.STAT_SET_INT(joaat(mpx .. "H4LOOT_GOLD_V"), 45375, true)
-		globals.set_int(262145 + 29463, 1900000) -- Panther Value -- 1900000 shows as 2,090,000 in-game on the board. 190,000 difference.
+		globals.set_int(PSV, 1900000) -- Panther Value -- 1900000 shows as 2,090,000 in-game on the board. 190,000 difference.
 		
         STATS.STAT_SET_INT(joaat(mpx .. "H4_MISSIONS"), 65535, true)
         STATS.STAT_SET_INT(joaat(mpx .. "H4_PLAYTHROUGH_STATUS"), 32, true)
@@ -4862,7 +4906,7 @@ CayoHeistEditorMenu:add_button("Diamond/Gold (L. Hard)", function()
 		
 		-- Payout Values // Set to "Normal" values.  Each value is multiplied by 8, bc there are 8 locations for them.
 		STATS.STAT_SET_INT(joaat(mpx .. "H4LOOT_GOLD_V"), 45375, true)
-		globals.set_int(262145 + 29461, 1300000) -- Diamond Value  -- 1300000 shows as 1,430,000 in-game. 130,000 difference.
+		globals.set_int(PDIAMOND, 1300000) -- Diamond Value  -- 1300000 shows as 1,430,000 in-game. 130,000 difference.
 		
         STATS.STAT_SET_INT(joaat(mpx .. "H4_MISSIONS"), 65535, true)
         STATS.STAT_SET_INT(joaat(mpx .. "H4_PLAYTHROUGH_STATUS"), 32, true)
@@ -4917,7 +4961,7 @@ CayoHeistEditorMenu:add_button("Bonds/Gold (L. Hard)", function()
 		
 		-- Payout Values // Set to "Normal" values.  Each value is multiplied by 8, bc there are 8 locations for them.
 		STATS.STAT_SET_INT(joaat(mpx .. "H4LOOT_GOLD_V"), 45375, true)
-		globals.set_int(262145 + 29460, 770000) -- Bonds Value -- 770000 shows as 847,000 in-game.  77,000 difference.
+		globals.set_int(BB, 770000) -- Bonds Value -- 770000 shows as 847,000 in-game.  77,000 difference.
 		
         STATS.STAT_SET_INT(joaat(mpx .. "H4_MISSIONS"), 65535, true)
         STATS.STAT_SET_INT(joaat(mpx .. "H4_PLAYTHROUGH_STATUS"), 32, true)
@@ -4972,7 +5016,7 @@ CayoHeistEditorMenu:add_button("Necklace/Gold (L. Hard)", function()
 		
 		-- Payout Values // Set to "Normal" values.  Each value is multiplied by 8, bc there are 8 locations for them.
 		STATS.STAT_SET_INT(joaat(mpx .. "H4LOOT_GOLD_V"), 45375, true)
-		globals.set_int(262145 + 29459, 700000) -- Necklace Value -- 700000 shows as 770,000 in-game. 70,000 difference.
+		globals.set_int(RN, 700000) -- Necklace Value -- 700000 shows as 770,000 in-game. 70,000 difference.
 		
         STATS.STAT_SET_INT(joaat(mpx .. "H4_MISSIONS"), 65535, true)
         STATS.STAT_SET_INT(joaat(mpx .. "H4_PLAYTHROUGH_STATUS"), 32, true)
@@ -5027,7 +5071,7 @@ CayoHeistEditorMenu:add_button("Tequila/Gold (L. Hard)", function()
 		
 		-- Payout Values // Set to "Normal" values.  Each value is multiplied by 8, bc there are 8 locations for them.
 		STATS.STAT_SET_INT(joaat(mpx .. "H4LOOT_GOLD_V"), 45375, true)
-		globals.set_int(262145 + 29458, 693000) -- Tequila Value -- 630000 shows as 693,000. 63,000 difference.
+		globals.set_int(TEQUILA, 693000) -- Tequila Value -- 630000 shows as 693,000. 63,000 difference.
 		
         STATS.STAT_SET_INT(joaat(mpx .. "H4_MISSIONS"), 65535, true)
         STATS.STAT_SET_INT(joaat(mpx .. "H4_PLAYTHROUGH_STATUS"), 32, true)
@@ -5052,13 +5096,13 @@ end)
 
 CayoHeistEditorMenu:add_sameline()
 CayoHeistEditorMenu:add_button("Skip Fingerprint Scanner", function()
-   locals.set_int(FMC2020, 24333, 5)
+   locals.set_int(FMC2020, CPFHl, 5)
    gui.show_message("Cayo Heist", "Bypassed Fingerprint Scanner")
 end)
 
 CayoHeistEditorMenu:add_sameline()
 CayoHeistEditorMenu:add_button("Skip Glass Cut", function()
-    locals.set_float(FMC2020, 30357 + 3, 100.0)
+    locals.set_float(FMC2020, CPPCCl, 100.0)
 	gui.show_message("Cayo Heist", "Bypassed Plasma Cutter")
 end)
 
@@ -5119,17 +5163,33 @@ CayoHeistEditorMenu:add_text("How to Set Up or Bypass Cooldown:")
 CayoHeistEditorMenu:add_text("Make sure you have completed the heist and you are standing in front of the planning screen")
 CayoHeistEditorMenu:add_text("Click Skip Cooldown, then click on your Preset and click Reset Kosatka Board")
 
+CayoHeistEditorMenu:add_separator()
+CayoHeistEditorMenu:add_text("Instant Heist Passed")
+CayoHeistEditorMenu:add_button("Instant Finish $$", function()
+    locals.set_int(FMC2020, 50150, 9)
+    locals.set_int(FMC2020, 50150 + 1770 + 1, 50)
+    gui.show_message("Instant Heist Passed", "Activated")
+end)
+
 -- Cayo Bag Size & Value Editor
 local cayoSizeEditor = CayoHeistEditorMenu:add_tab("Size/Value Editor")
 cayoSizeEditor:add_text("Bag Size Editor")
 bagSizeVal = 1800
 cayoSizeEditor:add_imgui(function()
-bagSizeVal, used = ImGui.SliderInt("Bag Size", bagSizeVal, 1800, 7200) -- 7200 = 4 players, this works if you want more money solo and it adjusts so you can always have full bags
-    out = "Reset the board to see changes"
-    
+bagSizeVal, used = ImGui.SliderInt("Bag Size", bagSizeVal, 1800, 7200) -- 7200 = 4 players, this works if you want more money solo and it adjusts so you can always have full bags    
     if used then
-        globals.set_int(262145 + 29211, bagSizeVal)
-        gui.show_message('Bag Size Modified!', out)
+        globals.set_int(BAS1, bagSizeVal)
+        gui.show_message('Bag Size Modified!')
+    end
+end)
+
+cayoSizeEditor:add_text("Custom Bag Size Editor")
+custombagSizeVal = 1800
+cayoSizeEditor:add_imgui(function()
+custombagSizeVal, used = ImGui.SliderInt("Custom Bag Size", custombagSizeVal, 1800, 2147483646)
+    if used then
+        globals.set_int(BAS1, custombagSizeVal)
+        gui.show_message('Custom Bag Size Modified!')
     end
 end)
 
@@ -5141,7 +5201,7 @@ pantherSizeVal, used = ImGui.SliderInt("Panther Value", pantherSizeVal, 1900000,
     out = "Reset the board to see changes"
     
     if used then
-        globals.set_int(262145 + 29463, pantherSizeVal)
+        globals.set_int(PSV, pantherSizeVal)
 		gui.show_message('Panther Value Modified!', out)
     end
 end)
@@ -5152,7 +5212,7 @@ diamondSizeVal, used = ImGui.SliderInt("Diamond Value", diamondSizeVal, 1300000,
     out = "Reset the board to see changes"
     
     if used then
-        globals.set_int(262145 + 29461, diamondSizeVal)
+        globals.set_int(PDIAMOND, diamondSizeVal)
 		gui.show_message('Diamond Value Modified!', out)
     end
 end)
@@ -5163,7 +5223,7 @@ bondSizeVal, used = ImGui.SliderInt("Bonds Value", bondSizeVal, 770000, 1540000)
     out = "Reset the board to see changes"
     
     if used then
-        globals.set_int(262145 + 29460, bondSizeVal)
+        globals.set_int(BB, bondSizeVal)
 		gui.show_message('Bonds Value Modified!', out)
     end
 end)
@@ -5174,7 +5234,7 @@ necklaceSizeVal, used = ImGui.SliderInt("Necklace Value", necklaceSizeVal, 70000
     out = "Reset the board to see changes"
     
     if used then
-        globals.set_int(262145 + 29459, necklaceSizeVal)
+        globals.set_int(RN, necklaceSizeVal)
 		gui.show_message('Necklace Value Modified!', out)
     end
 end)
@@ -5185,7 +5245,7 @@ tequilaSizeVal, used = ImGui.SliderInt("Tequila Value", tequilaSizeVal, 693000, 
     out = "Reset the board to see changes"
     
     if used then
-        globals.set_int(262145 + 29458, tequilaSizeVal)
+        globals.set_int(TEQUILA, tequilaSizeVal)
 		gui.show_message('Tequila Value Modified!', out)
     end
 end)
@@ -5324,26 +5384,37 @@ function ()
 	globals.set_int(DCg3, dmsdyCut3:get_value())
 	globals.set_int(DCg4, dmsdyCut4:get_value())
 end)
+
 DoomsdayHeistEditorMenu:add_separator()
 DoomsdayHeistEditorMenu:add_text("Preps")
 DoomsdayHeistEditorMenu:add_button("Reset Preps",
 function ()
 	DoomsdayActSetter(240, 0)
-end
-)
+end)
+
 DoomsdayHeistEditorMenu:add_sameline()
 DoomsdayHeistEditorMenu:add_button("Complete Preps",
 function ()
 	stats.set_int(MPX .. "GANGOPS_FM_MISSION_PROG", -1)
-end
-)
+end)
+
 DoomsdayHeistEditorMenu:add_separator()
 DoomsdayHeistEditorMenu:add_text("By pass Doomsday Scenario hack")
 DoomsdayHeistEditorMenu:add_button("By Act III Pass hack",
 function ()
-	locals.set_int("fm_mission_controller", DDSHl, 3)
-end
-)
+	locals.set_int(FMC, DDSHl, 3)
+end)
+
+DoomsdayHeistEditorMenu:add_separator()
+DoomsdayHeistEditorMenu:add_text("Instant Heist Passed")
+DoomsdayHeistEditorMenu:add_button("Instant Finish $$",
+function ()
+    locals.set_int(FMC, 19746, 12)
+    locals.set_int(FMC, 19746 + 2686, 10000000)
+    locals.set_int(FMC, 28365 + 1, 99999)
+    locals.set_int(FMC, 31621 + 69, 99999)
+    gui.show_message("Instant Heist Passed", "Activated")
+end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
