@@ -1796,10 +1796,6 @@ CeoManagerMenu = L7NEG7:add_tab("Ceo Manager Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-NightClubSafeLoopMenu = L7NEG7:add_tab("NightClub Safe Loop Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 --©️ 2024 ΞΛZТΞΛ#0157/SLON
 CEO1=262145+15732
 CEO2=262145+15499
@@ -4047,18 +4043,6 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-NightClubSafeLoopMenu:add_checkbox("Enable Nitghtclub $250k/15s (Safe AFK)")
-script.register_looped("nightclubloop", function(script)
-	script:yield()
-	if checkbox:is_enabled() == true then
-		STATS.STAT_SET_INT(joaat(MPX .. "CLUB_POPULARITY"), 1000, true)
-		STATS.STAT_SET_INT(joaat(MPX .. "CLUB_PAY_TIME_LEFT"), -1, true)
-		script:sleep(2500)
-	end
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 WareHouseDataEditorMenu = CeoManagerMenu:add_tab("WareHouse Data Editor")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -5062,7 +5046,7 @@ end)
 CayoHeistEditorMenu:add_separator()
 CayoHeistEditorMenu:add_text("During Heist")
 CayoHeistEditorMenu:add_button("Skip Drainage Cut", function()
-    locals.set_int(FMC2020, 29118, 6)
+    locals.set_int(FMC2020, CPSTCl, 6)
 	gui.show_message("Cayo Heist", "Bypassed Drainage Cut")
 end)
 
