@@ -67,6 +67,11 @@ DCg4 = 1960755 + 812 + 50 + 4 -- doomsday player 4 cut global
 
 BV = 262145 + 20024
 
+--CCBL = Casino Chips Buy Limit-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CCBL0 = 262145 + 26535
+CCBL1 = 262145 + 26536
+
 --BAS=Bag Size------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 BAS1 = 262145 + 29211
@@ -276,6 +281,22 @@ globals_tuneable        = 262145
 fm_mission_controller_cart_grab       = 10255
 fm_mission_controller_cart_grab_speed = 14
 fm_mission_controller_cart_autograb   = false
+
+CasinoServicesMenu:add_separator()
+CasinoServicesMenu:add_text("Casino Chips")
+chipsVal = 1800
+CasinoServicesMenu:add_imgui(function()
+chipsVal, used = ImGui.SliderInt("Casino Chips Buy Limit", chipsVal, 1800, 2147483647)  
+    if used then
+        globals.set_int(CCBL0, chipsVal)
+        globals.set_int(CCBL1, chipsVal)
+    end
+end)
+
+bypass_casino_bans = CasinoServicesMenu:add_checkbox("Bypass Casino Cooldown")
+CasinoServicesMenu:add_text("Winning too much too quickly might get you banned, enable this at your own risk.")
+CasinoServicesMenu:add_separator()
+
  
 bypass_casino_bans = CasinoServicesMenu:add_checkbox("Bypass Casino Cooldown")
 CasinoServicesMenu:add_text("Winning too much too quickly might get you banned, enable this at your own risk.")
