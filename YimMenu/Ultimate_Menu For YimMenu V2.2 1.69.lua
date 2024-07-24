@@ -948,6 +948,20 @@ AcMenu = CSU:add_tab("Achievements")
 Acv0 = false
 AG = 4543384 + 1
 
+
+AcMenu:add_button("Unlock All Achievements", function()
+	script.run_in_fiber(function(script)
+		for i = 0, 77 do
+			script:sleep(200)
+			globals.set_int(AG, i)
+		if i == 77 then
+			gui.show_message("Achivements", "Unlocked 77 Achivements")
+		end
+		end
+	end)
+end)
+
+
 AcMMenu = AcMenu:add_tab("Unlock One By One Menu")
 
 AcMMenu:add_button("Welcome to Los Santos", function()
