@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://ghrmt.vercel.app"><img src="https://readme-typing-svg.vercel.app/?lines=Ultimate+Menu+Script;Most+Useful+Script;Written+By+L7NEG&font=Fira%20Code&size=31&center=true&width=380&height=50&duration=4000&pause=1000" alt="Readme Typing Svg Vercel Version By L7NEG"></a>
+  <a href="https://ghrmt.vercel.app"><img src="https://readme-typing-svg.vercel.app/?lines=Ultimate+Menu+Script;Most+Useful+Script&font=Fira%20Code&size=31&center=true&width=380&height=50&duration=4000&pause=1000" alt="Readme Typing Svg Vercel Version By L7NEG"></a>
 </div>
 
 <div align="center">
@@ -10,6 +10,11 @@
   <h1><a href="https://www.unknowncheats.me/forum/grand-theft-auto-v/597103-ultimate-menu-yimmenu.html">Ultimate Menu For YimMenu</a></h1>
 </div>
 
+> [!WARNING]  
+> RIP Cargo Method 
+> Yes You Heard it Right Unfotunately The Most Used Money Method Among Modders Just Got Detected So > Just Stay Away From Any Ceo 6 mil script including UltimateMenu if you want to use it just use it with your own risk 
+> until then you can just use nightclub safe loop or modded heists cuts 
+> it was the beast from late 2022 when it was 10 mil per crate till it got just detected on 13/8/2024 > which is just 6 mil per crate xD gg rockstar
 
 # How To Use Ultimate Menu Script
 For every Version of the ultimate menu (Kiddion/YimMenu) there is a different use and ways to fully Run It. 
