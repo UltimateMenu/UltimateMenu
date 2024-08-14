@@ -8533,7 +8533,7 @@ if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("casino_
 				sum = sum + locals.get_int("casino_slots", slots_random_results_table + slots_iter)
 			end
 		end
-		needs_run = sum == 1152
+		needs_run = sum == 1348
 	end
 	if needs_run then
 		for slots_iter = 3, 196, 1 do
@@ -9035,9 +9035,9 @@ AcMenu:add_button("Unlock All Achievements", function()
 		for i = 0, 77 do
 			script:sleep(200)
 			globals.set_int(AG, i)
-		if i == 77 then
-			gui.show_message("Achivements", "Unlocked 77 Achivements")
-		end
+			if i == 77 then
+				gui.show_message("Achivements", "Unlocked 77 Achivements")
+			end
 		end
 	end)
 end)
@@ -12486,7 +12486,106 @@ L7NEG7 = L7NEG:add_tab("Ultimate Money Methods Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CeoManagerMenu = L7NEG7:add_tab("Ceo Manager Menu")
+AirCargoMenu = L7NEG7:add_tab("Air Cargo Menu")
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CARGO1 = 262145 + 22493
+CARGO2 = 262145 + 22494
+CARGO3 = 262145 + 22495
+CARGO4 = 262145 + 22496
+CARGO5 = 262145 + 22497
+CARGO6 = 262145 + 22498
+CARGO7 = 262145 + 22499
+CARGO8 = 262145 + 22500
+
+local hanvalue = AirCargoMenu:add_input_int("Crate Value")
+
+AirCargoMenu:add_button("Set Value", function()
+	local HangarCrateVlaue = hanvalue:get_value()
+		globals.get_int(CARGO1, HangarCrateVlaue)
+	    globals.set_int(CARGO2, HangarCrateVlaue)
+	    globals.set_int(CARGO3, HangarCrateVlaue)
+	    globals.get_int(CARGO4, HangarCrateVlaue)
+	    globals.set_int(CARGO5, HangarCrateVlaue)
+	    globals.set_int(CARGO6, HangarCrateVlaue)
+	    globals.get_int(CARGO7, HangarCrateVlaue)
+	    globals.set_int(CARGO8, HangarCrateVlaue)
+		gui.show_message(
+			"Crate Value Setter",
+			"Your Crates Values was set to " .. HangarCrateVlaue .. ".")
+end)
+
+AirCargoMenu:add_separator()
+
+RCRT = AirCargoMenu:add_checkbox("Remove Ron's Cut")
+script.register_looped("RonCutRemover", function(script)
+	script:yield()
+	if RCRT:is_enabled() then
+		globals.set_float(262145 + 22475, 0)
+	else
+		globals.set_float(262145 + 22475, 0.025)
+	end
+end)
+
+AirCargoMenu:add_separator()
+
+PRPGD = AirCargoMenu:add_checkbox("Disable Player RP Gain")
+script.register_looped("PlayerRPGainDisabler", function(script)
+	script:yield()
+	if PRPGD:is_enabled() then
+		globals.set_float(FMg + 1, 0)
+	else
+		globals.set_float(FMg + 1, 1)
+	end
+end)
+
+AirCargoMenu:add_separator()
+
+AirCargoMenu:add_button("Open Hangar Screen", function()
+	SCRIPT.REQUEST_SCRIPT("apparcadebusinesshub")
+	SYSTEM.START_NEW_SCRIPT("apparcadebusinesshub", 8344)
+end)
+
+AirCargoEditorMenu = AirCargoMenu:add_tab("Air Cargo Data Editor")
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+AirCargoEditorMenu:add_button("Reset Crate Sell Stats-0/0 Sales", function()
+	stats.set_int(MPX() .. "LFETIME_HANGAR_BUY_COMPLET", 0)
+	stats.set_int(MPX() .. "LFETIME_HANGAR_BUY_UNDERTAK", 0)
+	stats.set_int(MPX() .. "LFETIME_HANGAR_SEL_COMPLET", 0)
+	stats.set_int(MPX() .. "LFETIME_HANGAR_SEL_UNDERTAK", 0)
+	stats.set_int(MPX() .. "LFETIME_HANGAR_EARNINGS", 0)
+	stats.set_int(MPX() .. "HANGAR_CONTRABAND_TOTAL", 0)
+	stats.set_int(MPX() .. "LFETIME_HANGAR_EARN_BONUS", 0)
+	stats.set_int(MPX() .. "RIVAL_HANGAR_CRATES_STOLEN", 0)
+	globals.set_int(1575035, 11) ----PlayerSessionBlank--------
+	globals.set_int(1574589, 1) ----PlayerSessionNew----------
+	globals.set_int(1574589, 0) ----PlayerSessionNew------
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+NightClubSafeMenu = L7NEG7:add_tab("NightClub Safe Loop Menu")
+
+NCSCB = NightClubSafeMenu:add_checkbox("Enable Nitghtclub $250k/15s (Safe AFK)")
+script.register_looped("nightclubloop", function(script)
+	script:yield()
+	if NCSCB:is_enabled() == true then
+		stats.set_int(MPX() .. "CLUB_POPULARITY", 1000)
+		stats.set_int(MPX() .. "CLUB_PAY_TIME_LEFT", -1)
+		script:sleep(2500)
+	end
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+UseAtYourOwnRiskMenu = L7NEG7:add_tab("Use At Your Own Risk Menu")
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CeoManagerMenu = UseAtYourOwnRiskMenu:add_tab("Ceo Manager Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12999,22 +13098,7 @@ WareHouseDataEditorMenu:add_button("Reset Crate Sell Stats-0/0 Sales", function(
 	stats.set_int(MPX() .. "LIFETIME_CONTRA_EARNINGS", 0)
 	globals.set_int(1575035, 11) ----PlayerSessionBlank--------
 	globals.set_int(1574589, 1) ----PlayerSessionNew----------
-	sleep(2)
 	globals.set_int(1574589, 0) ----PlayerSessionNew------
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-NightClubSafeMenu = L7NEG7:add_tab("NightClub Safe Loop Menu")
-
-NCSCB = NightClubSafeMenu:add_checkbox("Enable Nitghtclub $250k/15s (Safe AFK)")
-script.register_looped("nightclubloop", function(script)
-	script:yield()
-	if NCSCB:is_enabled() == true then
-		stats.set_int(MPX() .. "CLUB_POPULARITY", 1000)
-		stats.set_int(MPX() .. "CLUB_PAY_TIME_LEFT", -1)
-		script:sleep(2500)
-	end
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
