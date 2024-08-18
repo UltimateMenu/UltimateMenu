@@ -8267,6 +8267,9 @@ RankSetter:add_button("Set Rank", function()
 		)
 	else
 		stats.set_int(MPX() .. "CHAR_SET_RP_GIFT_ADMIN", rp[rankValue] or 0)
+		globals.set_int(1575035, 11) ----PlayerSessionBlank--------
+	    globals.set_int(1574589, 1) ----PlayerSessionNew----------
+	    globals.set_int(1574589, 0) ----PlayerSessionNew------
 		gui.show_message(
 			"Rank Correction",
 			"Your Rank was set to " .. rankValue .. ", changing session and applying RP."
