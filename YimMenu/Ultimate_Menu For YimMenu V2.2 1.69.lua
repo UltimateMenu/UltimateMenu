@@ -198,6 +198,40 @@ Self:add_button("Refill Inv/Armour x1000", function()
 	stats.set_int(MPX() .. "BREATHING_APPAR_BOUGHT", 1000)
 end)
 
+Self:add_separator()
+
+Self:add_text("Bad Sport!")
+
+BadSportCombo = 0
+Self:add_imgui(function()
+    ImGui.PushItemWidth(140);
+    BadSportCombo = ImGui.Combo("##BadSport", BadSportCombo, { "Remove", "Add"}, 2)
+end)
+
+local function BadSport(State, Overall, Bool)
+	script.run_in_fiber(function(script)
+	gui.show_message("Bad Sport!", "Awaiting Session Change");
+	script:sleep(1000);
+	stats.set_int("MPPLY_BADSPORT_MESSAGE", State)
+	stats.set_int("MPPLY_BADSPORT_MESSAGE", State)
+	stats.set_float("MPPLY_OVERALL_BADSPORT", Overall)
+	stats.set_bool("MPPLY_CHAR_IS_BADSPORT", Bool)
+	globals.set_int(1574589, 1)
+	script:sleep(300);
+	globals.set_int(1574589, 0)
+	end)
+end
+
+Self:add_sameline()
+
+Self:add_button("Execute", function()
+		if BadSportCombo == 0 then 
+			BadSport(0, 0, false) -- Removes Bad Sport
+		else
+			BadSport(1, 3000, true) -- Add's Bad Sport
+		end
+end)
+
 StoryCharacters = L7NEG:add_tab("Story Mode")
 
 CurrentSPMoneyValue = stats.get_int(SPX() .. "TOTAL_CASH")
@@ -12565,6 +12599,11 @@ script.register_looped("nightclubloop", function(script)
 		stats.set_int(MPX() .. "CLUB_PAY_TIME_LEFT", -1)
 		script:sleep(2500)
 	end
+end)
+
+NightClubSafeMenu:add_button("Open Nightclub Screen", function()
+	SCRIPT.REQUEST_SCRIPT("appBusinessHub")
+	SYSTEM.START_NEW_SCRIPT("appBusinessHub", 1424)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
