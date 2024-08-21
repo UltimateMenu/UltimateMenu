@@ -8268,8 +8268,8 @@ RankSetter:add_button("Set Rank", function()
 	else
 		stats.set_int(MPX() .. "CHAR_SET_RP_GIFT_ADMIN", rp[rankValue] or 0)
 		globals.set_int(1575035, 11) ----PlayerSessionBlank--------
-	    globals.set_int(1574589, 1) ----PlayerSessionNew----------
-	    globals.set_int(1574589, 0) ----PlayerSessionNew------
+		globals.set_int(1574589, 1) ----PlayerSessionNew----------
+		globals.set_int(1574589, 0) ----PlayerSessionNew------
 		gui.show_message(
 			"Rank Correction",
 			"Your Rank was set to " .. rankValue .. ", changing session and applying RP."
@@ -8429,13 +8429,12 @@ CasinoServicesMenu = OnlineServicesMenu:add_tab("Casino Services Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+local cslots = "casino_slots"
 slots_random_results_table = 1348
-
 prize_wheel_win_state = 280
 prize_wheel_prize = 14
 prize_wheel_prize_state = 45
 
-CasinoServicesMenu:add_separator()
 CasinoServicesMenu:add_text("Casino Chips")
 chipsVal = 1800
 CasinoServicesMenu:add_imgui(function()
@@ -8446,13 +8445,37 @@ CasinoServicesMenu:add_imgui(function()
 	end
 end)
 
-bypass_casino_bans = CasinoServicesMenu:add_checkbox("Bypass Casino Cooldown")
+CasinoServicesMenu:add_button("Bypass Casino Cooldown", function()
+	stats.set_int("MPPLY_CASINO_CHIPS_WON_GD", 0)
+	stats.set_int("MPPLY_CASINO_CHIPS_WONTIM", 0)
+	stats.set_int("MPPLY_CASINO_GMBLNG_GD", 0)
+	stats.set_int("MPPLY_CASINO_BAN_TIME", 0)
+	stats.set_int("MPPLY_CASINO_CHIPS_PURTIM", 0)
+	stats.set_int("MPPLY_CASINO_CHIPS_PUR_GD", 0)
+	stats.set_int("MPPLY_CASINO_CHIPS_SOLD", 0)
+	stats.set_int("MPPLY_CASINO_CHIPS_SELTIM", 0)
+end)
 CasinoServicesMenu:add_text("Winning too much too quickly might get you banned, enable this at your own risk.")
-CasinoServicesMenu:add_separator()
 
 CasinoServicesMenu:add_separator()
+
 CasinoServicesMenu:add_text("Slots")
-rig_slot_machine = CasinoServicesMenu:add_checkbox("Rig Slot Machines")
+
+CasinoServicesMenu:add_button("Rig Slot Machines", function()
+	for i = 3, 196 do
+		if i ~= 67 and i ~= 132 then
+			locals.set_int(cslots, slots_random_results_table + i, 6)
+		end
+	end
+end)
+
+CasinoServicesMenu:add_button("Lose Slot Machines", function()
+	for i = 3, 196 do
+		if i ~= 67 and i ~= 132 then
+			locals.set_int(cslots, slots_random_results_table + i, 0)
+		end
+	end
+end)
 
 CasinoServicesMenu:add_separator()
 CasinoServicesMenu:add_text("Lucky Wheel")
@@ -8518,42 +8541,6 @@ CasinoServicesMenu:add_button("Give Clothing", function()
 		end
 	end)
 end)
-
-if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("casino_slots")) ~= 0 then
-	local needs_run = false
-	if rig_slot_machine:is_enabled() then
-		for slots_iter = 3, 196, 1 do
-			if slots_iter ~= 67 and slots_iter ~= 132 then
-				if locals.get_int("casino_slots", slots_random_results_table + slots_iter) ~= 6 then
-					needs_run = true
-				end
-			end
-		end
-	else
-		local sum = 0
-		for slots_iter = 3, 196, 1 do
-			if slots_iter ~= 67 and slots_iter ~= 132 then
-				sum = sum + locals.get_int("casino_slots", slots_random_results_table + slots_iter)
-			end
-		end
-		needs_run = sum == 1348
-	end
-	if needs_run then
-		for slots_iter = 3, 196, 1 do
-			if slots_iter ~= 67 and slots_iter ~= 132 then
-				local slot_result = 6
-				if rig_slot_machine:is_enabled() == false then
-					math.randomseed(os.time() + slots_iter)
-					slot_result = math.random(0, 7)
-				end
-				locals.set_int("casino_slots", slots_random_results_table + slots_iter, slot_result)
-			end
-		end
-	end
-end
-if bypass_casino_bans:is_enabled() then
-	stats.set_int("MPPLY_CASINO_CHIPS_WON_GD", 0)
-end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -12506,17 +12493,15 @@ local hanvalue = AirCargoMenu:add_input_int("Crate Value")
 
 AirCargoMenu:add_button("Set Value", function()
 	local HangarCrateVlaue = hanvalue:get_value()
-		globals.get_int(CARGO1, HangarCrateVlaue)
-	    globals.set_int(CARGO2, HangarCrateVlaue)
-	    globals.set_int(CARGO3, HangarCrateVlaue)
-	    globals.get_int(CARGO4, HangarCrateVlaue)
-	    globals.set_int(CARGO5, HangarCrateVlaue)
-	    globals.set_int(CARGO6, HangarCrateVlaue)
-	    globals.get_int(CARGO7, HangarCrateVlaue)
-	    globals.set_int(CARGO8, HangarCrateVlaue)
-		gui.show_message(
-			"Crate Value Setter",
-			"Your Crates Values was set to " .. HangarCrateVlaue .. ".")
+	globals.get_int(CARGO1, HangarCrateVlaue)
+	globals.set_int(CARGO2, HangarCrateVlaue)
+	globals.set_int(CARGO3, HangarCrateVlaue)
+	globals.get_int(CARGO4, HangarCrateVlaue)
+	globals.set_int(CARGO5, HangarCrateVlaue)
+	globals.set_int(CARGO6, HangarCrateVlaue)
+	globals.get_int(CARGO7, HangarCrateVlaue)
+	globals.set_int(CARGO8, HangarCrateVlaue)
+	gui.show_message("Crate Value Setter", "Your Crates Values was set to " .. HangarCrateVlaue .. ".")
 end)
 
 AirCargoMenu:add_separator()
@@ -12700,6 +12685,29 @@ MoneyRemoverMenu:add_imgui(function()
 		globals.set_int(BV, moneyremovervalue)
 	end
 end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+ReportsMenu = L7NEG:add_tab("Reports Menu")
+ReportsMenu:add_text("Griefing:" .. stats.get_int("MPPLY_GRIEFING"))
+ReportsMenu:add_text("Exploiting:" .. stats.get_int("MPPLY_EXPLOITS"))
+ReportsMenu:add_text("Abusing Bugs:" .. stats.get_int("MPPLY_GAME_EXPLOITS"))
+ReportsMenu:add_text("Annoying People In Text:" .. stats.get_int("MPPLY_TC_ANNOYINGME"))
+ReportsMenu:add_text("Hate Speech In Text:" .. stats.get_int("MPPLY_TC_HATE"))
+ReportsMenu:add_text("Annoying People In Voice:" .. stats.get_int("MPPLY_VC_ANNOYINGME"))
+ReportsMenu:add_text("Hate Speech In Voice:" .. stats.get_int("MPPLY_VC_HATE"))
+ReportsMenu:add_text("Offensive Language:" .. stats.get_int("MPPLY_OFFENSIVE_LANGUAGE"))
+ReportsMenu:add_text("Offensive Tagplate:" .. stats.get_int("MPPLY_OFFENSIVE_TAGPLATE"))
+ReportsMenu:add_text("Offensive Content:" .. stats.get_int("MPPLY_OFFENSIVE_UGC"))
+ReportsMenu:add_text("Bad Crew Name:" .. stats.get_int("MPPLY_BAD_CREW_NAME"))
+ReportsMenu:add_text("Bad Crew Motto:" .. stats.get_int("MPPLY_BAD_CREW_MOTTO"))
+ReportsMenu:add_text("Bad Crew Status:" .. stats.get_int("MPPLY_BAD_CREW_STATUS"))
+ReportsMenu:add_text("Bad Crew Emblem:" .. stats.get_int("MPPLY_BAD_CREW_EMBLEM"))
+ReportsMenu:add_separator()
+ReportsMenu:add_text("Now onto your commends:")
+ReportsMenu:add_separator()
+ReportsMenu:add_text("Friendly:" .. stats.get_int("MPPLY_FRIENDLY"))
+ReportsMenu:add_text("Helpful:" .. stats.get_int("MPPLY_HELPFUL"))
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -14336,7 +14344,7 @@ end)
 MissionsSelectorAndCooldownMenu = L7NEG:add_tab("Missions Selector And cooldown Menu")
 
 MissionsSelectorAndCooldownMenu:add_button("Remove Dax Fooligan missions CoolDown ", function()
-	stats.set_int(MPX() .. "_XM22JUGGALOWORKCDTIMER", -1)
+	stats.set_int(MPX() .. "XM22JUGGALOWORKCDTIMER", -1)
 end)
 
 MissionsSelectorAndCooldownMenu:add_button("Remove VIP/MC Cool Down", function()
