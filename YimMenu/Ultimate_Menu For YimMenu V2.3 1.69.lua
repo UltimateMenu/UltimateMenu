@@ -159,7 +159,7 @@ Self:add_button("Remove Orbital Cannon Cooldown", function()
 	stats.set_int(MPX() .. "ORBITAL_CANNON_COOLDOWN", 0)
 end)
 
-Self:add_button("Refil Nightclub Popularity", function()
+Self:add_button("Refill Nightclub Popularity", function()
 	stats.set_int(MPX() .. "CLUB_POPULARITY", 1000)
 end)
 
@@ -9420,7 +9420,7 @@ AcMenu:add_button("Unlock All Achievements", function()
 			script:sleep(200)
 			globals.set_int(AG, i)
 			if i == 77 then
-				gui.show_message("Achivements", "Unlocked 77 Achivements")
+				gui.show_message("Achievements", "Unlocked 77 Achievements")
 			end
 		end
 	end)
@@ -13665,7 +13665,7 @@ CasinoHeistEditorMenu:add_button("One Click Setup Casino The Big Con. Mode", fun
 	stats.set_int(MPX() .. "H3OPT_MASKS", 2)
 end)
 
-CasinoHeistEditorMenu:add_button("One Click Setup Casino Agrresive Mode", function()
+CasinoHeistEditorMenu:add_button("One Click Setup Casino Aggressive Mode", function()
 	stats.set_int(MPX() .. "H3OPT_APPROACH", 3)
 	stats.set_int(MPX() .. "H3_LAST_APPROACH", 1)
 	stats.set_int(MPX() .. "H3OPT_TARGET", 3)
@@ -14733,7 +14733,7 @@ DoomsdayHeistEditorMenu:add_button("Complete Preps", function()
 end)
 
 DoomsdayHeistEditorMenu:add_separator()
-DoomsdayHeistEditorMenu:add_text("By pass Doomsday Scenario hack")
+DoomsdayHeistEditorMenu:add_text("Bypass Doomsday Scenario hack")
 DoomsdayHeistEditorMenu:add_button("By Act III Pass hack", function()
 	locals.set_int(FMC, DDSHl, 3)
 end)
@@ -14756,11 +14756,11 @@ MissionsSelectorAndCooldownMenu:add_button("Remove Dax Fooligan missions CoolDow
 	stats.set_int(MPX() .. "XM22JUGGALOWORKCDTIMER", -1)
 end)
 
-MissionsSelectorAndCooldownMenu:add_button("Remove VIP/MC Cool Down", function()
+MissionsSelectorAndCooldownMenu:add_button("Remove VIP/MC Cooldown", function()
 	stats.set_int("MPPLY_VIPGAMEPLAYDISABLEDTIMER", 0)
 end)
 
-MissionsSelectorAndCooldownMenu:add_button("Skip Yacht Misions", function()
+MissionsSelectorAndCooldownMenu:add_button("Skip Yacht Missions", function()
 	stats.set_int(MPX() .. "YACHT_MISSION_PROG", 0)
 	stats.set_int(MPX() .. "YACHT_MISSION_FLOW", 21845)
 	stats.set_int(MPX() .. "CASINO_DECORATION_GIFT_1", -1)
@@ -14778,7 +14778,7 @@ Yimura:add_text("Cheat on GitHub:")
 Yimura:add_text("https://github.com/YimMenu/YimMenu")
 
 L7NEGDEV = CreditsMenu:add_tab("L7NEG")
-L7NEGDEV:add_text("Codded This W Script With <3 To You All")
+L7NEGDEV:add_text("Coded This W Script With <3 To You All")
 L7NEGDEV:add_text("Source:")
 L7NEGDEV:add_text("https://github.com/YimMenu-Lua/Utimate-Menu")
 
@@ -14788,7 +14788,7 @@ PLANTINDESK:add_text("Source:")
 PLANTINDESK:add_text("https://github.com/plantindesk/Silent-Night")
 
 SILENTSALO = CreditsMenu:add_tab("Silent")
-SILENTSALO:add_text("For His W Useful Unlocls Along With Casino And Gunvan Menu")
+SILENTSALO:add_text("For His W Useful Unlocks Along With Casino And Gunvan Menu")
 SILENTSALO:add_text("Source:")
 SILENTSALO:add_text("https://github.com/SilentSal0/Silent-Night")
 
