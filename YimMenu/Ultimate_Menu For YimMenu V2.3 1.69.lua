@@ -13098,25 +13098,52 @@ end)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ReportsMenu = L7NEG:add_tab("Reports Menu")
-ReportsMenu:add_text("Griefing:" .. stats.get_int("MPPLY_GRIEFING"))
-ReportsMenu:add_text("Exploiting:" .. stats.get_int("MPPLY_EXPLOITS"))
-ReportsMenu:add_text("Abusing Bugs:" .. stats.get_int("MPPLY_GAME_EXPLOITS"))
-ReportsMenu:add_text("Annoying People In Text:" .. stats.get_int("MPPLY_TC_ANNOYINGME"))
-ReportsMenu:add_text("Hate Speech In Text:" .. stats.get_int("MPPLY_TC_HATE"))
-ReportsMenu:add_text("Annoying People In Voice:" .. stats.get_int("MPPLY_VC_ANNOYINGME"))
-ReportsMenu:add_text("Hate Speech In Voice:" .. stats.get_int("MPPLY_VC_HATE"))
-ReportsMenu:add_text("Offensive Language:" .. stats.get_int("MPPLY_OFFENSIVE_LANGUAGE"))
-ReportsMenu:add_text("Offensive Tagplate:" .. stats.get_int("MPPLY_OFFENSIVE_TAGPLATE"))
-ReportsMenu:add_text("Offensive Content:" .. stats.get_int("MPPLY_OFFENSIVE_UGC"))
-ReportsMenu:add_text("Bad Crew Name:" .. stats.get_int("MPPLY_BAD_CREW_NAME"))
-ReportsMenu:add_text("Bad Crew Motto:" .. stats.get_int("MPPLY_BAD_CREW_MOTTO"))
-ReportsMenu:add_text("Bad Crew Status:" .. stats.get_int("MPPLY_BAD_CREW_STATUS"))
-ReportsMenu:add_text("Bad Crew Emblem:" .. stats.get_int("MPPLY_BAD_CREW_EMBLEM"))
+ReportsMenu:add_imgui(function()
+    ImGui.Text("Griefing: " ..stats.get_int("MPPLY_GRIEFING"))
+	ImGui.Text("Exploiting: " ..stats.get_int("MPPLY_EXPLOITS"))
+	ImGui.Text("Abusing Bugs: " ..stats.get_int("MPPLY_GAME_EXPLOITS"))
+	ImGui.Text("Annoying People In Text: " ..stats.get_int("MPPLY_TC_ANNOYINGME"))
+	ImGui.Text("Hate Speech In Voice: " ..stats.get_int("MPPLY_VC_HATE"))
+	ImGui.Text("Offensive Language: " ..stats.get_int("MPPLY_OFFENSIVE_LANGUAGE"))
+	ImGui.Text("Offensive Tagplate: " ..stats.get_int("MPPLY_OFFENSIVE_TAGPLATE"))
+	ImGui.Text("Offensive Content: " ..stats.get_int("MPPLY_OFFENSIVE_UGC"))
+	ImGui.Text("Bad Crew Name: " ..stats.get_int("MPPLY_BAD_CREW_NAME"))
+	ImGui.Text("Bad Crew Motto: " ..stats.get_int("MPPLY_BAD_CREW_MOTTO"))
+	ImGui.Text("Bad Crew Status: " ..stats.get_int("MPPLY_BAD_CREW_STATUS"))
+	ImGui.Text("Bad Crew Emblem: " ..stats.get_int("MPPLY_BAD_CREW_EMBLEM"))
+	ImGui.Separator()
+	ImGui.Text("Now onto your commends:")
+	ImGui.Separator()
+	ImGui.Text("Friendly: " ..stats.get_int("MPPLY_FRIENDLY"))
+	ImGui.Text("Helpful: " ..stats.get_int("MPPLY_HELPFUL"))
+end)
 ReportsMenu:add_separator()
-ReportsMenu:add_text("Now onto your commends:")
-ReportsMenu:add_separator()
-ReportsMenu:add_text("Friendly:" .. stats.get_int("MPPLY_FRIENDLY"))
-ReportsMenu:add_text("Helpful:" .. stats.get_int("MPPLY_HELPFUL"))
+
+ReportsMenu:add_text("Report Manager")
+
+ReportManager = 0
+ReportHash = 0
+ReportAmount = 1
+ReportsMenu:add_imgui(function()
+	ReportHashes = {"MPPLY_GRIEFING","MPPLY_EXPLOITS","MPPLY_GAME_EXPLOITS","MPPLY_TC_ANNOYINGME","MPPLY_TC_HATE","MPPLY_VC_ANNOYINGME","MPPLY_VC_HATE","MPPLY_OFFENSIVE_LANGUAGE","MPPLY_OFFENSIVE_TAGPLATE","MPPLY_OFFENSIVE_UGC","MPPLY_BAD_CREW_NAME","MPPLY_BAD_CREW_MOTTO","MPPLY_BAD_CREW_STATUS","MPPLY_BAD_CREW_EMBLEM","MPPLY_FRIENDLY","MPPLY_HELPFUL"}
+	ReportManager = ImGui.Combo("##ReportsMenu", ReportManager, { "Remove", "Add" }, 2)
+	ReportHash = ImGui.Combo("##ReportHash", ReportHash, ReportHashes, 16, 16)
+	ImGui.PushItemWidth(140)
+	ReportAmount, used = ImGui.SliderInt("##Amount", ReportAmount, 1, 10)
+
+    ImGui.SameLine()
+
+	UpdateReport = ImGui.Button("Execute");
+	if UpdateReport then
+		if ReportManager == 0 then
+			stats.set_int(joaat(ReportHashes[ReportHash + 1]), stats.get_int(ReportHashes[ReportHash + 1]) - ReportAmount)
+			gui.show_message("Reports Manager (Removed!)", "Modified Report: "..(ReportHashes[ReportHash + 1]).. "\nAmount: "..ReportAmount.. "\nRestart Script to see updated values")
+		else
+			stats.set_int(joaat(ReportHashes[ReportHash + 1]), stats.get_int(ReportHashes[ReportHash + 1]) + ReportAmount)
+			gui.show_message("Reports Manager (Added!)", "Modified Report: "..(ReportHashes[ReportHash + 1]).. "\nAmount: "..ReportAmount.. "\nRestart Script to see updated values")
+		end
+	end
+end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
