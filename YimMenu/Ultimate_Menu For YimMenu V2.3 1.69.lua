@@ -8594,7 +8594,7 @@ DLCUnlockerMenu:add_button("Fix Salvage Heist", function()
 	stats.set_int(MPX() .. "SALV23_GEN_BS", 0)
 end)
 
-DLCUnlockerMenu:add_button("Unlock Xmass 2023 Gifts", function()
+DLCUnlockerMenu:add_button("Unlock Xmas 2023 Gifts", function()
 	globals.set_int(262145 + 35157, 1) --XMASGIFTS2023
 	globals.set_int(262145 + 35158, 1) --NEWYEARSGIFTS2023
 end)
@@ -12831,14 +12831,14 @@ FAUT:add_button("Unlock Oppressor MKII Trade Price", function()
 	stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT379", 5, 5, 5) --Pegassi Oppressor Mk II (Trade Price)
 end)
 
-FAUT:add_button("Unlock All Tattos", function()
+FAUT:add_button("Unlock All Tattoos", function()
 	stats.set_int(MPX() .. "TATTOO_FM_CURRENT_32", -1)
 	for i = 0, 53 do
 		stats.set_int(MPX() .. "TATTOO_FM_UNLOCKS_" .. i, -1)
 	end
 end)
 
-FAUT:add_button("Unlock Skull Tatoo", function()
+FAUT:add_button("Unlock Skull Tattoo", function()
 	stats.set_bool(MPX() .. "AWD_500_HEADSHOTS", true)
 end)
 
