@@ -14,7 +14,7 @@
 > RIP Cargo Method 
 > Yes You Heard it Right Unfotunately The Most Used Money Method Among Modders Just Got Detected So > Just Stay Away From Any Ceo 6 mil script including UltimateMenu if you want to use it just use it with your own risk 
 > until then you can just use nightclub safe loop or modded heists cuts 
-> it was the beast from late 2022 when it was 10 mil per crate till it got just detected on 13/8/2024 > which is just 6 mil per crate xD gg rockstar if you really need money use this method only to sell 111 crates once fr then wait 2 weeks irl and done.
+> it was the beast from late 2022 when it was 10 mil per crate till it got just detected on 13/8/2024 > which is just 6 mil per crate xD gg rockstar if you really need money use nightclub safeloop or air cargo crates.
 
 # How To Use Ultimate Menu Script
 For every Version of the ultimate menu (Kiddion/YimMenu) there is a different use and ways to fully Run It. 
@@ -138,6 +138,6 @@ No ETA for big updates also because i don't know actually if im going to be able
 --------------------------------------------------------------------------------------------------
 ## About
 -  By the way to anyone who ask's about the Ultimate-Menu script, is not entire mine, there is actually in credits every single person who i taked code from and who helped me with this.
-## Latest Ultimate Menu Kiddions update was on: 22/08/2024
-## Latest Ultimate Menu YimMenu update was on: 22/08/2024
+## Latest Ultimate Menu Kiddions update was on: 31/08/2024
+## Latest Ultimate Menu YimMenu update was on: 31/08/2024
 

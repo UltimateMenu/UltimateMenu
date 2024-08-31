@@ -13117,33 +13117,6 @@ ReportsMenu:add_imgui(function()
 	ImGui.Text("Friendly: " ..stats.get_int("MPPLY_FRIENDLY"))
 	ImGui.Text("Helpful: " ..stats.get_int("MPPLY_HELPFUL"))
 end)
-ReportsMenu:add_separator()
-
-ReportsMenu:add_text("Report Manager")
-
-ReportManager = 0
-ReportHash = 0
-ReportAmount = 1
-ReportsMenu:add_imgui(function()
-	ReportHashes = {"MPPLY_GRIEFING","MPPLY_EXPLOITS","MPPLY_GAME_EXPLOITS","MPPLY_TC_ANNOYINGME","MPPLY_TC_HATE","MPPLY_VC_ANNOYINGME","MPPLY_VC_HATE","MPPLY_OFFENSIVE_LANGUAGE","MPPLY_OFFENSIVE_TAGPLATE","MPPLY_OFFENSIVE_UGC","MPPLY_BAD_CREW_NAME","MPPLY_BAD_CREW_MOTTO","MPPLY_BAD_CREW_STATUS","MPPLY_BAD_CREW_EMBLEM","MPPLY_FRIENDLY","MPPLY_HELPFUL"}
-	ReportManager = ImGui.Combo("##ReportsMenu", ReportManager, { "Remove", "Add" }, 2)
-	ReportHash = ImGui.Combo("##ReportHash", ReportHash, ReportHashes, 16, 16)
-	ImGui.PushItemWidth(140)
-	ReportAmount, used = ImGui.SliderInt("##Amount", ReportAmount, 1, 10)
-
-    ImGui.SameLine()
-
-	UpdateReport = ImGui.Button("Execute");
-	if UpdateReport then
-		if ReportManager == 0 then
-			stats.set_int(joaat(ReportHashes[ReportHash + 1]), stats.get_int(ReportHashes[ReportHash + 1]) - ReportAmount)
-			gui.show_message("Reports Manager (Removed!)", "Modified Report: "..(ReportHashes[ReportHash + 1]).. "\nAmount: "..ReportAmount.. "\nRestart Script to see updated values")
-		else
-			stats.set_int(joaat(ReportHashes[ReportHash + 1]), stats.get_int(ReportHashes[ReportHash + 1]) + ReportAmount)
-			gui.show_message("Reports Manager (Added!)", "Modified Report: "..(ReportHashes[ReportHash + 1]).. "\nAmount: "..ReportAmount.. "\nRestart Script to see updated values")
-		end
-	end
-end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
