@@ -30290,991 +30290,1064 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 pedMenu = Self:add_submenu("Change Player Model Menu")
-local PedModelAnimal = {}
-PedModelAnimal[joaat("a_c_cat_01")] = "Cat"
-PedModelAnimal[joaat("a_c_chimp")] = "Chimp Black"
-PedModelAnimal[joaat("a_c_chop")] = "Chop"
-PedModelAnimal[joaat("a_c_cow")] = "Cow"
-PedModelAnimal[joaat("a_c_coyote")] = "Coyote"
-PedModelAnimal[joaat("a_c_deer")] = "Deer"
-PedModelAnimal[joaat("a_c_husky")] = "Husky"
-PedModelAnimal[joaat("a_c_mtlion")] = "Mountian Lion"
-PedModelAnimal[joaat("a_c_panther")] = "Panther"
-PedModelAnimal[joaat("a_c_pig")] = "Pig"
-PedModelAnimal[joaat("a_c_poodle")] = "Poodle"
-PedModelAnimal[joaat("a_c_pug")] = "Pug"
-PedModelAnimal[joaat("a_c_rabbit_01")] = "Rabbit"
-PedModelAnimal[joaat("a_c_rat")] = "Rat"
-PedModelAnimal[joaat("a_c_retriever")] = "Retriever"
-PedModelAnimal[joaat("a_c_rhesus")] = "Rhesus Monkey"
-PedModelAnimal[joaat("a_c_rottweiler")] = "Rottweiler"
-PedModelAnimal[joaat("a_c_shepherd")] = "Shepherd"
-PedModelAnimal[joaat("a_c_westy")] = "Westy"
-local PedModelSeaAnimal = {}
-PedModelSeaAnimal[joaat("a_c_dolphin")] = "Dolphin"
-PedModelSeaAnimal[joaat("a_c_fish")] = "Fish"
-PedModelSeaAnimal[joaat("a_c_stingray")] = "Sting Ray"
-PedModelSeaAnimal[joaat("a_c_sharktiger")] = "Tiger Shark"
-PedModelSeaAnimal[joaat("a_c_humpback")] = "Humpback"
-PedModelSeaAnimal[joaat("a_c_sharkhammer")] = "Hammer Shark"
-PedModelSeaAnimal[joaat("a_c_killerwhale")] = "Killer Whale"
-local PedModelBird = {}
-PedModelBird[joaat("a_c_seagull")] = "Seagull"
-PedModelBird[joaat("a_c_pigeon")] = "Pigeon"
-PedModelBird[joaat("a_c_crow")] = "Crow"
-PedModelBird[joaat("a_c_hen")] = "Hen"
-PedModelBird[joaat("a_c_cormorant")] = "Cormorant"
-PedModelBird[joaat("a_c_chickenhawk")] = "Hawk Eagle"
-local PedModel1 = {}
-PedModel1[joaat("player_one")] = "Franklin"
-PedModel1[joaat("player_two")] = "Trevor"
-PedModel1[joaat("player_zero")] = "Michael"
-PedModel1[joaat("a_f_m_beach_01")] = "a_f_m_beach_01"
-PedModel1[joaat("a_f_m_bevhill")] = "a_f_m_bevhill"
-PedModel1[joaat("a_f_m_bevhills_02")] = "Ponsonbys Cashier"
-PedModel1[joaat("a_f_m_bodybuild_01")] = "a_f_m_bodybuild_01"
-PedModel1[joaat("a_f_m_business_02")] = "a_f_m_business_02"
-PedModel1[joaat("a_f_m_downtown_01")] = "a_f_m_downtown_01"
-PedModel1[joaat("a_f_m_eastsa_01")] = "a_f_m_eastsa_01"
-PedModel1[joaat("a_f_m_eastsa_02")] = "a_f_m_eastsa_02"
-PedModel1[joaat("a_f_m_fatbla_01")] = "a_f_m_fatbla_01"
-PedModel1[joaat("a_f_m_fatcult_01")] = "a_f_m_fatcult_01"
-PedModel1[joaat("a_f_m_fatwhite_01")] = "a_f_m_fatwhite_01"
-PedModel1[joaat("a_f_m_ktown_01")] = "a_f_m_ktown_01"
-PedModel1[joaat("a_f_m_ktown_02")] = "a_f_m_ktown_02"
-PedModel1[joaat("a_f_m_prolhost_01")] = "a_f_m_prolhost_01"
-PedModel1[joaat("a_f_m_salton_01")] = "a_f_m_salton_01"
-PedModel1[joaat("a_f_m_skidrow_01")] = "a_f_m_skidrow_01"
-PedModel1[joaat("a_f_m_soucent_01")] = "a_f_m_soucent_01"
-PedModel1[joaat("a_f_m_soucent_02")] = "a_f_m_soucent_02"
-PedModel1[joaat("a_f_m_soucentmc_01")] = "a_f_m_soucentmc_01"
-PedModel1[joaat("a_f_m_tourist_01")] = "a_f_m_tourist_01"
-PedModel1[joaat("a_f_m_tramp_01")] = "a_f_m_tramp_01"
-PedModel1[joaat("a_f_m_trampbeac_01")] = "a_f_m_trampbeac_01"
-PedModel1[joaat("a_f_o_genstreet_01")] = "a_f_o_genstreet_01"
-PedModel1[joaat("a_f_o_indian_01")] = "a_f_o_indian_01"
-PedModel1[joaat("a_f_o_ktown_01")] = "a_f_o_ktown_01"
-PedModel1[joaat("a_f_o_salton_01")] = "a_f_o_salton_01"
-PedModel1[joaat("a_f_o_soucent_01")] = "a_f_o_soucent_01"
-PedModel1[joaat("a_f_o_soucent_02")] = "a_f_o_soucent_02"
-PedModel1[joaat("a_f_y_beach_01")] = "a_f_y_beach_01"
-PedModel1[joaat("a_f_y_beach_02")] = "a_f_y_beach_02"
-PedModel1[joaat("a_f_y_bevhills_01")] = "a_f_y_bevhills_01"
-PedModel1[joaat("a_f_y_bevhills_02")] = "a_f_y_bevhills_02"
-PedModel1[joaat("a_f_y_bevhills_03")] = "a_f_y_bevhills_03"
-PedModel1[joaat("a_f_y_bevhills_04")] = "a_f_y_bevhills_04"
-PedModel1[joaat("a_f_y_bevhills_05")] = "a_f_y_bevhills_05"
-PedModel1[joaat("a_f_y_business_01")] = "a_f_y_business_01"
-PedModel1[joaat("a_f_y_business_02")] = "a_f_y_business_02"
-PedModel1[joaat("a_f_y_business_03")] = "a_f_y_business_03"
-PedModel1[joaat("a_f_y_business_04")] = "a_f_y_business_04"
-PedModel1[joaat("a_f_y_clubcust_01")] = "a_f_y_clubcust_01"
-PedModel1[joaat("a_f_y_clubcust_02")] = "a_f_y_clubcust_02"
-PedModel1[joaat("a_f_y_clubcust_03")] = "a_f_y_clubcust_03"
-PedModel1[joaat("a_f_y_clubcust_04")] = "a_f_y_clubcust_04"
-PedModel1[joaat("a_f_y_eastsa_01")] = "a_f_y_eastsa_01"
-PedModel1[joaat("a_f_y_eastsa_02")] = "a_f_y_eastsa_02"
-PedModel1[joaat("a_f_y_eastsa_03")] = "a_f_y_eastsa_03"
-PedModel1[joaat("a_f_y_epsilon_01")] = "a_f_y_epsilon_01"
-PedModel1[joaat("a_f_y_femaleagent")] = "a_f_y_femaleagent"
-PedModel1[joaat("a_f_y_fitness_01")] = "a_f_y_fitness_01"
-PedModel1[joaat("a_f_y_fitness_02")] = "a_f_y_fitness_02"
-PedModel1[joaat("a_f_y_gencaspat_01")] = "a_f_y_gencaspat_01"
-PedModel1[joaat("a_f_y_genhot_01")] = "a_f_y_genhot_01"
-PedModel1[joaat("a_f_y_golfer_01")] = "a_f_y_golfer_01"
-PedModel1[joaat("a_f_y_hiker_01")] = "a_f_y_hiker_01"
-PedModel1[joaat("a_f_y_hippie_01")] = "a_f_y_hippie_01"
-PedModel1[joaat("a_f_y_hipster_01")] = "a_f_y_hipster_01"
-PedModel1[joaat("a_f_y_hipster_02")] = "Binco Cashier"
-PedModel1[joaat("a_f_y_hipster_03")] = "a_f_y_hipster_03"
-PedModel1[joaat("a_f_y_hipster_04")] = "a_f_y_hipster_04"
-PedModel1[joaat("a_f_y_indian_01")] = "a_f_y_indian_01"
-PedModel1[joaat("a_f_y_juggalo_01")] = "a_f_y_juggalo_01"
-PedModel1[joaat("a_f_y_runner_01")] = "a_f_y_runner_01"
-PedModel1[joaat("a_f_y_rurmeth_01")] = "a_f_y_rurmeth_01"
-PedModel1[joaat("a_f_y_scdressy_01")] = "a_f_y_scdressy_01"
-PedModel1[joaat("a_f_y_skater_01")] = "a_f_y_skater_01"
-PedModel1[joaat("a_f_y_smartcaspat_01")] = "a_f_y_smartcaspat_01"
-PedModel1[joaat("a_f_y_soucent_01")] = "a_f_y_soucent_01"
-PedModel1[joaat("a_f_y_soucent_02")] = "a_f_y_soucent_02"
-PedModel1[joaat("a_f_y_soucent_03")] = "a_f_y_soucent_03"
-PedModel1[joaat("a_f_y_tennis_01")] = "a_f_y_tennis_01"
-PedModel1[joaat("a_f_y_topless_01")] = "a_f_y_topless_01"
-PedModel1[joaat("a_f_y_tourist_01")] = "a_f_y_tourist_01"
-PedModel1[joaat("a_f_y_tourist_02")] = "a_f_y_tourist_02"
-PedModel1[joaat("a_f_y_vinewood_01")] = "a_f_y_vinewood_01"
-PedModel1[joaat("a_f_y_vinewood_02")] = "a_f_y_vinewood_02"
-PedModel1[joaat("a_f_y_vinewood_03")] = "a_f_y_vinewood_03"
-PedModel1[joaat("a_f_y_vinewood_04")] = "a_f_y_vinewood_04"
-PedModel1[joaat("a_f_y_yoga_01")] = "a_f_y_yoga_01"
-PedModel1[joaat("a_m_m_acult_01")] = "a_m_m_acult_01"
-PedModel1[joaat("a_m_m_afriamer_01")] = "a_m_m_afriamer_01"
-PedModel1[joaat("a_m_m_beach_01")] = "a_m_m_beach_01"
-PedModel1[joaat("a_m_m_beach_02")] = "a_m_m_beach_02"
-PedModel1[joaat("a_m_m_bevhills_01")] = "a_m_m_bevhills_01"
-PedModel1[joaat("a_m_m_bevhills_02")] = "a_m_m_bevhills_02"
-PedModel1[joaat("a_m_m_business_01")] = "a_m_m_business_01"
-PedModel1[joaat("a_m_m_eastsa_01")] = "a_m_m_eastsa_01"
-PedModel1[joaat("a_m_m_eastsa_02")] = "a_m_m_eastsa_02"
-PedModel1[joaat("a_m_m_farmer_01")] = "a_m_m_farmer_01"
-PedModel1[joaat("a_m_m_fatlatin_01")] = "a_m_m_fatlatin_01"
-PedModel1[joaat("a_m_m_genfat_01")] = "a_m_m_genfat_01"
-PedModel1[joaat("a_m_m_genfat_02")] = "a_m_m_genfat_02"
-PedModel1[joaat("a_m_m_golfer_01")] = "a_m_m_golfer_01"
-PedModel1[joaat("a_m_m_hasjew_01")] = "a_m_m_hasjew_01"
-PedModel1[joaat("a_m_m_hillbilly_01")] = "a_m_m_hillbilly_01"
-PedModel1[joaat("a_m_m_hillbilly_02")] = "a_m_m_hillbilly_02"
-PedModel1[joaat("a_m_m_indian_01")] = "a_m_m_indian_01"
-PedModel1[joaat("a_m_m_ktown_01")] = "a_m_m_ktown_01"
-PedModel1[joaat("a_m_m_malibu_01")] = "a_m_m_malibu_01"
-PedModel1[joaat("a_m_m_mexcntry_01")] = "a_m_m_mexcntry_01"
-PedModel1[joaat("a_m_m_mexlabor_01")] = "a_m_m_mexlabor_01"
-PedModel1[joaat("a_m_m_mlcrisis_01")] = "a_m_m_mlcrisis_01"
-PedModel1[joaat("a_m_m_og_boss_01")] = "a_m_m_og_boss_01"
-PedModel1[joaat("a_m_m_paparazzi_01")] = "a_m_m_paparazzi_01"
-PedModel1[joaat("a_m_m_polynesian_01")] = "a_m_m_polynesian_01"
-PedModel1[joaat("a_m_m_prolhost_01")] = "a_m_m_prolhost_01"
-PedModel1[joaat("a_m_m_rurmeth_01")] = "a_m_m_rurmeth_01"
-PedModel1[joaat("a_m_m_salton_01")] = "a_m_m_salton_01"
-PedModel1[joaat("a_m_m_salton_02")] = "a_m_m_salton_02"
-PedModel1[joaat("a_m_m_salton_03")] = "a_m_m_salton_03"
-PedModel1[joaat("a_m_m_salton_04")] = "a_m_m_salton_04"
-PedModel1[joaat("a_m_m_skater_01")] = "a_m_m_skater_01"
-PedModel1[joaat("a_m_m_skidrow_01")] = "a_m_m_skidrow_01"
-PedModel1[joaat("a_m_m_socenlat_01")] = "a_m_m_socenlat_01"
-PedModel1[joaat("a_m_m_soucent_01")] = "a_m_m_soucent_01"
-PedModel1[joaat("a_m_m_soucent_02")] = "a_m_m_soucent_02"
-PedModel1[joaat("a_m_m_soucent_03")] = "a_m_m_soucent_03"
-PedModel1[joaat("a_m_m_soucent_04")] = "a_m_m_soucent_04"
-PedModel1[joaat("a_m_m_stlat_02")] = "a_m_m_stlat_02"
-PedModel1[joaat("a_m_m_tennis_01")] = "a_m_m_tennis_01"
-PedModel1[joaat("a_m_m_tourist_01")] = "a_m_m_tourist_01"
-PedModel1[joaat("a_m_m_tramp_01")] = "a_m_m_tramp_01"
-PedModel1[joaat("a_m_m_trampbeac_01")] = "a_m_m_trampbeac_01"
-PedModel1[joaat("a_m_m_tranvest_01")] = "a_m_m_tranvest_01"
-PedModel1[joaat("a_m_m_tranvest_02")] = "a_m_m_tranvest_02"
-PedModel1[joaat("a_m_o_acult_01")] = "a_m_o_acult_01"
-PedModel1[joaat("a_m_o_acult_02")] = "a_m_o_acult_02"
-PedModel1[joaat("a_m_o_beach_01")] = "a_m_o_beach_01"
-PedModel1[joaat("a_m_o_beach_02")] = "a_m_o_beach_02"
-PedModel1[joaat("a_m_o_genstreet_01")] = "a_m_o_genstreet_01"
-PedModel1[joaat("a_m_o_ktown_01")] = "a_m_o_ktown_01"
-PedModel1[joaat("a_m_o_salton_01")] = "a_m_o_salton_01"
-PedModel1[joaat("a_m_o_soucent_01")] = "a_m_o_soucent_01"
-PedModel1[joaat("a_m_o_soucent_02")] = "a_m_o_soucent_02"
-PedModel1[joaat("a_m_o_soucent_03")] = "a_m_o_soucent_03"
-PedModel1[joaat("a_m_o_tramp_01")] = "a_m_o_tramp_01"
-PedModel1[joaat("a_m_y_acult_01")] = "a_m_y_acult_01"
-PedModel1[joaat("a_m_y_acult_02")] = "a_m_y_acult_02"
-PedModel1[joaat("a_m_y_beach_01")] = "a_m_y_beach_01"
-PedModel1[joaat("a_m_y_beach_02")] = "a_m_y_beach_02"
-PedModel1[joaat("a_m_y_beach_03")] = "a_m_y_beach_03"
-PedModel1[joaat("a_m_y_beach_04")] = "a_m_y_beach_04"
-PedModel1[joaat("a_m_y_beachvesp_01")] = "a_m_y_beachvesp_01"
-PedModel1[joaat("a_m_y_beachvesp_02")] = "a_m_y_beachvesp_02"
-PedModel1[joaat("a_m_y_bevhills_01")] = "a_m_y_bevhills_01"
-PedModel1[joaat("a_m_y_bevhills_02")] = "a_m_y_bevhills_02"
-PedModel1[joaat("a_m_y_breakdance_01")] = "a_m_y_breakdance_01"
-PedModel1[joaat("a_m_y_busicas_01")] = "a_m_y_busicas_01"
-PedModel1[joaat("a_m_y_business_01")] = "a_m_y_business_01"
-PedModel1[joaat("a_m_y_business_02")] = "a_m_y_business_02"
-PedModel1[joaat("a_m_y_business_03")] = "a_m_y_business_03"
-PedModel1[joaat("a_m_y_clubcust_01")] = "a_m_y_clubcust_01"
-PedModel1[joaat("a_m_y_clubcust_02")] = "a_m_y_clubcust_02"
-PedModel1[joaat("a_m_y_clubcust_03")] = "a_m_y_clubcust_03"
-PedModel1[joaat("a_m_y_clubcust_04")] = "a_m_y_clubcust_04"
-PedModel1[joaat("a_m_y_cyclist_01")] = "a_m_y_cyclist_01"
-PedModel1[joaat("a_m_y_dhill_01")] = "a_m_y_dhill_01"
-PedModel1[joaat("a_m_y_downtown_01")] = "a_m_y_downtown_01"
-PedModel1[joaat("a_m_y_eastsa_01")] = "a_m_y_eastsa_01"
-PedModel1[joaat("a_m_y_eastsa_02")] = "a_m_y_eastsa_02"
-PedModel1[joaat("a_m_y_epsilon_01")] = "a_m_y_epsilon_01"
-PedModel1[joaat("a_m_y_epsilon_02")] = "a_m_y_epsilon_02"
-PedModel1[joaat("a_m_y_gay_01")] = "a_m_y_gay_01"
-PedModel1[joaat("a_m_y_gay_02")] = "a_m_y_gay_02"
-PedModel1[joaat("a_m_y_gencaspat_01")] = "a_m_y_gencaspat_01"
-PedModel1[joaat("a_m_y_genstreet_01")] = "a_m_y_genstreet_01"
-PedModel1[joaat("a_m_y_genstreet_02")] = "a_m_y_genstreet_02"
-PedModel1[joaat("a_m_y_golfer_01")] = "a_m_y_golfer_01"
-PedModel1[joaat("a_m_y_hasjew_01")] = "a_m_y_hasjew_01"
-PedModel1[joaat("a_m_y_hiker_01")] = "a_m_y_hiker_01"
-PedModel1[joaat("a_m_y_hippy_01")] = "a_m_y_hippy_01"
-PedModel1[joaat("a_m_y_hipster_01")] = "a_m_y_hipster_01"
-PedModel1[joaat("a_m_y_hipster_02")] = "a_m_y_hipster_02"
-PedModel1[joaat("a_m_y_hipster_03")] = "a_m_y_hipster_03"
-PedModel1[joaat("a_m_y_indian_01")] = "a_m_y_indian_01"
-PedModel1[joaat("a_m_y_jetski_01")] = "a_m_y_jetski_01"
-PedModel1[joaat("a_m_y_juggalo_01")] = "a_m_y_juggalo_01"
-PedModel1[joaat("a_m_y_ktown_01")] = "a_m_y_ktown_01"
-PedModel1[joaat("a_m_y_ktown_02")] = "a_m_y_ktown_02"
-PedModel1[joaat("a_m_y_latino_01")] = "a_m_y_latino_01"
-PedModel1[joaat("a_m_y_methhead_01")] = "a_m_y_methhead_01"
-PedModel1[joaat("a_m_y_mexthug_01")] = "a_m_y_mexthug_01"
-PedModel1[joaat("a_m_y_motox_01")] = "a_m_y_motox_01"
-PedModel1[joaat("a_m_y_motox_02")] = "a_m_y_motox_02"
-PedModel1[joaat("a_m_y_musclbeac_01")] = "a_m_y_musclbeac_01"
-PedModel1[joaat("a_m_y_musclbeac_02")] = "a_m_y_musclbeac_02"
-PedModel1[joaat("a_m_y_polynesian_01")] = "a_m_y_polynesian_01"
-PedModel1[joaat("a_m_y_roadcyc_01")] = "a_m_y_roadcyc_01"
-PedModel1[joaat("a_m_y_runner_01")] = "a_m_y_runner_01"
-PedModel1[joaat("a_m_y_runner_02")] = "a_m_y_runner_02"
-PedModel1[joaat("a_m_y_salton_01")] = "a_m_y_salton_01"
-PedModel1[joaat("a_m_y_skater_01")] = "a_m_y_skater_01"
-PedModel1[joaat("a_m_y_skater_02")] = "a_m_y_skater_02"
-PedModel1[joaat("a_m_y_smartcaspat_01")] = "a_m_y_smartcaspat_01"
-PedModel1[joaat("a_m_y_soucent_01")] = "a_m_y_soucent_01"
-PedModel1[joaat("a_m_y_soucent_02")] = "a_m_y_soucent_02"
-PedModel1[joaat("a_m_y_soucent_03")] = "a_m_y_soucent_03"
-PedModel1[joaat("a_m_y_soucent_04")] = "a_m_y_soucent_04"
-PedModel1[joaat("a_m_y_stbla_01")] = "a_m_y_stbla_01"
-PedModel1[joaat("a_m_y_stbla_02")] = "a_m_y_stbla_02"
-PedModel1[joaat("a_m_y_stlat_01")] = "a_m_y_stlat_01"
-PedModel1[joaat("a_m_y_stwhi_01")] = "a_m_y_stwhi_01"
-PedModel1[joaat("a_m_y_stwhi_02")] = "a_m_y_stwhi_02"
-PedModel1[joaat("a_m_y_sunbathe_01")] = "a_m_y_sunbathe_01"
-PedModel1[joaat("a_m_y_surfer_01")] = "a_m_y_surfer_01"
-PedModel1[joaat("a_m_y_vindouche_01")] = "a_m_y_vindouche_01"
-PedModel1[joaat("a_m_y_vinewood_01")] = "a_m_y_vinewood_01"
-PedModel1[joaat("a_m_y_vinewood_02")] = "a_m_y_vinewood_02"
-PedModel1[joaat("a_m_y_vinewood_03")] = "a_m_y_vinewood_03"
-PedModel1[joaat("a_m_y_vinewood_04")] = "a_m_y_vinewood_04"
-PedModel1[joaat("a_m_y_yoga_01")] = "a_m_y_yoga_01"
-PedModel1[joaat("cs_amandatownley")] = "Amanda"
-PedModel1[joaat("cs_andreas")] = "cs_andreas"
-PedModel1[joaat("cs_ashley")] = "cs_ashley"
-PedModel1[joaat("cs_bankman")] = "cs_bankman"
-PedModel1[joaat("cs_barry")] = "cs_barry"
-PedModel1[joaat("cs_beverly")] = "cs_beverly"
-PedModel1[joaat("cs_brad")] = "cs_brad"
-PedModel1[joaat("cs_bradcadaver")] = "cs_bradcadaver"
-PedModel1[joaat("cs_carbuyer")] = "cs_carbuyer"
-PedModel1[joaat("cs_casey")] = "cs_casey"
-PedModel1[joaat("cs_chengsr")] = "cs_chengsr"
-PedModel1[joaat("cs_chrisformage")] = "cs_chrisformage"
-PedModel1[joaat("cs_clay")] = "cs_clay"
-PedModel1[joaat("cs_dale")] = "cs_dale"
-PedModel1[joaat("Dave Norton")] = "cs_davenorton"
-PedModel1[joaat("cs_debra")] = "cs_debra"
-PedModel1[joaat("cs_denise")] = "cs_denise"
-PedModel1[joaat("cs_devin")] = "cs_devin"
-PedModel1[joaat("cs_dom")] = "cs_dom"
-PedModel1[joaat("cs_dreyfuss")] = "cs_dreyfuss"
-PedModel1[joaat("cs_drfriedlander")] = "Isiah Friedlander"
-PedModel1[joaat("cs_fabien")] = "cs_fabien"
-PedModel1[joaat("cs_fbisuit_01")] = "cs_fbisuit_01"
-PedModel1[joaat("cs_floyd")] = "cs_floyd"
-PedModel1[joaat("cs_guadalope")] = "cs_guadalope"
-PedModel1[joaat("cs_gurk")] = "cs_gurk"
-PedModel1[joaat("cs_hunter")] = "cs_hunter"
-PedModel1[joaat("cs_janet")] = "cs_janet"
-PedModel1[joaat("cs_jewelass")] = "cs_jewelass"
-PedModel1[joaat("cs_jimmyboston")] = "cs_jimmyboston"
-PedModel1[joaat("cs_jimmydisanto")] = "cs_jimmydisanto"
-PedModel1[joaat("cs_jimmydisanto2")] = "cs_jimmydisanto2"
-PedModel1[joaat("cs_joeminuteman")] = "cs_joeminuteman"
-PedModel1[joaat("cs_johnnyklebitz")] = "cs_johnnyklebitz"
-PedModel1[joaat("cs_josef")] = "cs_josef"
-PedModel1[joaat("cs_josh")] = "cs_josh"
-PedModel1[joaat("cs_karen_daniels")] = "cs_karen_daniels"
-PedModel1[joaat("cs_lamardavis")] = "cs_lamardavis"
-PedModel1[joaat("cs_lazlow")] = "Lazlow 1"
-PedModel1[joaat("cs_lazlow_2")] = "cs_lazlow_2"
-PedModel1[joaat("cs_lestercrest")] = "cs_lestercrest"
-PedModel1[joaat("cs_lestercrest_2")] = "cs_lestercrest_2"
-PedModel1[joaat("cs_lestercrest_3")] = "cs_lestercrest_3"
-PedModel1[joaat("cs_lifeinvad_01")] = "cs_lifeinvad_01"
-PedModel1[joaat("cs_magenta")] = "cs_magenta"
-PedModel1[joaat("cs_manuel")] = "cs_manuel"
-PedModel1[joaat("cs_marnie")] = "cs_marnie"
-PedModel1[joaat("cs_martinmadrazo")] = "cs_martinmadrazo"
-PedModel1[joaat("cs_maryann")] = "cs_maryann"
-PedModel1[joaat("cs_michelle")] = "cs_michelle"
-PedModel1[joaat("cs_milton")] = "cs_milton"
-PedModel1[joaat("cs_molly")] = "cs_molly"
-PedModel1[joaat("cs_movpremf_01")] = "cs_movpremf_01"
-PedModel1[joaat("cs_movpremmale")] = "cs_movpremmale"
-PedModel1[joaat("cs_mrk")] = "cs_mrk"
-PedModel1[joaat("cs_mrs_thornhill")] = "cs_mrs_thornhill"
-PedModel1[joaat("cs_mrsphillips")] = "cs_mrsphillips"
-PedModel1[joaat("cs_natalia")] = "cs_natalia"
-PedModel1[joaat("cs_nervousron")] = "cs_nervousron"
-PedModel1[joaat("cs_nigel")] = "cs_nigel"
-PedModel1[joaat("cs_old_man1a")] = "cs_old_man1a"
-PedModel1[joaat("cs_old_man2")] = "cs_old_man2"
-PedModel1[joaat("cs_omega")] = "cs_omega"
-PedModel1[joaat("cs_orleans")] = "cs_orleans"
-PedModel1[joaat("cs_paper")] = "cs_paper"
-PedModel1[joaat("cs_patricia")] = "cs_patricia"
-PedModel1[joaat("cs_patricia_02")] = "cs_patricia_02"
-PedModel1[joaat("cs_priest")] = "cs_priest"
-PedModel1[joaat("cs_prolsec_02")] = "cs_prolsec_02"
-PedModel1[joaat("cs_russiandrunk")] = "cs_russiandrunk"
-PedModel1[joaat("cs_siemonyetarian")] = "cs_siemonyetarian"
-PedModel1[joaat("cs_solomon")] = "cs_solomon"
-PedModel1[joaat("cs_stevehains")] = "Steven Haines"
-PedModel1[joaat("cs_stretch")] = "Stretch"
-PedModel1[joaat("cs_tanisha")] = "cs_tanisha"
-PedModel1[joaat("cs_taocheng")] = "Tao Cheng"
-PedModel1[joaat("cs_taocheng2")] = "cs_taocheng2"
-PedModel1[joaat("cs_taostranslator")] = "cs_taostranslator"
-PedModel1[joaat("cs_taostranslator2")] = "cs_taostranslator2"
-PedModel1[joaat("cs_tenniscoach")] = "cs_tenniscoach"
-PedModel1[joaat("cs_terry")] = "cs_terry"
-PedModel1[joaat("cs_tom")] = "cs_tom"
-PedModel1[joaat("cs_tomepsilon")] = "cs_tomepsilon"
-PedModel1[joaat("cs_tracydisanto")] = "cs_tracydisanto"
-PedModel1[joaat("cs_wade")] = "cs_wade"
-PedModel1[joaat("cs_zimbor")] = "cs_zimbor"
-PedModel1[joaat("csb_abigail")] = "Abigail"
-PedModel1[joaat("csb_agatha")] = "csb_agatha"
-PedModel1[joaat("csb_agent")] = "csb_agent"
-PedModel1[joaat("csb_alan")] = "csb_alan"
-PedModel1[joaat("csb_anita")] = "csb_anita"
-PedModel1[joaat("csb_anton")] = "csb_anton"
-PedModel1[joaat("csb_ary")] = "csb_ary"
-PedModel1[joaat("csb_avery")] = "csb_avery"
-PedModel1[joaat("csb_avon")] = "csb_avon"
-PedModel1[joaat("csb_ballasog")] = "csb_ballasog"
-PedModel1[joaat("csb_bogdan")] = "csb_bogdan"
-PedModel1[joaat("csb_bride")] = "csb_bride"
-PedModel1[joaat("csb_brucie2")] = "csb_brucie2"
-PedModel1[joaat("csb_bryony")] = "csb_bryony"
-PedModel1[joaat("csb_burgerdrug")] = "csb_burgerdrug"
-PedModel1[joaat("csb_car3guy1")] = "csb_car3guy1"
-PedModel1[joaat("csb_car3guy2")] = "csb_car3guy2"
-PedModel1[joaat("csb_celeb_01")] = "csb_celeb_01"
-PedModel1[joaat("csb_chef")] = "csb_chef"
-PedModel1[joaat("csb_chef2")] = "csb_chef2"
-PedModel1[joaat("csb_chin_goon")] = "csb_chin_goon"
-PedModel1[joaat("csb_cletus")] = "csb_cletus"
-PedModel1[joaat("csb_cop")] = "csb_cop"
-PedModel1[joaat("csb_customer")] = "csb_customer"
-PedModel1[joaat("csb_denise_friend")] = "csb_denise_friend"
-PedModel1[joaat("csb_dix")] = "csb_dix"
-PedModel1[joaat("csb_djblamadon")] = "csb_djblamadon"
-PedModel1[joaat("csb_englishdave")] = "English Dave"
-PedModel1[joaat("csb_englishdave_02")] = "csb_englishdave_02"
-PedModel1[joaat("csb_fos_rep")] = "csb_fos_rep"
-PedModel1[joaat("csb_g")] = "Gerald 2"
-PedModel1[joaat("csb_georginacheng")] = "csb_georginacheng"
-PedModel1[joaat("csb_groom")] = "csb_groom"
-PedModel1[joaat("csb_grove_str_dlr")] = "csb_grove_str_dlr"
-PedModel1[joaat("csb_gustavo")] = "Gustavo"
-PedModel1[joaat("csb_hao")] = "Hao"
-PedModel1[joaat("csb_helmsmanpavel")] = "Pavel"
-PedModel1[joaat("csb_huang")] = "csb_huang"
-PedModel1[joaat("csb_hugh")] = "csb_hugh"
-PedModel1[joaat("csb_imran")] = "csb_imran"
-PedModel1[joaat("csb_isldj_00")] = "csb_isldj_00"
-PedModel1[joaat("csb_isldj_01")] = "csb_isldj_01"
-PedModel1[joaat("csb_isldj_02")] = "csb_isldj_02"
-PedModel1[joaat("csb_isldj_03")] = "csb_isldj_03"
-PedModel1[joaat("csb_isldj_04")] = "csb_isldj_04"
-PedModel1[joaat("csb_jackhowitzer")] = "csb_jackhowitzer"
-PedModel1[joaat("csb_janitor")] = "csb_janitor"
-PedModel1[joaat("csb_jio")] = "Jimmy Iovine"
-PedModel1[joaat("csb_juanstrickler")] = "csb_juanstrickler"
-PedModel1[joaat("csb_maude")] = "csb_maude"
-PedModel1[joaat("csb_miguelmadrazo")] = "csb_miguelmadrazo"
-PedModel1[joaat("csb_mjo")] = "DJ Pooh"
-PedModel1[joaat("csb_money")] = "Avi Schwartzman"
-PedModel1[joaat("csb_mp_agent14")] = "csb_mp_agent14"
-PedModel1[joaat("csb_mrs_r")] = "Mrs Rackman"
-PedModel1[joaat("csb_mweather")] = "csb_mweather"
-PedModel1[joaat("csb_ortega")] = "csb_ortega"
-PedModel1[joaat("csb_oscar")] = "csb_oscar"
-PedModel1[joaat("csb_paige")] = "csb_paige"
-PedModel1[joaat("csb_popov")] = "csb_popov"
-PedModel1[joaat("csb_porndudes")] = "csb_porndudes"
-PedModel1[joaat("csb_prologuedriver")] = "csb_prologuedriver"
-PedModel1[joaat("csb_prolsec")] = "csb_prolsec"
-PedModel1[joaat("csb_ramp_gang")] = "csb_ramp_gang"
-PedModel1[joaat("csb_ramp_hic")] = "csb_ramp_hic"
-PedModel1[joaat("csb_ramp_hipster")] = "csb_ramp_hipster"
-PedModel1[joaat("csb_ramp_marine")] = "csb_ramp_marine"
-PedModel1[joaat("csb_ramp_mex")] = "csb_ramp_mex"
-PedModel1[joaat("csb_rashcosvki")] = "csb_rashcosvki"
-PedModel1[joaat("csb_reporter")] = "csb_reporter"
-PedModel1[joaat("csb_roccopelosi")] = "csb_roccopelosi"
-PedModel1[joaat("csb_screen_writer")] = "csb_screen_writer"
-PedModel1[joaat("csb_sol")] = "csb_sol"
-PedModel1[joaat("csb_sss")] = "csb_sss"
-PedModel1[joaat("csb_stripper_01")] = "csb_stripper_01"
-PedModel1[joaat("csb_stripper_02")] = "csb_stripper_02"
-PedModel1[joaat("csb_talcc")] = "csb_talcc"
-PedModel1[joaat("csb_talmm")] = "csb_talmm"
-PedModel1[joaat("csb_thornton")] = "csb_thornton"
-PedModel1[joaat("csb_tomcasino")] = "csb_tomcasino"
-PedModel1[joaat("csb_tonya")] = "csb_tonya"
-PedModel1[joaat("csb_tonyprince")] = "csb_tonyprince"
-PedModel1[joaat("csb_trafficwarden")] = "csb_trafficwarden"
-PedModel1[joaat("csb_undercover")] = "csb_undercover"
-PedModel1[joaat("csb_vagspeak")] = "csb_vagspeak"
-PedModel1[joaat("csb_vincent")] = "csb_vincent"
-PedModel1[joaat("csb_vincent_2")] = "Vincent 2"
-PedModel1[joaat("csb_wendy")] = "csb_wendy"
-PedModel1[joaat("g_f_importexport_01")] = "g_f_importexport_01"
-PedModel1[joaat("g_f_y_ballas_01")] = "g_f_y_ballas_01"
-PedModel1[joaat("g_f_y_families_01")] = "g_f_y_families_01"
-PedModel1[joaat("g_f_y_lost_01")] = "g_f_y_lost_01"
-PedModel1[joaat("g_f_y_vagos_01")] = "g_f_y_vagos_01"
-PedModel1[joaat("g_m_importexport_01")] = "g_m_importexport_01"
-PedModel1[joaat("g_m_m_armboss_01")] = "g_m_m_armboss_01"
-PedModel1[joaat("g_m_m_armgoon_01")] = "g_m_m_armgoon_01"
-PedModel1[joaat("g_m_m_armlieut_01")] = "g_m_m_armlieut_01"
-PedModel1[joaat("g_m_m_cartelguards_01")] = "g_m_m_cartelguards_01"
-PedModel1[joaat("g_m_m_cartelguards_02")] = "g_m_m_cartelguards_02"
-PedModel1[joaat("g_m_m_casrn_01")] = "g_m_m_casrn_01"
-PedModel1[joaat("g_m_m_chemwork_01")] = "g_m_m_chemwork_01"
-PedModel1[joaat("g_m_m_chiboss_01")] = "g_m_m_chiboss_01"
-PedModel1[joaat("g_m_m_chicold_01")] = "g_m_m_chicold_01"
-PedModel1[joaat("g_m_m_chigoon_01")] = "g_m_m_chigoon_01"
-PedModel1[joaat("g_m_m_chigoon_02")] = "g_m_m_chigoon_02"
-PedModel1[joaat("g_m_m_korboss_01")] = "g_m_m_korboss_01"
-PedModel1[joaat("g_m_m_mexboss_01")] = "g_m_m_mexboss_01"
-PedModel1[joaat("g_m_m_mexboss_02")] = "g_m_m_mexboss_02"
-PedModel1[joaat("g_m_y_armgoon_02")] = "g_m_y_armgoon_02"
-PedModel1[joaat("g_m_y_azteca_01")] = "g_m_y_azteca_01"
-PedModel1[joaat("g_m_y_ballaeast_01")] = "g_m_y_ballaeast_01"
-PedModel1[joaat("g_m_y_ballaorig_01")] = "g_m_y_ballaorig_01"
-PedModel1[joaat("g_m_y_ballasout_01")] = "g_m_y_ballasout_01"
-PedModel1[joaat("g_m_y_famca_01")] = "g_m_y_famca_01"
-PedModel1[joaat("g_m_y_famdnf_01")] = "g_m_y_famdnf_01"
-PedModel1[joaat("g_m_y_famfor_01")] = "g_m_y_famfor_01"
-PedModel1[joaat("g_m_y_korean_01")] = "g_m_y_korean_01"
-PedModel1[joaat("g_m_y_korean_02")] = "g_m_y_korean_02"
-PedModel1[joaat("g_m_y_korlieut_01")] = "g_m_y_korlieut_01"
-PedModel1[joaat("g_m_y_lost_01")] = "g_m_y_lost_01"
-PedModel1[joaat("g_m_y_lost_02")] = "g_m_y_lost_02"
-PedModel1[joaat("g_m_y_lost_03")] = "g_m_y_lost_03"
-PedModel1[joaat("g_m_y_mexgang_01")] = "g_m_y_mexgang_01"
-PedModel1[joaat("g_m_y_mexgoon_01")] = "g_m_y_mexgoon_01"
-PedModel1[joaat("g_m_y_mexgoon_02")] = "g_m_y_mexgoon_02"
-PedModel1[joaat("g_m_y_mexgoon_03")] = "g_m_y_mexgoon_03"
-PedModel1[joaat("g_m_y_pologoon_01")] = "g_m_y_pologoon_01"
-PedModel1[joaat("g_m_y_pologoon_02")] = "g_m_y_pologoon_02"
-PedModel1[joaat("g_m_y_salvaboss_01")] = "g_m_y_salvaboss_01"
-PedModel1[joaat("g_m_y_salvagoon_01")] = "g_m_y_salvagoon_01"
-PedModel1[joaat("g_m_y_salvagoon_02")] = "g_m_y_salvagoon_02"
-PedModel1[joaat("g_m_y_salvagoon_03")] = "g_m_y_salvagoon_03"
-PedModel1[joaat("g_m_y_strpunk_01")] = "g_m_y_strpunk_01"
-PedModel1[joaat("g_m_y_strpunk_02")] = "g_m_y_strpunk_02"
-PedModel1[joaat("hc_driver")] = "hc_driver"
-PedModel1[joaat("hc_gunman")] = "hc_gunman"
-PedModel1[joaat("hc_hacker")] = "hc_hacker"
-PedModel1[joaat("ig_abigail")] = "Abigail"
-PedModel1[joaat("ig_agatha")] = "Agatha"
-PedModel1[joaat("ig_agent")] = "Agent"
-PedModel1[joaat("ig_amandatownley")] = "Amanda 1"
-PedModel1[joaat("ig_andreas")] = "Andreas"
-PedModel1[joaat("ig_ary")] = "Ary"
-PedModel1[joaat("ig_ashley")] = "Ashley"
-PedModel1[joaat("ig_avery")] = "Avery"
-PedModel1[joaat("ig_avon")] = "Avon Hertz"
-PedModel1[joaat("ig_ballasog")] = "Ballas Chilli D"
-PedModel1[joaat("ig_bankman")] = "Bankman"
-PedModel1[joaat("ig_barry")] = "Barry"
-PedModel1[joaat("ig_benny")] = "Benny"
-PedModel1[joaat("ig_bestmen")] = "Bestmen"
-PedModel1[joaat("ig_beverly")] = "Beverly"
-PedModel1[joaat("ig_brad")] = "Brad"
-PedModel1[joaat("ig_bride")] = "ig_bride"
-PedModel1[joaat("ig_brucie2")] = "Brucie 2"
-PedModel1[joaat("ig_car3guy1")] = "ig_car3guy1"
-PedModel1[joaat("ig_car3guy2")] = "ig_car3guy2"
-PedModel1[joaat("ig_casey")] = "Casey"
-PedModel1[joaat("ig_celeb_01")] = "ig_celeb_01"
-PedModel1[joaat("ig_chef")] = "ig_chef"
-PedModel1[joaat("ig_chef2")] = "ig_chef2"
-PedModel1[joaat("ig_chengsr")] = "Cheng Sr"
-PedModel1[joaat("ig_chrisformage")] = "Cris Formage"
-PedModel1[joaat("ig_clay")] = "Clay Simons"
-PedModel1[joaat("ig_claypain")] = "Claypain"
-PedModel1[joaat("ig_cletus")] = "Cletus"
-PedModel1[joaat("ig_dale")] = "Dale"
-PedModel1[joaat("ig_davenorton")] = "Dave Norton"
-PedModel1[joaat("ig_denise")] = "Denise"
-PedModel1[joaat("ig_devin")] = "Devin"
-PedModel1[joaat("ig_dix")] = "dix"
-PedModel1[joaat("ig_djblamadon")] = "djblamadon"
-PedModel1[joaat("ig_djblamrupert")] = "Rupert Murray"
-PedModel1[joaat("ig_djblamryanh")] = "djblamryanh"
-PedModel1[joaat("ig_djblamryans")] = "djblamryans"
-PedModel1[joaat("ig_djdixmanager")] = "djdixmanager"
-PedModel1[joaat("ig_djgeneric_01")] = "djgeneric_01"
-PedModel1[joaat("ig_djsolfotios")] = "djsolfotios"
-PedModel1[joaat("ig_djsoljakob")] = "Jakob Grunert"
-PedModel1[joaat("ig_djsolmanager")] = "djsolmanager"
-PedModel1[joaat("ig_djsolmike")] = "djsolmike"
-PedModel1[joaat("ig_djsolrobt")] = "djsolrobt"
-PedModel1[joaat("ig_djtalaurelia")] = "djtalaurelia"
-PedModel1[joaat("ig_djtalignazio")] = "djtalignazio"
-PedModel1[joaat("ig_dom")] = "Dom"
-PedModel1[joaat("ig_dreyfuss")] = "dreyfuss"
-PedModel1[joaat("ig_drfriedlander")] = "drfriedlander"
-PedModel1[joaat("ig_englishdave")] = "englishdave"
-PedModel1[joaat("ig_englishdave_02")] = "englishdave_02"
-PedModel1[joaat("ig_fabien")] = "fabien"
-PedModel1[joaat("ig_fbisuit_01")] = "fbisuit_01"
-PedModel1[joaat("ig_floyd")] = "floyd"
-PedModel1[joaat("ig_g")] = "Gerald"
-PedModel1[joaat("ig_georginacheng")] = "georginacheng"
-PedModel1[joaat("ig_groom")] = "groom"
-PedModel1[joaat("ig_gustavo")] = "gustavo"
-PedModel1[joaat("ig_hao")] = "hao"
-PedModel1[joaat("ig_helmsmanpavel")] = "helmsmanpavel"
-PedModel1[joaat("ig_huang")] = "huang"
-PedModel1[joaat("ig_hunter")] = "hunter"
-PedModel1[joaat("ig_isldj_00")] = "isldj_00"
-PedModel1[joaat("ig_isldj_01")] = "isldj_01"
-PedModel1[joaat("ig_isldj_02")] = "isldj_02"
-PedModel1[joaat("ig_isldj_03")] = "isldj_03"
-PedModel1[joaat("ig_isldj_04")] = "Moodyman"
-PedModel1[joaat("ig_isldj_04_d_01")] = "isldj_04_d_01"
-PedModel1[joaat("ig_isldj_04_d_02")] = "isldj_04_d_02"
-PedModel1[joaat("ig_isldj_04_e_01")] = "isldj_04_e_01"
-PedModel1[joaat("ig_jackie")] = "jackie"
-PedModel1[joaat("ig_janet")] = "janet"
-PedModel1[joaat("ig_jay_norris")] = "jay_norris"
-PedModel1[joaat("ig_jewelass")] = "jewelass"
-PedModel1[joaat("ig_jimmyboston")] = "jimmyboston"
-PedModel1[joaat("ig_jimmyboston_02")] = "jimmyboston_02"
-PedModel1[joaat("ig_jimmydisanto")] = "jimmydisanto"
-PedModel1[joaat("ig_jimmydisanto2")] = "Jimmy 2"
-PedModel1[joaat("ig_jio")] = "jio"
-PedModel1[joaat("ig_joeminuteman")] = "joeminuteman"
-PedModel1[joaat("ig_johnnyklebitz")] = "johnnyklebitz"
-PedModel1[joaat("ig_josef")] = "josef"
-PedModel1[joaat("ig_josh")] = "josh"
-PedModel1[joaat("ig_juanstrickler")] = "juanstrickler"
-PedModel1[joaat("ig_karen_daniels")] = "karen_daniels"
-PedModel1[joaat("ig_kaylee")] = "kaylee"
-PedModel1[joaat("ig_kerrymcintosh")] = "kerrymcintosh"
-PedModel1[joaat("ig_kerrymcintosh_02")] = "kerrymcintosh_02"
-PedModel1[joaat("ig_lacey_jones_02")] = "lacey_jones_02"
-PedModel1[joaat("ig_lamardavis")] = "lamardavis"
-PedModel1[joaat("ig_lazlow")] = "lazlow"
-PedModel1[joaat("ig_lazlow_2")] = "Lazlow 2"
-PedModel1[joaat("ig_lestercrest")] = "lestercrest"
-PedModel1[joaat("ig_lestercrest_2")] = "lestercrest_2"
-PedModel1[joaat("ig_lestercrest_3")] = "lestercrest_3"
-PedModel1[joaat("ig_lifeinvad_01")] = "lifeinvad_01"
-PedModel1[joaat("ig_lifeinvad_02")] = "lifeinvad_02"
-PedModel1[joaat("ig_magenta")] = "magenta"
-PedModel1[joaat("ig_malc")] = "malc"
-PedModel1[joaat("ig_manuel")] = "manuel"
-PedModel1[joaat("ig_marnie")] = "marnie"
-PedModel1[joaat("ig_maryann")] = "Mary Ann"
-PedModel1[joaat("ig_maude")] = "Maude"
-PedModel1[joaat("ig_michelle")] = "Michelle"
-PedModel1[joaat("ig_miguelmadrazo")] = "Miguel Madrazo"
-PedModel1[joaat("ig_milton")] = "Milton"
-PedModel1[joaat("ig_mjo")] = "DJ Pooh"
-PedModel1[joaat("ig_molly")] = "molly"
-PedModel1[joaat("ig_money")] = "Avi Schwartzman 1"
-PedModel1[joaat("ig_mp_agent14")] = "mp_agent14"
-PedModel1[joaat("ig_mrk")] = "mrk"
-PedModel1[joaat("ig_mrs_thornhill")] = "mrs_thornhill"
-PedModel1[joaat("ig_mrsphillips")] = "Mrs Phillips"
-PedModel1[joaat("ig_natalia")] = "natalia"
-PedModel1[joaat("ig_nervousron")] = "nervousron"
-PedModel1[joaat("ig_nigel")] = "nigel"
-PedModel1[joaat("ig_old_man1a")] = "old_man1a"
-PedModel1[joaat("ig_old_man2")] = "old_man2"
-PedModel1[joaat("ig_oldrichguy")] = "oldrichguy"
-PedModel1[joaat("ig_omega")] = "omega"
-PedModel1[joaat("ig_oneil")] = "oneil"
-PedModel1[joaat("ig_orleans")] = "orleans"
-PedModel1[joaat("ig_ortega")] = "ortega"
-PedModel1[joaat("ig_paige")] = "paige"
-PedModel1[joaat("ig_paper")] = "paper"
-PedModel1[joaat("ig_patricia")] = "patricia"
-PedModel1[joaat("ig_patricia_02")] = "patricia_02"
-PedModel1[joaat("ig_pilot")] = "pilot"
-PedModel1[joaat("ig_popov")] = "popov"
-PedModel1[joaat("ig_priest")] = "priest"
-PedModel1[joaat("ig_prolsec_02")] = "prolsec_02"
-PedModel1[joaat("ig_ramp_gang")] = "ramp_gang"
-PedModel1[joaat("ig_ramp_hic")] = "ramp_hic"
-PedModel1[joaat("ig_ramp_hipster")] = "ramp_hipster"
-PedModel1[joaat("ig_ramp_mex")] = "ramp_mex"
-PedModel1[joaat("ig_rashcosvki")] = "Rashcosvki"
-PedModel1[joaat("ig_roccopelosi")] = "roccopelosi"
-PedModel1[joaat("ig_russiandrunk")] = "russiandrunk"
-PedModel1[joaat("ig_sacha")] = "sacha"
-PedModel1[joaat("ig_screen_writer")] = "screen_writer"
-PedModel1[joaat("ig_siemonyetarian")] = "siemonyetarian"
-PedModel1[joaat("ig_sol")] = "sol"
-PedModel1[joaat("ig_solomon")] = "Solomon"
-PedModel1[joaat("ig_sss")] = "Scott Storch"
-PedModel1[joaat("ig_stevehains")] = "Steven Haines"
-PedModel1[joaat("ig_stretch")] = "Harold 'Stretch' Joseph"
-PedModel1[joaat("ig_talcc")] = "talcc"
-PedModel1[joaat("ig_talina")] = "talina"
-PedModel1[joaat("ig_talmm")] = "talmm"
-PedModel1[joaat("ig_tanisha")] = "tanisha"
-PedModel1[joaat("ig_taocheng")] = "taocheng"
-PedModel1[joaat("ig_taocheng2")] = "taocheng2"
-PedModel1[joaat("ig_taostranslator")] = "taostranslator"
-PedModel1[joaat("ig_taostranslator2")] = "taostranslator2"
-PedModel1[joaat("ig_tenniscoach")] = "tenniscoach"
-PedModel1[joaat("ig_terry")] = "Terry Thorpe"
-PedModel1[joaat("ig_thornton")] = "Thornton Duggan"
-PedModel1[joaat("ig_tomcasino")] = "tomcasino"
-PedModel1[joaat("ig_tomepsilon")] = "tomepsilon"
-PedModel1[joaat("ig_tonya")] = "tonya"
-PedModel1[joaat("ig_tonyprince")] = "tonyprince"
-PedModel1[joaat("ig_tracydisanto")] = "tracydisanto"
-PedModel1[joaat("ig_trafficwarden")] = "trafficwarden"
-PedModel1[joaat("ig_tylerdix")] = "tylerdix"
-PedModel1[joaat("ig_tylerdix_02")] = "tylerdix_02"
-PedModel1[joaat("ig_vagspeak")] = "Vagspeak"
-PedModel1[joaat("ig_vincent")] = "Vincent"
-PedModel1[joaat("ig_vincent_2")] = "Vincent 2"
-PedModel1[joaat("ig_wade")] = "Wade"
-PedModel1[joaat("ig_wendy")] = "Wendy"
-PedModel1[joaat("ig_zimbor")] = "Zimbor"
-PedModel1[joaat("mp_f_bennymech_01")] = "mp_f_bennymech_01"
-PedModel1[joaat("mp_f_boatstaff_01")] = "mp_f_boatstaff_01"
-PedModel1[joaat("mp_f_cardesign_01")] = "mp_f_cardesign_01"
-PedModel1[joaat("mp_f_chbar_01")] = "mp_f_chbar_01"
-PedModel1[joaat("mp_f_cocaine_01")] = "mp_f_cocaine_01"
-PedModel1[joaat("mp_f_counterfeit_01")] = "mp_f_counterfeit_01"
-PedModel1[joaat("mp_f_deadhooker")] = "mp_f_deadhooker"
-PedModel1[joaat("mp_f_execpa_01")] = "mp_f_execpa_01"
-PedModel1[joaat("mp_f_execpa_02")] = "mp_f_execpa_02"
-PedModel1[joaat("mp_f_forgery_01")] = "mp_f_forgery_01"
-PedModel1[joaat("mp_f_helistaff_01")] = "mp_f_helistaff_01"
-PedModel1[joaat("mp_f_meth_01")] = "mp_f_meth_01"
-PedModel1[joaat("mp_f_misty_01")] = "mp_f_misty_01"
-PedModel1[joaat("mp_f_stripperlite")] = "Nikki"
-PedModel1[joaat("mp_f_weed_01")] = "mp_f_weed_01"
-PedModel1[joaat("mp_g_m_pros_01")] = "mp_g_m_pros_01"
-PedModel1[joaat("mp_headtargets")] = "mp_headtargets"
-PedModel1[joaat("mp_m_avongoon")] = "mp_m_avongoon"
-PedModel1[joaat("mp_m_boatstaff_01")] = "mp_m_boatstaff_01"
-PedModel1[joaat("mp_m_bogdangoon")] = "mp_m_bogdangoon"
-PedModel1[joaat("mp_m_claude_01")] = "mp_m_claude_01"
-PedModel1[joaat("mp_m_cocaine_01")] = "mp_m_cocaine_01"
-PedModel1[joaat("mp_m_counterfeit_01")] = "mp_m_counterfeit_01"
-PedModel1[joaat("mp_m_exarmy_01")] = "mp_m_exarmy_01"
-PedModel1[joaat("mp_m_execpa_01")] = "mp_m_execpa_01"
-PedModel1[joaat("mp_m_famdd_01")] = "mp_m_famdd_01"
-PedModel1[joaat("mp_m_fibsec_01")] = "mp_m_fibsec_01"
-PedModel1[joaat("mp_m_forgery_01")] = "mp_m_forgery_01"
-PedModel1[joaat("mp_m_g_vagfun_01")] = "mp_m_g_vagfun_01"
-PedModel1[joaat("mp_m_marston_01")] = "mp_m_marston_01"
-PedModel1[joaat("mp_m_meth_01")] = "mp_m_meth_01"
-PedModel1[joaat("mp_m_niko_01")] = "mp_m_niko_01"
-PedModel1[joaat("mp_m_securoguard_01")] = "mp_m_securoguard_01"
-PedModel1[joaat("mp_m_shopkeep_01")] = "mp_m_shopkeep_01"
-PedModel1[joaat("mp_m_waremech_01")] = "mp_m_waremech_01"
-PedModel1[joaat("mp_m_weapexp_01")] = "mp_m_weapexp_01"
-PedModel1[joaat("mp_m_weapwork_01")] = "mp_m_weapwork_01"
-PedModel1[joaat("mp_m_weed_01")] = "mp_m_weed_01"
-PedModel1[joaat("mp_s_m_armoured_01")] = "mp_s_m_armoured_01"
-PedModel1[joaat("s_f_m_fembarber")] = "s_f_m_fembarber"
-PedModel1[joaat("s_f_m_maid_01")] = "s_f_m_maid_01"
-PedModel1[joaat("s_f_m_shop_high")] = "s_f_m_shop_high"
-PedModel1[joaat("s_f_m_sweatshop_01")] = "s_f_m_sweatshop_01"
-PedModel1[joaat("s_f_y_airhostess_01")] = "s_f_y_airhostess_01"
-PedModel1[joaat("s_f_y_bartender_01")] = "s_f_y_bartender_01"
-PedModel1[joaat("s_f_y_baywatch_01")] = "s_f_y_baywatch_01"
-PedModel1[joaat("s_f_y_beachbarstaff_01")] = "s_f_y_beachbarstaff_01"
-PedModel1[joaat("s_f_y_casino_01")] = "s_f_y_casino_01"
-PedModel1[joaat("s_f_y_clubbar_01")] = "s_f_y_clubbar_01"
-PedModel1[joaat("s_f_y_clubbar_02")] = "s_f_y_clubbar_02"
-PedModel1[joaat("s_f_y_cop_01")] = "s_f_y_cop_01"
-PedModel1[joaat("s_f_y_factory_01")] = "s_f_y_factory_01"
-PedModel1[joaat("s_f_y_hooker_01")] = "s_f_y_hooker_01"
-PedModel1[joaat("s_f_y_hooker_02")] = "s_f_y_hooker_02"
-PedModel1[joaat("s_f_y_hooker_03")] = "s_f_y_hooker_03"
-PedModel1[joaat("s_f_y_migrant_01")] = "s_f_y_migrant_01"
-PedModel1[joaat("s_f_y_movprem_01")] = "s_f_y_movprem_01"
-PedModel1[joaat("s_f_y_ranger_01")] = "s_f_y_ranger_01"
-PedModel1[joaat("s_f_y_scrubs_01")] = "s_f_y_scrubs_01"
-PedModel1[joaat("s_f_y_sheriff_01")] = "s_f_y_sheriff_01"
-PedModel1[joaat("s_f_y_shop_low")] = "s_f_y_shop_low"
-PedModel1[joaat("s_f_y_shop_mid")] = "s_f_y_shop_mid"
-PedModel1[joaat("s_f_y_stripper_01")] = "s_f_y_stripper_01"
-PedModel1[joaat("s_f_y_stripper_02")] = "s_f_y_stripper_02"
-PedModel1[joaat("s_f_y_stripperlite")] = "s_f_y_stripperlite"
-PedModel1[joaat("s_f_y_sweatshop_01")] = "s_f_y_sweatshop_01"
-PedModel1[joaat("s_m_m_ammucountry")] = "s_m_m_ammucountry"
-PedModel1[joaat("s_m_m_armoured_01")] = "s_m_m_armoured_01"
-PedModel1[joaat("s_m_m_armoured_02")] = "s_m_m_armoured_02"
-PedModel1[joaat("s_m_m_autoshop_01")] = "s_m_m_autoshop_01"
-PedModel1[joaat("s_m_m_autoshop_02")] = "s_m_m_autoshop_02"
-PedModel1[joaat("s_m_m_bouncer_01")] = "s_m_m_bouncer_01"
-PedModel1[joaat("s_m_m_bouncer_02")] = "s_m_m_bouncer_02"
-PedModel1[joaat("s_m_m_ccrew_01")] = "s_m_m_ccrew_01"
-PedModel1[joaat("s_m_m_chemsec_01")] = "s_m_m_chemsec_01"
-PedModel1[joaat("s_m_m_ciasec_01")] = "s_m_m_ciasec_01"
-PedModel1[joaat("s_m_m_cntrybar_01")] = "s_m_m_cntrybar_01"
-PedModel1[joaat("s_m_m_dockwork_01")] = "s_m_m_dockwork_01"
-PedModel1[joaat("s_m_m_doctor_01")] = "s_m_m_doctor_01"
-PedModel1[joaat("s_m_m_drugprocess_01")] = "s_m_m_drugprocess_01"
-PedModel1[joaat("s_m_m_fiboffice_01")] = "s_m_m_fiboffice_01"
-PedModel1[joaat("s_m_m_fiboffice_02")] = "s_m_m_fiboffice_02"
-PedModel1[joaat("s_m_m_fibsec_01")] = "s_m_m_fibsec_01"
-PedModel1[joaat("s_m_m_fieldworker_01")] = "s_m_m_fieldworker_01"
-PedModel1[joaat("s_m_m_gaffer_01")] = "s_m_m_gaffer_01"
-PedModel1[joaat("s_m_m_gardener_01")] = "s_m_m_gardener_01"
-PedModel1[joaat("s_m_m_gentransport")] = "s_m_m_gentransport"
-PedModel1[joaat("s_m_m_hairdress_01")] = "s_m_m_hairdress_01"
-PedModel1[joaat("s_m_m_highsec_01")] = "s_m_m_highsec_01"
-PedModel1[joaat("s_m_m_highsec_02")] = "s_m_m_highsec_02"
-PedModel1[joaat("s_m_m_highsec_03")] = "s_m_m_highsec_03"
-PedModel1[joaat("s_m_m_highsec_04")] = "s_m_m_highsec_04"
-PedModel1[joaat("s_m_m_janitor")] = "s_m_m_janitor"
-PedModel1[joaat("s_m_m_lathandy_01")] = "s_m_m_lathandy_01"
-PedModel1[joaat("s_m_m_lifeinvad_01")] = "s_m_m_lifeinvad_01"
-PedModel1[joaat("s_m_m_linecook")] = "s_m_m_linecook"
-PedModel1[joaat("s_m_m_lsmetro_01")] = "s_m_m_lsmetro_01"
-PedModel1[joaat("s_m_m_mariachi_01")] = "s_m_m_mariachi_01"
-PedModel1[joaat("s_m_m_marine_01")] = "s_m_m_marine_01"
-PedModel1[joaat("s_m_m_marine_02")] = "s_m_m_marine_02"
-PedModel1[joaat("s_m_m_migrant_01")] = "s_m_m_migrant_01"
-PedModel1[joaat("s_m_m_movalien_01")] = "s_m_m_movalien_01"
-PedModel1[joaat("s_m_m_movprem_01")] = "s_m_m_movprem_01"
-PedModel1[joaat("s_m_m_movspace_01")] = "s_m_m_movspace_01"
-PedModel1[joaat("s_m_m_paramedic_01")] = "s_m_m_paramedic_01"
-PedModel1[joaat("s_m_m_pilot_01")] = "s_m_m_pilot_01"
-PedModel1[joaat("s_m_m_pilot_02")] = "s_m_m_pilot_02"
-PedModel1[joaat("s_m_m_postal_01")] = "s_m_m_postal_01"
-PedModel1[joaat("s_m_m_postal_02")] = "s_m_m_postal_02"
-PedModel1[joaat("s_m_m_prisguard_01")] = "s_m_m_prisguard_01"
-PedModel1[joaat("s_m_m_scientist_01")] = "s_m_m_scientist_01"
-PedModel1[joaat("s_m_m_security_01")] = "s_m_m_security_01"
-PedModel1[joaat("s_m_m_snowcop_01")] = "s_m_m_snowcop_01"
-PedModel1[joaat("s_m_m_strperf_01")] = "s_m_m_strperf_01"
-PedModel1[joaat("s_m_m_strpreach_01")] = "s_m_m_strpreach_01"
-PedModel1[joaat("s_m_m_strvend_01")] = "s_m_m_strvend_01"
-PedModel1[joaat("s_m_m_trucker_01")] = "s_m_m_trucker_01"
-PedModel1[joaat("s_m_m_ups_01")] = "s_m_m_ups_01"
-PedModel1[joaat("s_m_m_ups_02")] = "s_m_m_ups_02"
-PedModel1[joaat("s_m_o_busker_01")] = "s_m_o_busker_01"
-PedModel1[joaat("s_m_y_airworker")] = "s_m_y_airworker"
-PedModel1[joaat("s_m_y_ammucity_01")] = "s_m_y_ammucity_01"
-PedModel1[joaat("s_m_y_armymech_01")] = "s_m_y_armymech_01"
-PedModel1[joaat("s_m_y_autopsy_01")] = "s_m_y_autopsy_01"
-PedModel1[joaat("s_m_y_barman_01")] = "s_m_y_barman_01"
-PedModel1[joaat("s_m_y_baywatch_01")] = "s_m_y_baywatch_01"
-PedModel1[joaat("s_m_y_blackops_01")] = "s_m_y_blackops_01"
-PedModel1[joaat("s_m_y_blackops_02")] = "s_m_y_blackops_02"
-PedModel1[joaat("s_m_y_blackops_03")] = "s_m_y_blackops_03"
-PedModel1[joaat("s_m_y_busboy_01")] = "s_m_y_busboy_01"
-PedModel1[joaat("s_m_y_casino_01")] = "s_m_y_casino_01"
-PedModel1[joaat("s_m_y_chef_01")] = "s_m_y_chef_01"
-PedModel1[joaat("s_m_y_clown_01")] = "s_m_y_clown_01"
-PedModel1[joaat("s_m_y_clubbar_01")] = "s_m_y_clubbar_01"
-PedModel1[joaat("s_m_y_construct_01")] = "s_m_y_construct_01"
-PedModel1[joaat("s_m_y_construct_02")] = "s_m_y_construct_02"
-PedModel1[joaat("s_m_y_cop_01")] = "s_m_y_cop_01"
-PedModel1[joaat("s_m_y_dealer_01")] = "s_m_y_dealer_01"
-PedModel1[joaat("s_m_y_devinsec_01")] = "s_m_y_devinsec_01"
-PedModel1[joaat("s_m_y_dockwork_01")] = "s_m_y_dockwork_01"
-PedModel1[joaat("s_m_y_doorman_01")] = "s_m_y_doorman_01"
-PedModel1[joaat("s_m_y_dwservice_01")] = "s_m_y_dwservice_01"
-PedModel1[joaat("s_m_y_dwservice_02")] = "s_m_y_dwservice_02"
-PedModel1[joaat("s_m_y_factory_01")] = "s_m_y_factory_01"
-PedModel1[joaat("s_m_y_fireman_01")] = "s_m_y_fireman_01"
-PedModel1[joaat("s_m_y_garbage")] = "s_m_y_garbage"
-PedModel1[joaat("s_m_y_grip_01")] = "s_m_y_grip_01"
-PedModel1[joaat("s_m_y_hwaycop_01")] = "s_m_y_hwaycop_01"
-PedModel1[joaat("s_m_y_marine_01")] = "s_m_y_marine_01"
-PedModel1[joaat("s_m_y_marine_02")] = "s_m_y_marine_02"
-PedModel1[joaat("s_m_y_marine_03")] = "s_m_y_marine_03"
-PedModel1[joaat("s_m_y_mime")] = "s_m_y_mime"
-PedModel1[joaat("s_m_y_pestcont_01")] = "s_m_y_pestcont_01"
-PedModel1[joaat("s_m_y_pilot_01")] = "s_m_y_pilot_01"
-PedModel1[joaat("s_m_y_prismuscl_01")] = "s_m_y_prismuscl_01"
-PedModel1[joaat("s_m_y_prisoner_01")] = "s_m_y_prisoner_01"
-PedModel1[joaat("s_m_y_ranger_01")] = "s_m_y_ranger_01"
-PedModel1[joaat("s_m_y_robber_01")] = "s_m_y_robber_01"
-PedModel1[joaat("s_m_y_sheriff_01")] = "s_m_y_sheriff_01"
-PedModel1[joaat("s_m_y_shop_mask")] = "s_m_y_shop_mask"
-PedModel1[joaat("s_m_y_strvend_01")] = "s_m_y_strvend_01"
-PedModel1[joaat("s_m_y_swat_01")] = "s_m_y_swat_01"
-PedModel1[joaat("s_m_y_uscg_01")] = "s_m_y_uscg_01"
-PedModel1[joaat("s_m_y_valet_01")] = "s_m_y_valet_01"
-PedModel1[joaat("s_m_y_waiter_01")] = "s_m_y_waiter_01"
-PedModel1[joaat("s_m_y_waretech_01")] = "s_m_y_waretech_01"
-PedModel1[joaat("s_m_y_westsec_01")] = "s_m_y_westsec_01"
-PedModel1[joaat("s_m_y_westsec_02")] = "s_m_y_westsec_02"
-PedModel1[joaat("s_m_y_winclean_01")] = "s_m_y_winclean_01"
-PedModel1[joaat("s_m_y_xmech_01")] = "s_m_y_xmech_01"
-PedModel1[joaat("s_m_y_xmech_02")] = "s_m_y_xmech_02"
-PedModel1[joaat("s_m_y_xmech_02_mp")] = "s_m_y_xmech_02_mp"
-PedModel1[joaat("u_f_m_casinocash_01")] = "u_f_m_casinocash_01"
-PedModel1[joaat("u_f_m_casinoshop_01")] = "u_f_m_casinoshop_01"
-PedModel1[joaat("u_f_m_corpse_01")] = "u_f_m_corpse_01"
-PedModel1[joaat("u_f_m_debbie_01")] = "u_f_m_debbie_01"
-PedModel1[joaat("u_f_m_drowned_01")] = "u_f_m_drowned_01"
-PedModel1[joaat("u_f_m_miranda")] = "u_f_m_miranda"
-PedModel1[joaat("u_f_m_miranda_02")] = "u_f_m_miranda_02"
-PedModel1[joaat("u_f_m_promourn_01")] = "u_f_m_promourn_01"
-PedModel1[joaat("u_f_o_carol")] = "u_f_o_carol"
-PedModel1[joaat("u_f_o_eileen")] = "u_f_o_eileen"
-PedModel1[joaat("u_f_o_moviestar")] = "u_f_o_moviestar"
-PedModel1[joaat("u_f_o_prolhost_01")] = "u_f_o_prolhost_01"
-PedModel1[joaat("u_f_y_beth")] = "u_f_y_beth"
-PedModel1[joaat("u_f_y_bikerchic")] = "u_f_y_bikerchic"
-PedModel1[joaat("u_f_y_comjane")] = "u_f_y_comjane"
-PedModel1[joaat("u_f_y_corpse_01")] = "u_f_y_corpse_01"
-PedModel1[joaat("u_f_y_corpse_02")] = "u_f_y_corpse_02"
-PedModel1[joaat("u_f_y_danceburl_01")] = "u_f_y_danceburl_01"
-PedModel1[joaat("u_f_y_dancelthr_01")] = "u_f_y_dancelthr_01"
-PedModel1[joaat("u_f_y_dancerave_01")] = "u_f_y_dancerave_01"
-PedModel1[joaat("u_f_y_hotposh_01")] = "u_f_y_hotposh_01"
-PedModel1[joaat("u_f_y_jewelass_01")] = "u_f_y_jewelass_01"
-PedModel1[joaat("u_f_y_lauren")] = "u_f_y_lauren"
-PedModel1[joaat("u_f_y_mistress")] = "u_f_y_mistress"
-PedModel1[joaat("u_f_y_poppymich")] = "u_f_y_poppymich"
-PedModel1[joaat("u_f_y_poppymich_02")] = "u_f_y_poppymich_02"
-PedModel1[joaat("u_f_y_princess")] = "u_f_y_princess"
-PedModel1[joaat("u_f_y_spyactress")] = "u_f_y_spyactress"
-PedModel1[joaat("u_f_y_taylor")] = "u_f_y_taylor"
-PedModel1[joaat("u_m_m_aldinapoli")] = "u_m_m_aldinapoli"
-PedModel1[joaat("u_m_m_bankman")] = "u_m_m_bankman"
-PedModel1[joaat("u_m_m_bikehire_01")] = "u_m_m_bikehire_01"
-PedModel1[joaat("u_m_m_blane")] = "u_m_m_blane"
-PedModel1[joaat("u_m_m_curtis")] = "u_m_m_curtis"
-PedModel1[joaat("u_m_m_doa_01")] = "u_m_m_doa_01"
-PedModel1[joaat("u_m_m_edtoh")] = "u_m_m_edtoh"
-PedModel1[joaat("u_m_m_fibarchitect")] = "u_m_m_fibarchitect"
-PedModel1[joaat("u_m_m_filmdirector")] = "u_m_m_filmdirector"
-PedModel1[joaat("u_m_m_glenstank_01")] = "u_m_m_glenstank_01"
-PedModel1[joaat("u_m_m_griff_01")] = "u_m_m_griff_01"
-PedModel1[joaat("u_m_m_jesus_01")] = "u_m_m_jesus_01"
-PedModel1[joaat("u_m_m_jewelsec_01")] = "u_m_m_jewelsec_01"
-PedModel1[joaat("u_m_m_jewelthief")] = "u_m_m_jewelthief"
-PedModel1[joaat("u_m_m_markfost")] = "u_m_m_markfost"
-PedModel1[joaat("u_m_m_prolsec_01")] = "u_m_m_prolsec_01"
-PedModel1[joaat("u_m_m_promourn_01")] = "u_m_m_promourn_01"
-PedModel1[joaat("u_m_m_rivalpap")] = "u_m_m_rivalpap"
-PedModel1[joaat("u_m_m_spyactor")] = "u_m_m_spyactor"
-PedModel1[joaat("u_m_m_streetart_01")] = "u_m_m_streetart_01"
-PedModel1[joaat("u_m_m_vince")] = "u_m_m_vince"
-PedModel1[joaat("u_m_m_willyfist")] = "u_m_m_willyfist"
-PedModel1[joaat("u_m_o_dean")] = "u_m_o_dean"
-PedModel1[joaat("u_m_o_filmnoir")] = "u_m_o_filmnoir"
-PedModel1[joaat("u_m_o_finguru_01")] = "u_m_o_finguru_01"
-PedModel1[joaat("u_m_o_taphillbilly")] = "u_m_o_taphillbilly"
-PedModel1[joaat("u_m_o_tramp_01")] = "u_m_o_tramp_01"
-PedModel1[joaat("u_m_y_abner")] = "u_m_y_abner"
-PedModel1[joaat("u_m_y_antonb")] = "u_m_y_antonb"
-PedModel1[joaat("u_m_y_babyd")] = "u_m_y_babyd"
-PedModel1[joaat("u_m_y_baygor")] = "u_m_y_baygor"
-PedModel1[joaat("u_m_y_burgerdrug_01")] = "u_m_y_burgerdrug_01"
-PedModel1[joaat("u_m_y_caleb")] = "u_m_y_caleb"
-PedModel1[joaat("u_m_y_cyclist_01")] = "u_m_y_cyclist_01"
-PedModel1[joaat("u_m_y_dancerave_01")] = "u_m_y_dancerave_01"
-PedModel1[joaat("u_m_y_fibmugger_01")] = "u_m_y_fibmugger_01"
-PedModel1[joaat("u_m_y_gabriel")] = "u_m_y_gabriel"
-PedModel1[joaat("u_m_y_guido_01")] = "u_m_y_guido_01"
-PedModel1[joaat("u_m_y_gunvend_01")] = "u_m_y_gunvend_01"
-PedModel1[joaat("u_m_y_hippie_01")] = "u_m_y_hippie_01"
-PedModel1[joaat("u_m_y_imporage")] = "u_m_y_imporage"
-PedModel1[joaat("u_m_y_juggernaut_01")] = "u_m_y_juggernaut_01"
-PedModel1[joaat("u_m_y_justin")] = "u_m_y_justin"
-PedModel1[joaat("u_m_y_mani")] = "u_m_y_mani"
-PedModel1[joaat("u_m_y_militarybum")] = "u_m_y_militarybum"
-PedModel1[joaat("u_m_y_paparazzi")] = "u_m_y_paparazzi"
-PedModel1[joaat("u_m_y_party_01")] = "u_m_y_party_01"
-PedModel1[joaat("u_m_y_pogo_01")] = "u_m_y_pogo_01"
-PedModel1[joaat("u_m_y_prisoner_01")] = "u_m_y_prisoner_01"
-PedModel1[joaat("u_m_y_proldriver_01")] = "u_m_y_proldriver_01"
-PedModel1[joaat("u_m_y_rsranger_01")] = "Space Ranger"
-PedModel1[joaat("u_m_y_sbike")] = "u_m_y_sbike"
-PedModel1[joaat("u_m_y_smugmech_01")] = "u_m_y_smugmech_01"
-PedModel1[joaat("u_m_y_staggrm_01")] = "u_m_y_staggrm_01"
-PedModel1[joaat("u_m_y_tattoo_01")] = "u_m_y_tattoo_01"
-PedModel1[joaat("u_m_y_ushi")] = "u_m_y_ushi"
-PedModel1[joaat("u_m_y_zombie_01")] = "u_m_y_zombie_01"
-local PedSelf = {}
-PedSelf[joaat("mp_m_freemode_01")] = "Male"
-PedSelf[joaat("mp_f_freemode_01")] = "Female"
+local PedModelAnimal = {
+	{ name = "Cat", hash = joaat("a_c_cat_01") },
+	{ name = "Chimp Black Floating", hash = joaat("a_c_chimp") },
+	{ name = "Chimp Black NoFloating", hash = joaat("a_c_Chimp_02") },
+	{ name = "Chop", hash = joaat("a_c_chop") },
+	{ name = "Cow", hash = joaat("a_c_cow") },
+	{ name = "Coyote", hash = joaat("a_c_coyote") },
+	{ name = "Coyote Zombie", hash = joaat("a_c_Coyote_02") },
+	{ name = "Deer", hash = joaat("a_c_deer") },
+	{ name = "Deer Zombie", hash = joaat("a_c_Deer_02") },
+	{ name = "Husky", hash = joaat("a_c_husky") },
+	{ name = "Mountain Lion", hash = joaat("a_c_mtlion") },
+	{ name = "Panther", hash = joaat("a_c_panther") },
+	{ name = "Pig", hash = joaat("a_c_pig") },
+	{ name = "Poodle", hash = joaat("a_c_poodle") },
+	{ name = "Pug", hash = joaat("a_c_pug") },
+	{ name = "Rabbit v1", hash = joaat("a_c_rabbit_01") },
+	{ name = "Rabbit v2", hash = joaat("a_c_rabbit_02") },
+	{ name = "Rat", hash = joaat("a_c_rat") },
+	{ name = "Retriever", hash = joaat("a_c_retriever") },
+	{ name = "Rhesus Monkey", hash = joaat("a_c_rhesus") },
+	{ name = "Rottweiler", hash = joaat("a_c_rottweiler") },
+	{ name = "Shepherd", hash = joaat("a_c_shepherd") },
+	{ name = "Westy", hash = joaat("a_c_westy") },
+}
+
+local PedModelSeaAnimal = {
+	{ name = "Dolphin", hash = joaat("a_c_dolphin") },
+	{ name = "Fish", hash = joaat("a_c_fish") },
+	{ name = "Sting Ray", hash = joaat("a_c_stingray") },
+	{ name = "Tiger Shark", hash = joaat("a_c_sharktiger") },
+	{ name = "Humpback", hash = joaat("a_c_humpback") },
+	{ name = "Hammer Shark", hash = joaat("a_c_sharkhammer") },
+	{ name = "Killer Whale", hash = joaat("a_c_killerwhale") },
+}
+local PedModelBird = {
+	{ name = "Seagull", hash = joaat("a_c_seagull") },
+	{ name = "Pigeon", hash = joaat("a_c_pigeon") },
+	{ name = "Crow", hash = joaat("a_c_crow") },
+	{ name = "Hen", hash = joaat("a_c_hen") },
+	{ name = "Cormorant", hash = joaat("a_c_cormorant") },
+	{ name = "Hawk Eagle", hash = joaat("a_c_chickenhawk") },
+}
+local PedModelSpecial = {
+	{ name = "Furry", hash = joaat("ig_furry") },
+	{ name = "Bigfoot", hash = joaat("ig_orleans") },
+	{ name = "Movie Alien", hash = joaat("s_m_m_movalien_01") },
+	{ name = "Street Art", hash = joaat("u_m_m_streetart_01") },
+	{ name = "Juggernaut01", hash = joaat("u_m_y_juggernaut_01") },
+	{ name = "Juggernaut02", hash = joaat("u_m_y_juggernaut_02") },
+	{ name = "Pogo", hash = joaat("u_m_y_pogo_01") },
+	{ name = "Rs Ranger", hash = joaat("u_m_y_rsranger_01") },
+	{ name = "Slasher", hash = joaat("g_m_m_slasher_01") },
+	{ name = "Yule Monster", hash = joaat("u_m_m_yulemonster") },
+	{ name = "Yeti", hash = joaat("u_m_m_yeti") },
+	{ name = "Zombie01", hash = joaat("g_m_m_zombie_02") },
+	{ name = "Zombie02", hash = joaat("g_m_m_zombie_03") },
+	{ name = "Zombie03", hash = joaat("g_m_m_zombie_01") },
+}
+local PedModel1 = {
+	{ name = "Franklin", hash = joaat("player_one") },
+	{ name = "Trevor", hash = joaat("player_two") },
+	{ name = "Michael", hash = joaat("player_zero") },
+	{ name = "Amanda", hash = joaat("cs_amandatownley") },
+	{ name = "Amanda 1", hash = joaat("ig_amandatownley") },
+	{ name = "hc_driver", hash = joaat("hc_driver") },
+	{ name = "hc_gunman", hash = joaat("hc_gunman") },
+	{ name = "hc_hacker", hash = joaat("hc_hacker") },
+	{ name = "Abigail", hash = joaat("ig_abigail") },
+	{ name = "Agatha", hash = joaat("ig_agatha") },
+	{ name = "Agent", hash = joaat("ig_agent") },
+	{ name = "Andreas", hash = joaat("ig_andreas") },
+	{ name = "Ary", hash = joaat("ig_ary") },
+	{ name = "Ashley", hash = joaat("ig_ashley") },
+	{ name = "Avery", hash = joaat("ig_avery") },
+	{ name = "Avon Hertz", hash = joaat("ig_avon") },
+	{ name = "Ballas Chilli D", hash = joaat("ig_ballasog") },
+	{ name = "Bankman", hash = joaat("ig_bankman") },
+	{ name = "Barry", hash = joaat("ig_barry") },
+	{ name = "Benny", hash = joaat("ig_benny") },
+	{ name = "Bestmen", hash = joaat("ig_bestmen") },
+	{ name = "Beverly", hash = joaat("ig_beverly") },
+	{ name = "Brad", hash = joaat("ig_brad") },
+	{ name = "ig_bride", hash = joaat("ig_bride") },
+	{ name = "Brucie 2", hash = joaat("ig_brucie2") },
+	{ name = "ig_car3guy1", hash = joaat("ig_car3guy1") },
+	{ name = "ig_car3guy2", hash = joaat("ig_car3guy2") },
+	{ name = "Casey", hash = joaat("ig_casey") },
+	{ name = "ig_celeb_01", hash = joaat("ig_celeb_01") },
+	{ name = "ig_chef", hash = joaat("ig_chef") },
+	{ name = "ig_chef2", hash = joaat("ig_chef2") },
+	{ name = "Cheng Sr", hash = joaat("ig_chengsr") },
+	{ name = "Cris Formage", hash = joaat("ig_chrisformage") },
+	{ name = "Clay Simons", hash = joaat("ig_clay") },
+	{ name = "Claypain", hash = joaat("ig_claypain") },
+	{ name = "Cletus", hash = joaat("ig_cletus") },
+	{ name = "Dale", hash = joaat("ig_dale") },
+	{ name = "Dave Norton", hash = joaat("ig_davenorton") },
+	{ name = "Denise", hash = joaat("ig_denise") },
+	{ name = "Devin", hash = joaat("ig_devin") },
+	{ name = "dix", hash = joaat("ig_dix") },
+	{ name = "djblamadon", hash = joaat("ig_djblamadon") },
+	{ name = "Rupert Murray", hash = joaat("ig_djblamrupert") },
+	{ name = "djblamryanh", hash = joaat("ig_djblamryanh") },
+	{ name = "djblamryans", hash = joaat("ig_djblamryans") },
+	{ name = "djdixmanager", hash = joaat("ig_djdixmanager") },
+	{ name = "djgeneric_01", hash = joaat("ig_djgeneric_01") },
+	{ name = "djsolfotios", hash = joaat("ig_djsolfotios") },
+	{ name = "Jakob Grunert", hash = joaat("ig_djsoljakob") },
+	{ name = "djsolmanager", hash = joaat("ig_djsolmanager") },
+	{ name = "djsolmike", hash = joaat("ig_djsolmike") },
+	{ name = "djsolrobt", hash = joaat("ig_djsolrobt") },
+	{ name = "djtalaurelia", hash = joaat("ig_djtalaurelia") },
+	{ name = "djtalignazio", hash = joaat("ig_djtalignazio") },
+	{ name = "Dom", hash = joaat("ig_dom") },
+	{ name = "dreyfuss", hash = joaat("ig_dreyfuss") },
+	{ name = "drfriedlander", hash = joaat("ig_drfriedlander") },
+	{ name = "englishdave", hash = joaat("ig_englishdave") },
+	{ name = "englishdave_02", hash = joaat("ig_englishdave_02") },
+	{ name = "fabien", hash = joaat("ig_fabien") },
+	{ name = "fbisuit_01", hash = joaat("ig_fbisuit_01") },
+	{ name = "floyd", hash = joaat("ig_floyd") },
+	{ name = "Gerald", hash = joaat("ig_g") },
+	{ name = "georginacheng", hash = joaat("ig_georginacheng") },
+	{ name = "groom", hash = joaat("ig_groom") },
+	{ name = "gustavo", hash = joaat("ig_gustavo") },
+	{ name = "hao", hash = joaat("ig_hao") },
+	{ name = "helmsmanpavel", hash = joaat("ig_helmsmanpavel") },
+	{ name = "huang", hash = joaat("ig_huang") },
+	{ name = "hunter", hash = joaat("ig_hunter") },
+	{ name = "isldj_00", hash = joaat("ig_isldj_00") },
+	{ name = "isldj_01", hash = joaat("ig_isldj_01") },
+	{ name = "isldj_02", hash = joaat("ig_isldj_02") },
+	{ name = "isldj_03", hash = joaat("ig_isldj_03") },
+	{ name = "Moodyman", hash = joaat("ig_isldj_04") },
+	{ name = "isldj_04_d_01", hash = joaat("ig_isldj_04_d_01") },
+	{ name = "isldj_04_d_02", hash = joaat("ig_isldj_04_d_02") },
+	{ name = "isldj_04_e_01", hash = joaat("ig_isldj_04_e_01") },
+	{ name = "jackie", hash = joaat("ig_jackie") },
+	{ name = "janet", hash = joaat("ig_janet") },
+	{ name = "jay_norris", hash = joaat("ig_jay_norris") },
+	{ name = "jewelass", hash = joaat("ig_jewelass") },
+	{ name = "jimmyboston", hash = joaat("ig_jimmyboston") },
+	{ name = "jimmyboston_02", hash = joaat("ig_jimmyboston_02") },
+	{ name = "jimmydisanto", hash = joaat("ig_jimmydisanto") },
+	{ name = "Jimmy 2", hash = joaat("ig_jimmydisanto2") },
+	{ name = "jio", hash = joaat("ig_jio") },
+	{ name = "joeminuteman", hash = joaat("ig_joeminuteman") },
+	{ name = "johnnyklebitz", hash = joaat("ig_johnnyklebitz") },
+	{ name = "josef", hash = joaat("ig_josef") },
+	{ name = "josh", hash = joaat("ig_josh") },
+	{ name = "juanstrickler", hash = joaat("ig_juanstrickler") },
+	{ name = "karen_daniels", hash = joaat("ig_karen_daniels") },
+	{ name = "kaylee", hash = joaat("ig_kaylee") },
+	{ name = "kerrymcintosh", hash = joaat("ig_kerrymcintosh") },
+	{ name = "kerrymcintosh_02", hash = joaat("ig_kerrymcintosh_02") },
+	{ name = "lacey_jones_02", hash = joaat("ig_lacey_jones_02") },
+	{ name = "lamardavis", hash = joaat("ig_lamardavis") },
+	{ name = "lazlow", hash = joaat("ig_lazlow") },
+	{ name = "Lazlow 2", hash = joaat("ig_lazlow_2") },
+	{ name = "lestercrest", hash = joaat("ig_lestercrest") },
+	{ name = "lestercrest_2", hash = joaat("ig_lestercrest_2") },
+	{ name = "lestercrest_3", hash = joaat("ig_lestercrest_3") },
+	{ name = "lifeinvad_01", hash = joaat("ig_lifeinvad_01") },
+	{ name = "lifeinvad_02", hash = joaat("ig_lifeinvad_02") },
+	{ name = "magenta", hash = joaat("ig_magenta") },
+	{ name = "malc", hash = joaat("ig_malc") },
+	{ name = "manuel", hash = joaat("ig_manuel") },
+	{ name = "marnie", hash = joaat("ig_marnie") },
+	{ name = "Mary Ann", hash = joaat("ig_maryann") },
+	{ name = "Maude", hash = joaat("ig_maude") },
+	{ name = "Michelle", hash = joaat("ig_michelle") },
+	{ name = "Miguel Madrazo", hash = joaat("ig_miguelmadrazo") },
+	{ name = "Milton", hash = joaat("ig_milton") },
+	{ name = "DJ Pooh", hash = joaat("ig_mjo") },
+	{ name = "molly", hash = joaat("ig_molly") },
+	{ name = "Avi Schwartzman 1", hash = joaat("ig_money") },
+	{ name = "mp_agent14", hash = joaat("ig_mp_agent14") },
+	{ name = "mrk", hash = joaat("ig_mrk") },
+	{ name = "mrs_thornhill", hash = joaat("ig_mrs_thornhill") },
+	{ name = "Mrs Phillips", hash = joaat("ig_mrsphillips") },
+	{ name = "natalia", hash = joaat("ig_natalia") },
+	{ name = "nervousron", hash = joaat("ig_nervousron") },
+	{ name = "nigel", hash = joaat("ig_nigel") },
+	{ name = "old_man1a", hash = joaat("ig_old_man1a") },
+	{ name = "old_man2", hash = joaat("ig_old_man2") },
+	{ name = "oldrichguy", hash = joaat("ig_oldrichguy") },
+	{ name = "omega", hash = joaat("ig_omega") },
+	{ name = "oneil", hash = joaat("ig_oneil") },
+	{ name = "orleans", hash = joaat("ig_orleans") },
+	{ name = "ortega", hash = joaat("ig_ortega") },
+	{ name = "paige", hash = joaat("ig_paige") },
+	{ name = "paper", hash = joaat("ig_paper") },
+	{ name = "patricia", hash = joaat("ig_patricia") },
+	{ name = "patricia_02", hash = joaat("ig_patricia_02") },
+	{ name = "pilot", hash = joaat("ig_pilot") },
+	{ name = "popov", hash = joaat("ig_popov") },
+	{ name = "priest", hash = joaat("ig_priest") },
+	{ name = "prolsec_02", hash = joaat("ig_prolsec_02") },
+	{ name = "ramp_gang", hash = joaat("ig_ramp_gang") },
+	{ name = "ramp_hic", hash = joaat("ig_ramp_hic") },
+	{ name = "ramp_hipster", hash = joaat("ig_ramp_hipster") },
+	{ name = "ramp_mex", hash = joaat("ig_ramp_mex") },
+	{ name = "Rashcosvki", hash = joaat("ig_rashcosvki") },
+	{ name = "roccopelosi", hash = joaat("ig_roccopelosi") },
+	{ name = "russiandrunk", hash = joaat("ig_russiandrunk") },
+	{ name = "sacha", hash = joaat("ig_sacha") },
+	{ name = "screen_writer", hash = joaat("ig_screen_writer") },
+	{ name = "siemonyetarian", hash = joaat("ig_siemonyetarian") },
+	{ name = "sol", hash = joaat("ig_sol") },
+	{ name = "Solomon", hash = joaat("ig_solomon") },
+	{ name = "Scott Storch", hash = joaat("ig_sss") },
+	{ name = "Steven Haines", hash = joaat("ig_stevehains") },
+	{ name = "Harold 'Stretch' Joseph", hash = joaat("ig_stretch") },
+	{ name = "talcc", hash = joaat("ig_talcc") },
+	{ name = "talina", hash = joaat("ig_talina") },
+	{ name = "talmm", hash = joaat("ig_talmm") },
+	{ name = "tanisha", hash = joaat("ig_tanisha") },
+	{ name = "taocheng", hash = joaat("ig_taocheng") },
+	{ name = "taocheng2", hash = joaat("ig_taocheng2") },
+	{ name = "taostranslator", hash = joaat("ig_taostranslator") },
+	{ name = "taostranslator2", hash = joaat("ig_taostranslator2") },
+	{ name = "tenniscoach", hash = joaat("ig_tenniscoach") },
+	{ name = "Terry Thorpe", hash = joaat("ig_terry") },
+	{ name = "Thornton Duggan", hash = joaat("ig_thornton") },
+	{ name = "tomcasino", hash = joaat("ig_tomcasino") },
+	{ name = "tomepsilon", hash = joaat("ig_tomepsilon") },
+	{ name = "tonya", hash = joaat("ig_tonya") },
+	{ name = "tonyprince", hash = joaat("ig_tonyprince") },
+	{ name = "tracydisanto", hash = joaat("ig_tracydisanto") },
+	{ name = "trafficwarden", hash = joaat("ig_trafficwarden") },
+	{ name = "tylerdix", hash = joaat("ig_tylerdix") },
+	{ name = "tylerdix_02", hash = joaat("ig_tylerdix_02") },
+	{ name = "Vagspeak", hash = joaat("ig_vagspeak") },
+	{ name = "Vincent", hash = joaat("ig_vincent") },
+	{ name = "Vincent 2", hash = joaat("ig_vincent_2") },
+	{ name = "Wade", hash = joaat("ig_wade") },
+	{ name = "Wendy", hash = joaat("ig_wendy") },
+	{ name = "Zimbor", hash = joaat("ig_zimbor") },
+	{ name = "YusufAmir", hash = joaat("ig_yusufamir") },
+	{ name = "Ponsonbys Cashier", hash = joaat("a_f_m_bevhills_02") },
+	{ name = "a_f_m_beach_01", hash = joaat("a_f_m_beach_01") },
+	{ name = "a_f_m_bodybuild_01", hash = joaat("a_f_m_bodybuild_01") },
+	{ name = "a_f_m_business_02", hash = joaat("a_f_m_business_02") },
+	{ name = "a_f_m_downtown_01", hash = joaat("a_f_m_downtown_01") },
+	{ name = "a_f_m_eastsa_01", hash = joaat("a_f_m_eastsa_01") },
+	{ name = "a_f_m_eastsa_02", hash = joaat("a_f_m_eastsa_02") },
+	{ name = "a_f_m_fatbla_01", hash = joaat("a_f_m_fatbla_01") },
+	{ name = "a_f_m_fatcult_01", hash = joaat("a_f_m_fatcult_01") },
+	{ name = "a_f_m_fatwhite_01", hash = joaat("a_f_m_fatwhite_01") },
+	{ name = "a_f_m_ktown_01", hash = joaat("a_f_m_ktown_01") },
+	{ name = "a_f_m_ktown_02", hash = joaat("a_f_m_ktown_02") },
+	{ name = "a_f_m_prolhost_01", hash = joaat("a_f_m_prolhost_01") },
+	{ name = "a_f_m_salton_01", hash = joaat("a_f_m_salton_01") },
+	{ name = "a_f_m_skidrow_01", hash = joaat("a_f_m_skidrow_01") },
+	{ name = "a_f_m_soucent_01", hash = joaat("a_f_m_soucent_01") },
+	{ name = "a_f_m_soucent_02", hash = joaat("a_f_m_soucent_02") },
+	{ name = "a_f_m_soucentmc_01", hash = joaat("a_f_m_soucentmc_01") },
+	{ name = "a_f_m_tourist_01", hash = joaat("a_f_m_tourist_01") },
+	{ name = "a_f_m_tramp_01", hash = joaat("a_f_m_tramp_01") },
+	{ name = "a_f_m_trampbeac_01", hash = joaat("a_f_m_trampbeac_01") },
+	{ name = "a_f_o_genstreet_01", hash = joaat("a_f_o_genstreet_01") },
+	{ name = "a_f_o_indian_01", hash = joaat("a_f_o_indian_01") },
+	{ name = "a_f_o_ktown_01", hash = joaat("a_f_o_ktown_01") },
+	{ name = "a_f_o_salton_01", hash = joaat("a_f_o_salton_01") },
+	{ name = "a_f_o_soucent_01", hash = joaat("a_f_o_soucent_01") },
+	{ name = "a_f_o_soucent_02", hash = joaat("a_f_o_soucent_02") },
+	{ name = "a_f_y_beach_01", hash = joaat("a_f_y_beach_01") },
+	{ name = "a_f_y_beach_02", hash = joaat("a_f_y_beach_02") },
+	{ name = "a_f_y_bevhills_01", hash = joaat("a_f_y_bevhills_01") },
+	{ name = "a_f_y_bevhills_02", hash = joaat("a_f_y_bevhills_02") },
+	{ name = "a_f_y_bevhills_03", hash = joaat("a_f_y_bevhills_03") },
+	{ name = "a_f_y_bevhills_04", hash = joaat("a_f_y_bevhills_04") },
+	{ name = "a_f_y_bevhills_05", hash = joaat("a_f_y_bevhills_05") },
+	{ name = "a_f_y_business_01", hash = joaat("a_f_y_business_01") },
+	{ name = "a_f_y_business_02", hash = joaat("a_f_y_business_02") },
+	{ name = "a_f_y_business_03", hash = joaat("a_f_y_business_03") },
+	{ name = "a_f_y_business_04", hash = joaat("a_f_y_business_04") },
+	{ name = "a_f_y_clubcust_01", hash = joaat("a_f_y_clubcust_01") },
+	{ name = "a_f_y_clubcust_02", hash = joaat("a_f_y_clubcust_02") },
+	{ name = "a_f_y_clubcust_03", hash = joaat("a_f_y_clubcust_03") },
+	{ name = "a_f_y_clubcust_04", hash = joaat("a_f_y_clubcust_04") },
+	{ name = "a_f_y_eastsa_01", hash = joaat("a_f_y_eastsa_01") },
+	{ name = "a_f_y_eastsa_02", hash = joaat("a_f_y_eastsa_02") },
+	{ name = "a_f_y_eastsa_03", hash = joaat("a_f_y_eastsa_03") },
+	{ name = "a_f_y_epsilon_01", hash = joaat("a_f_y_epsilon_01") },
+	{ name = "a_f_y_femaleagent", hash = joaat("a_f_y_femaleagent") },
+	{ name = "a_f_y_fitness_01", hash = joaat("a_f_y_fitness_01") },
+	{ name = "a_f_y_fitness_02", hash = joaat("a_f_y_fitness_02") },
+	{ name = "a_f_y_gencaspat_01", hash = joaat("a_f_y_gencaspat_01") },
+	{ name = "a_f_y_genhot_01", hash = joaat("a_f_y_genhot_01") },
+	{ name = "a_f_y_golfer_01", hash = joaat("a_f_y_golfer_01") },
+	{ name = "a_f_y_hiker_01", hash = joaat("a_f_y_hiker_01") },
+	{ name = "a_f_y_hippie_01", hash = joaat("a_f_y_hippie_01") },
+	{ name = "a_f_y_hipster_01", hash = joaat("a_f_y_hipster_01") },
+	{ name = "Binco Cashier", hash = joaat("a_f_y_hipster_02") },
+	{ name = "a_f_y_hipster_03", hash = joaat("a_f_y_hipster_03") },
+	{ name = "a_f_y_hipster_04", hash = joaat("a_f_y_hipster_04") },
+	{ name = "a_f_y_indian_01", hash = joaat("a_f_y_indian_01") },
+	{ name = "a_f_y_juggalo_01", hash = joaat("a_f_y_juggalo_01") },
+	{ name = "a_f_y_runner_01", hash = joaat("a_f_y_runner_01") },
+	{ name = "a_f_y_rurmeth_01", hash = joaat("a_f_y_rurmeth_01") },
+	{ name = "a_f_y_scdressy_01", hash = joaat("a_f_y_scdressy_01") },
+	{ name = "a_f_y_skater_01", hash = joaat("a_f_y_skater_01") },
+	{ name = "a_f_y_smartcaspat_01", hash = joaat("a_f_y_smartcaspat_01") },
+	{ name = "a_f_y_soucent_01", hash = joaat("a_f_y_soucent_01") },
+	{ name = "a_f_y_soucent_02", hash = joaat("a_f_y_soucent_02") },
+	{ name = "a_f_y_soucent_03", hash = joaat("a_f_y_soucent_03") },
+	{ name = "a_f_y_tennis_01", hash = joaat("a_f_y_tennis_01") },
+	{ name = "a_f_y_topless_01", hash = joaat("a_f_y_topless_01") },
+	{ name = "a_f_y_tourist_01", hash = joaat("a_f_y_tourist_01") },
+	{ name = "a_f_y_tourist_02", hash = joaat("a_f_y_tourist_02") },
+	{ name = "a_f_y_vinewood_01", hash = joaat("a_f_y_vinewood_01") },
+	{ name = "a_f_y_vinewood_02", hash = joaat("a_f_y_vinewood_02") },
+	{ name = "a_f_y_vinewood_03", hash = joaat("a_f_y_vinewood_03") },
+	{ name = "a_f_y_vinewood_04", hash = joaat("a_f_y_vinewood_04") },
+	{ name = "a_f_y_yoga_01", hash = joaat("a_f_y_yoga_01") },
+	{ name = "a_m_m_acult_01", hash = joaat("a_m_m_acult_01") },
+	{ name = "a_m_m_afriamer_01", hash = joaat("a_m_m_afriamer_01") },
+	{ name = "a_m_m_beach_01", hash = joaat("a_m_m_beach_01") },
+	{ name = "a_m_m_beach_02", hash = joaat("a_m_m_beach_02") },
+	{ name = "a_m_m_bevhills_01", hash = joaat("a_m_m_bevhills_01") },
+	{ name = "a_m_m_bevhills_02", hash = joaat("a_m_m_bevhills_02") },
+	{ name = "a_m_m_business_01", hash = joaat("a_m_m_business_01") },
+	{ name = "a_m_m_eastsa_01", hash = joaat("a_m_m_eastsa_01") },
+	{ name = "a_m_m_eastsa_02", hash = joaat("a_m_m_eastsa_02") },
+	{ name = "a_m_m_farmer_01", hash = joaat("a_m_m_farmer_01") },
+	{ name = "a_m_m_fatlatin_01", hash = joaat("a_m_m_fatlatin_01") },
+	{ name = "a_m_m_genfat_01", hash = joaat("a_m_m_genfat_01") },
+	{ name = "a_m_m_genfat_02", hash = joaat("a_m_m_genfat_02") },
+	{ name = "a_m_m_golfer_01", hash = joaat("a_m_m_golfer_01") },
+	{ name = "a_m_m_hasjew_01", hash = joaat("a_m_m_hasjew_01") },
+	{ name = "a_m_m_hillbilly_01", hash = joaat("a_m_m_hillbilly_01") },
+	{ name = "a_m_m_hillbilly_02", hash = joaat("a_m_m_hillbilly_02") },
+	{ name = "a_m_m_indian_01", hash = joaat("a_m_m_indian_01") },
+	{ name = "a_m_m_ktown_01", hash = joaat("a_m_m_ktown_01") },
+	{ name = "a_m_m_malibu_01", hash = joaat("a_m_m_malibu_01") },
+	{ name = "a_m_m_mexcntry_01", hash = joaat("a_m_m_mexcntry_01") },
+	{ name = "a_m_m_mexlabor_01", hash = joaat("a_m_m_mexlabor_01") },
+	{ name = "a_m_m_mlcrisis_01", hash = joaat("a_m_m_mlcrisis_01") },
+	{ name = "a_m_m_og_boss_01", hash = joaat("a_m_m_og_boss_01") },
+	{ name = "a_m_m_paparazzi_01", hash = joaat("a_m_m_paparazzi_01") },
+	{ name = "a_m_m_polynesian_01", hash = joaat("a_m_m_polynesian_01") },
+	{ name = "a_m_m_prolhost_01", hash = joaat("a_m_m_prolhost_01") },
+	{ name = "a_m_m_rurmeth_01", hash = joaat("a_m_m_rurmeth_01") },
+	{ name = "a_m_m_salton_01", hash = joaat("a_m_m_salton_01") },
+	{ name = "a_m_m_salton_02", hash = joaat("a_m_m_salton_02") },
+	{ name = "a_m_m_salton_03", hash = joaat("a_m_m_salton_03") },
+	{ name = "a_m_m_salton_04", hash = joaat("a_m_m_salton_04") },
+	{ name = "a_m_m_skater_01", hash = joaat("a_m_m_skater_01") },
+	{ name = "a_m_m_skidrow_01", hash = joaat("a_m_m_skidrow_01") },
+	{ name = "a_m_m_socenlat_01", hash = joaat("a_m_m_socenlat_01") },
+	{ name = "a_m_m_soucent_01", hash = joaat("a_m_m_soucent_01") },
+	{ name = "a_m_m_soucent_02", hash = joaat("a_m_m_soucent_02") },
+	{ name = "a_m_m_soucent_03", hash = joaat("a_m_m_soucent_03") },
+	{ name = "a_m_m_soucent_04", hash = joaat("a_m_m_soucent_04") },
+	{ name = "a_m_m_stlat_02", hash = joaat("a_m_m_stlat_02") },
+	{ name = "a_m_m_tennis_01", hash = joaat("a_m_m_tennis_01") },
+	{ name = "a_m_m_tourist_01", hash = joaat("a_m_m_tourist_01") },
+	{ name = "a_m_m_tramp_01", hash = joaat("a_m_m_tramp_01") },
+	{ name = "a_m_m_trampbeac_01", hash = joaat("a_m_m_trampbeac_01") },
+	{ name = "a_m_m_tranvest_01", hash = joaat("a_m_m_tranvest_01") },
+	{ name = "a_m_m_tranvest_02", hash = joaat("a_m_m_tranvest_02") },
+	{ name = "a_m_o_acult_01", hash = joaat("a_m_o_acult_01") },
+	{ name = "a_m_o_acult_02", hash = joaat("a_m_o_acult_02") },
+	{ name = "a_m_o_beach_01", hash = joaat("a_m_o_beach_01") },
+	{ name = "a_m_o_beach_02", hash = joaat("a_m_o_beach_02") },
+	{ name = "a_m_o_genstreet_01", hash = joaat("a_m_o_genstreet_01") },
+	{ name = "a_m_o_ktown_01", hash = joaat("a_m_o_ktown_01") },
+	{ name = "a_m_o_salton_01", hash = joaat("a_m_o_salton_01") },
+	{ name = "a_m_o_soucent_01", hash = joaat("a_m_o_soucent_01") },
+	{ name = "a_m_o_soucent_02", hash = joaat("a_m_o_soucent_02") },
+	{ name = "a_m_o_soucent_03", hash = joaat("a_m_o_soucent_03") },
+	{ name = "a_m_o_tramp_01", hash = joaat("a_m_o_tramp_01") },
+	{ name = "a_m_y_acult_01", hash = joaat("a_m_y_acult_01") },
+	{ name = "a_m_y_acult_02", hash = joaat("a_m_y_acult_02") },
+	{ name = "a_m_y_beach_01", hash = joaat("a_m_y_beach_01") },
+	{ name = "a_m_y_beach_02", hash = joaat("a_m_y_beach_02") },
+	{ name = "a_m_y_beach_03", hash = joaat("a_m_y_beach_03") },
+	{ name = "a_m_y_beach_04", hash = joaat("a_m_y_beach_04") },
+	{ name = "a_m_y_beachvesp_01", hash = joaat("a_m_y_beachvesp_01") },
+	{ name = "a_m_y_beachvesp_02", hash = joaat("a_m_y_beachvesp_02") },
+	{ name = "a_m_y_bevhills_01", hash = joaat("a_m_y_bevhills_01") },
+	{ name = "a_m_y_bevhills_02", hash = joaat("a_m_y_bevhills_02") },
+	{ name = "a_m_y_breakdance_01", hash = joaat("a_m_y_breakdance_01") },
+	{ name = "a_m_y_busicas_01", hash = joaat("a_m_y_busicas_01") },
+	{ name = "a_m_y_business_01", hash = joaat("a_m_y_business_01") },
+	{ name = "a_m_y_business_02", hash = joaat("a_m_y_business_02") },
+	{ name = "a_m_y_business_03", hash = joaat("a_m_y_business_03") },
+	{ name = "a_m_y_clubcust_01", hash = joaat("a_m_y_clubcust_01") },
+	{ name = "a_m_y_clubcust_02", hash = joaat("a_m_y_clubcust_02") },
+	{ name = "a_m_y_clubcust_03", hash = joaat("a_m_y_clubcust_03") },
+	{ name = "a_m_y_clubcust_04", hash = joaat("a_m_y_clubcust_04") },
+	{ name = "a_m_y_cyclist_01", hash = joaat("a_m_y_cyclist_01") },
+	{ name = "a_m_y_dhill_01", hash = joaat("a_m_y_dhill_01") },
+	{ name = "a_m_y_downtown_01", hash = joaat("a_m_y_downtown_01") },
+	{ name = "a_m_y_eastsa_01", hash = joaat("a_m_y_eastsa_01") },
+	{ name = "a_m_y_eastsa_02", hash = joaat("a_m_y_eastsa_02") },
+	{ name = "a_m_y_epsilon_01", hash = joaat("a_m_y_epsilon_01") },
+	{ name = "a_m_y_epsilon_02", hash = joaat("a_m_y_epsilon_02") },
+	{ name = "a_m_y_gay_01", hash = joaat("a_m_y_gay_01") },
+	{ name = "a_m_y_gay_02", hash = joaat("a_m_y_gay_02") },
+	{ name = "a_m_y_gencaspat_01", hash = joaat("a_m_y_gencaspat_01") },
+	{ name = "a_m_y_genstreet_01", hash = joaat("a_m_y_genstreet_01") },
+	{ name = "a_m_y_genstreet_02", hash = joaat("a_m_y_genstreet_02") },
+	{ name = "a_m_y_golfer_01", hash = joaat("a_m_y_golfer_01") },
+	{ name = "a_m_y_hasjew_01", hash = joaat("a_m_y_hasjew_01") },
+	{ name = "a_m_y_hiker_01", hash = joaat("a_m_y_hiker_01") },
+	{ name = "a_m_y_hippy_01", hash = joaat("a_m_y_hippy_01") },
+	{ name = "a_m_y_hipster_01", hash = joaat("a_m_y_hipster_01") },
+	{ name = "a_m_y_hipster_02", hash = joaat("a_m_y_hipster_02") },
+	{ name = "a_m_y_hipster_03", hash = joaat("a_m_y_hipster_03") },
+	{ name = "a_m_y_indian_01", hash = joaat("a_m_y_indian_01") },
+	{ name = "a_m_y_jetski_01", hash = joaat("a_m_y_jetski_01") },
+	{ name = "a_m_y_juggalo_01", hash = joaat("a_m_y_juggalo_01") },
+	{ name = "a_m_y_ktown_01", hash = joaat("a_m_y_ktown_01") },
+	{ name = "a_m_y_ktown_02", hash = joaat("a_m_y_ktown_02") },
+	{ name = "a_m_y_latino_01", hash = joaat("a_m_y_latino_01") },
+	{ name = "a_m_y_methhead_01", hash = joaat("a_m_y_methhead_01") },
+	{ name = "a_m_y_mexthug_01", hash = joaat("a_m_y_mexthug_01") },
+	{ name = "a_m_y_motox_01", hash = joaat("a_m_y_motox_01") },
+	{ name = "a_m_y_motox_02", hash = joaat("a_m_y_motox_02") },
+	{ name = "a_m_y_musclbeac_01", hash = joaat("a_m_y_musclbeac_01") },
+	{ name = "a_m_y_musclbeac_02", hash = joaat("a_m_y_musclbeac_02") },
+	{ name = "a_m_y_polynesian_01", hash = joaat("a_m_y_polynesian_01") },
+	{ name = "a_m_y_roadcyc_01", hash = joaat("a_m_y_roadcyc_01") },
+	{ name = "a_m_y_runner_01", hash = joaat("a_m_y_runner_01") },
+	{ name = "a_m_y_runner_02", hash = joaat("a_m_y_runner_02") },
+	{ name = "a_m_y_salton_01", hash = joaat("a_m_y_salton_01") },
+	{ name = "a_m_y_skater_01", hash = joaat("a_m_y_skater_01") },
+	{ name = "a_m_y_skater_02", hash = joaat("a_m_y_skater_02") },
+	{ name = "a_m_y_smartcaspat_01", hash = joaat("a_m_y_smartcaspat_01") },
+	{ name = "a_m_y_soucent_01", hash = joaat("a_m_y_soucent_01") },
+	{ name = "a_m_y_soucent_02", hash = joaat("a_m_y_soucent_02") },
+	{ name = "a_m_y_soucent_03", hash = joaat("a_m_y_soucent_03") },
+	{ name = "a_m_y_soucent_04", hash = joaat("a_m_y_soucent_04") },
+	{ name = "a_m_y_stbla_01", hash = joaat("a_m_y_stbla_01") },
+	{ name = "a_m_y_stbla_02", hash = joaat("a_m_y_stbla_02") },
+	{ name = "a_m_y_stlat_01", hash = joaat("a_m_y_stlat_01") },
+	{ name = "a_m_y_stwhi_01", hash = joaat("a_m_y_stwhi_01") },
+	{ name = "a_m_y_stwhi_02", hash = joaat("a_m_y_stwhi_02") },
+	{ name = "a_m_y_sunbathe_01", hash = joaat("a_m_y_sunbathe_01") },
+	{ name = "a_m_y_surfer_01", hash = joaat("a_m_y_surfer_01") },
+	{ name = "a_m_y_vindouche_01", hash = joaat("a_m_y_vindouche_01") },
+	{ name = "a_m_y_vinewood_01", hash = joaat("a_m_y_vinewood_01") },
+	{ name = "a_m_y_vinewood_02", hash = joaat("a_m_y_vinewood_02") },
+	{ name = "a_m_y_vinewood_03", hash = joaat("a_m_y_vinewood_03") },
+	{ name = "a_m_y_vinewood_04", hash = joaat("a_m_y_vinewood_04") },
+	{ name = "a_m_y_yoga_01", hash = joaat("a_m_y_yoga_01") },
+	{ name = "cs_andreas", hash = joaat("cs_andreas") },
+	{ name = "cs_ashley", hash = joaat("cs_ashley") },
+	{ name = "cs_bankman", hash = joaat("cs_bankman") },
+	{ name = "cs_barry", hash = joaat("cs_barry") },
+	{ name = "cs_beverly", hash = joaat("cs_beverly") },
+	{ name = "cs_brad", hash = joaat("cs_brad") },
+	{ name = "cs_bradcadaver", hash = joaat("cs_bradcadaver") },
+	{ name = "cs_carbuyer", hash = joaat("cs_carbuyer") },
+	{ name = "cs_casey", hash = joaat("cs_casey") },
+	{ name = "cs_chengsr", hash = joaat("cs_chengsr") },
+	{ name = "cs_chrisformage", hash = joaat("cs_chrisformage") },
+	{ name = "cs_clay", hash = joaat("cs_clay") },
+	{ name = "cs_dale", hash = joaat("cs_dale") },
+	{ name = "cs_davenorton", hash = joaat("Dave Norton") },
+	{ name = "cs_debra", hash = joaat("cs_debra") },
+	{ name = "cs_denise", hash = joaat("cs_denise") },
+	{ name = "cs_devin", hash = joaat("cs_devin") },
+	{ name = "cs_dom", hash = joaat("cs_dom") },
+	{ name = "cs_dreyfuss", hash = joaat("cs_dreyfuss") },
+	{ name = "Isiah Friedlander", hash = joaat("cs_drfriedlander") },
+	{ name = "cs_fabien", hash = joaat("cs_fabien") },
+	{ name = "cs_fbisuit_01", hash = joaat("cs_fbisuit_01") },
+	{ name = "cs_floyd", hash = joaat("cs_floyd") },
+	{ name = "cs_guadalope", hash = joaat("cs_guadalope") },
+	{ name = "cs_gurk", hash = joaat("cs_gurk") },
+	{ name = "cs_hunter", hash = joaat("cs_hunter") },
+	{ name = "cs_janet", hash = joaat("cs_janet") },
+	{ name = "cs_jewelass", hash = joaat("cs_jewelass") },
+	{ name = "cs_jimmyboston", hash = joaat("cs_jimmyboston") },
+	{ name = "cs_jimmydisanto", hash = joaat("cs_jimmydisanto") },
+	{ name = "cs_jimmydisanto2", hash = joaat("cs_jimmydisanto2") },
+	{ name = "cs_joeminuteman", hash = joaat("cs_joeminuteman") },
+	{ name = "cs_johnnyklebitz", hash = joaat("cs_johnnyklebitz") },
+	{ name = "cs_josef", hash = joaat("cs_josef") },
+	{ name = "cs_josh", hash = joaat("cs_josh") },
+	{ name = "cs_karen_daniels", hash = joaat("cs_karen_daniels") },
+	{ name = "cs_lamardavis", hash = joaat("cs_lamardavis") },
+	{ name = "Lazlow 1", hash = joaat("cs_lazlow") },
+	{ name = "cs_lazlow_2", hash = joaat("cs_lazlow_2") },
+	{ name = "cs_lestercrest", hash = joaat("cs_lestercrest") },
+	{ name = "cs_lestercrest_2", hash = joaat("cs_lestercrest_2") },
+	{ name = "cs_lestercrest_3", hash = joaat("cs_lestercrest_3") },
+	{ name = "cs_lifeinvad_01", hash = joaat("cs_lifeinvad_01") },
+	{ name = "cs_magenta", hash = joaat("cs_magenta") },
+	{ name = "cs_manuel", hash = joaat("cs_manuel") },
+	{ name = "cs_marnie", hash = joaat("cs_marnie") },
+	{ name = "cs_martinmadrazo", hash = joaat("cs_martinmadrazo") },
+	{ name = "cs_maryann", hash = joaat("cs_maryann") },
+	{ name = "cs_michelle", hash = joaat("cs_michelle") },
+	{ name = "cs_milton", hash = joaat("cs_milton") },
+	{ name = "cs_molly", hash = joaat("cs_molly") },
+	{ name = "cs_movpremf_01", hash = joaat("cs_movpremf_01") },
+	{ name = "cs_movpremmale", hash = joaat("cs_movpremmale") },
+	{ name = "cs_mrk", hash = joaat("cs_mrk") },
+	{ name = "cs_mrs_thornhill", hash = joaat("cs_mrs_thornhill") },
+	{ name = "cs_mrsphillips", hash = joaat("cs_mrsphillips") },
+	{ name = "cs_natalia", hash = joaat("cs_natalia") },
+	{ name = "cs_nervousron", hash = joaat("cs_nervousron") },
+	{ name = "cs_nigel", hash = joaat("cs_nigel") },
+	{ name = "cs_old_man1a", hash = joaat("cs_old_man1a") },
+	{ name = "cs_old_man2", hash = joaat("cs_old_man2") },
+	{ name = "cs_omega", hash = joaat("cs_omega") },
+	{ name = "cs_orleans", hash = joaat("cs_orleans") },
+	{ name = "cs_paper", hash = joaat("cs_paper") },
+	{ name = "cs_patricia", hash = joaat("cs_patricia") },
+	{ name = "cs_patricia_02", hash = joaat("cs_patricia_02") },
+	{ name = "cs_priest", hash = joaat("cs_priest") },
+	{ name = "cs_prolsec_02", hash = joaat("cs_prolsec_02") },
+	{ name = "cs_russiandrunk", hash = joaat("cs_russiandrunk") },
+	{ name = "cs_siemonyetarian", hash = joaat("cs_siemonyetarian") },
+	{ name = "cs_solomon", hash = joaat("cs_solomon") },
+	{ name = "Steven Haines", hash = joaat("cs_stevehains") },
+	{ name = "Stretch", hash = joaat("cs_stretch") },
+	{ name = "cs_tanisha", hash = joaat("cs_tanisha") },
+	{ name = "Tao Cheng", hash = joaat("cs_taocheng") },
+	{ name = "cs_taocheng2", hash = joaat("cs_taocheng2") },
+	{ name = "cs_taostranslator", hash = joaat("cs_taostranslator") },
+	{ name = "cs_taostranslator2", hash = joaat("cs_taostranslator2") },
+	{ name = "cs_tenniscoach", hash = joaat("cs_tenniscoach") },
+	{ name = "cs_terry", hash = joaat("cs_terry") },
+	{ name = "cs_tom", hash = joaat("cs_tom") },
+	{ name = "cs_tomepsilon", hash = joaat("cs_tomepsilon") },
+	{ name = "cs_tracydisanto", hash = joaat("cs_tracydisanto") },
+	{ name = "cs_wade", hash = joaat("cs_wade") },
+	{ name = "cs_zimbor", hash = joaat("cs_zimbor") },
+	{ name = "Abigail", hash = joaat("csb_abigail") },
+	{ name = "csb_agatha", hash = joaat("csb_agatha") },
+	{ name = "csb_agent", hash = joaat("csb_agent") },
+	{ name = "csb_alan", hash = joaat("csb_alan") },
+	{ name = "csb_anita", hash = joaat("csb_anita") },
+	{ name = "csb_anton", hash = joaat("csb_anton") },
+	{ name = "csb_ary", hash = joaat("csb_ary") },
+	{ name = "csb_avery", hash = joaat("csb_avery") },
+	{ name = "csb_avon", hash = joaat("csb_avon") },
+	{ name = "csb_ballasog", hash = joaat("csb_ballasog") },
+	{ name = "csb_bogdan", hash = joaat("csb_bogdan") },
+	{ name = "csb_bride", hash = joaat("csb_bride") },
+	{ name = "csb_brucie2", hash = joaat("csb_brucie2") },
+	{ name = "csb_bryony", hash = joaat("csb_bryony") },
+	{ name = "csb_burgerdrug", hash = joaat("csb_burgerdrug") },
+	{ name = "csb_car3guy1", hash = joaat("csb_car3guy1") },
+	{ name = "csb_car3guy2", hash = joaat("csb_car3guy2") },
+	{ name = "csb_celeb_01", hash = joaat("csb_celeb_01") },
+	{ name = "csb_chef", hash = joaat("csb_chef") },
+	{ name = "csb_chef2", hash = joaat("csb_chef2") },
+	{ name = "csb_chin_goon", hash = joaat("csb_chin_goon") },
+	{ name = "csb_cletus", hash = joaat("csb_cletus") },
+	{ name = "csb_cop", hash = joaat("csb_cop") },
+	{ name = "csb_customer", hash = joaat("csb_customer") },
+	{ name = "csb_denise_friend", hash = joaat("csb_denise_friend") },
+	{ name = "csb_dix", hash = joaat("csb_dix") },
+	{ name = "csb_djblamadon", hash = joaat("csb_djblamadon") },
+	{ name = "English Dave", hash = joaat("csb_englishdave") },
+	{ name = "csb_englishdave_02", hash = joaat("csb_englishdave_02") },
+	{ name = "csb_fos_rep", hash = joaat("csb_fos_rep") },
+	{ name = "Gerald 2", hash = joaat("csb_g") },
+	{ name = "csb_georginacheng", hash = joaat("csb_georginacheng") },
+	{ name = "csb_groom", hash = joaat("csb_groom") },
+	{ name = "csb_grove_str_dlr", hash = joaat("csb_grove_str_dlr") },
+	{ name = "Gustavo", hash = joaat("csb_gustavo") },
+	{ name = "Hao", hash = joaat("csb_hao") },
+	{ name = "Pavel", hash = joaat("csb_helmsmanpavel") },
+	{ name = "csb_huang", hash = joaat("csb_huang") },
+	{ name = "csb_hugh", hash = joaat("csb_hugh") },
+	{ name = "csb_imran", hash = joaat("csb_imran") },
+	{ name = "csb_isldj_00", hash = joaat("csb_isldj_00") },
+	{ name = "csb_isldj_01", hash = joaat("csb_isldj_01") },
+	{ name = "csb_isldj_02", hash = joaat("csb_isldj_02") },
+	{ name = "csb_isldj_03", hash = joaat("csb_isldj_03") },
+	{ name = "csb_isldj_04", hash = joaat("csb_isldj_04") },
+	{ name = "csb_jackhowitzer", hash = joaat("csb_jackhowitzer") },
+	{ name = "csb_janitor", hash = joaat("csb_janitor") },
+	{ name = "Jimmy Iovine", hash = joaat("csb_jio") },
+	{ name = "csb_juanstrickler", hash = joaat("csb_juanstrickler") },
+	{ name = "csb_maude", hash = joaat("csb_maude") },
+	{ name = "csb_miguelmadrazo", hash = joaat("csb_miguelmadrazo") },
+	{ name = "DJ Pooh", hash = joaat("csb_mjo") },
+	{ name = "Avi Schwartzman", hash = joaat("csb_money") },
+	{ name = "csb_mp_agent14", hash = joaat("csb_mp_agent14") },
+	{ name = "Mrs Rackman", hash = joaat("csb_mrs_r") },
+	{ name = "csb_mweather", hash = joaat("csb_mweather") },
+	{ name = "csb_ortega", hash = joaat("csb_ortega") },
+	{ name = "csb_oscar", hash = joaat("csb_oscar") },
+	{ name = "csb_paige", hash = joaat("csb_paige") },
+	{ name = "csb_popov", hash = joaat("csb_popov") },
+	{ name = "csb_porndudes", hash = joaat("csb_porndudes") },
+	{ name = "csb_prologuedriver", hash = joaat("csb_prologuedriver") },
+	{ name = "csb_prolsec", hash = joaat("csb_prolsec") },
+	{ name = "csb_ramp_gang", hash = joaat("csb_ramp_gang") },
+	{ name = "csb_ramp_hic", hash = joaat("csb_ramp_hic") },
+	{ name = "csb_ramp_hipster", hash = joaat("csb_ramp_hipster") },
+	{ name = "csb_ramp_marine", hash = joaat("csb_ramp_marine") },
+	{ name = "csb_ramp_mex", hash = joaat("csb_ramp_mex") },
+	{ name = "csb_rashcosvki", hash = joaat("csb_rashcosvki") },
+	{ name = "csb_reporter", hash = joaat("csb_reporter") },
+	{ name = "csb_roccopelosi", hash = joaat("csb_roccopelosi") },
+	{ name = "csb_screen_writer", hash = joaat("csb_screen_writer") },
+	{ name = "csb_sol", hash = joaat("csb_sol") },
+	{ name = "csb_sss", hash = joaat("csb_sss") },
+	{ name = "csb_stripper_01", hash = joaat("csb_stripper_01") },
+	{ name = "csb_stripper_02", hash = joaat("csb_stripper_02") },
+	{ name = "csb_talcc", hash = joaat("csb_talcc") },
+	{ name = "csb_talmm", hash = joaat("csb_talmm") },
+	{ name = "csb_thornton", hash = joaat("csb_thornton") },
+	{ name = "csb_tomcasino", hash = joaat("csb_tomcasino") },
+	{ name = "csb_tonya", hash = joaat("csb_tonya") },
+	{ name = "csb_tonyprince", hash = joaat("csb_tonyprince") },
+	{ name = "csb_trafficwarden", hash = joaat("csb_trafficwarden") },
+	{ name = "csb_undercover", hash = joaat("csb_undercover") },
+	{ name = "csb_vagspeak", hash = joaat("csb_vagspeak") },
+	{ name = "csb_vincent", hash = joaat("csb_vincent") },
+	{ name = "Vincent 2", hash = joaat("csb_vincent_2") },
+	{ name = "csb_wendy", hash = joaat("csb_wendy") },
+	{ name = "g_f_importexport_01", hash = joaat("g_f_importexport_01") },
+	{ name = "g_f_y_ballas_01", hash = joaat("g_f_y_ballas_01") },
+	{ name = "g_f_y_families_01", hash = joaat("g_f_y_families_01") },
+	{ name = "g_f_y_lost_01", hash = joaat("g_f_y_lost_01") },
+	{ name = "g_f_y_vagos_01", hash = joaat("g_f_y_vagos_01") },
+	{ name = "g_m_importexport_01", hash = joaat("g_m_importexport_01") },
+	{ name = "g_m_m_armboss_01", hash = joaat("g_m_m_armboss_01") },
+	{ name = "g_m_m_armgoon_01", hash = joaat("g_m_m_armgoon_01") },
+	{ name = "g_m_m_armlieut_01", hash = joaat("g_m_m_armlieut_01") },
+	{ name = "g_m_m_cartelguards_01", hash = joaat("g_m_m_cartelguards_01") },
+	{ name = "g_m_m_cartelguards_02", hash = joaat("g_m_m_cartelguards_02") },
+	{ name = "g_m_m_casrn_01", hash = joaat("g_m_m_casrn_01") },
+	{ name = "g_m_m_chemwork_01", hash = joaat("g_m_m_chemwork_01") },
+	{ name = "g_m_m_chiboss_01", hash = joaat("g_m_m_chiboss_01") },
+	{ name = "g_m_m_chicold_01", hash = joaat("g_m_m_chicold_01") },
+	{ name = "g_m_m_chigoon_01", hash = joaat("g_m_m_chigoon_01") },
+	{ name = "g_m_m_chigoon_02", hash = joaat("g_m_m_chigoon_02") },
+	{ name = "g_m_m_korboss_01", hash = joaat("g_m_m_korboss_01") },
+	{ name = "g_m_m_mexboss_01", hash = joaat("g_m_m_mexboss_01") },
+	{ name = "g_m_m_mexboss_02", hash = joaat("g_m_m_mexboss_02") },
+	{ name = "g_m_y_armgoon_02", hash = joaat("g_m_y_armgoon_02") },
+	{ name = "g_m_y_azteca_01", hash = joaat("g_m_y_azteca_01") },
+	{ name = "g_m_y_ballaeast_01", hash = joaat("g_m_y_ballaeast_01") },
+	{ name = "g_m_y_ballaorig_01", hash = joaat("g_m_y_ballaorig_01") },
+	{ name = "g_m_y_ballasout_01", hash = joaat("g_m_y_ballasout_01") },
+	{ name = "g_m_y_famca_01", hash = joaat("g_m_y_famca_01") },
+	{ name = "g_m_y_famdnf_01", hash = joaat("g_m_y_famdnf_01") },
+	{ name = "g_m_y_famfor_01", hash = joaat("g_m_y_famfor_01") },
+	{ name = "g_m_y_korean_01", hash = joaat("g_m_y_korean_01") },
+	{ name = "g_m_y_korean_02", hash = joaat("g_m_y_korean_02") },
+	{ name = "g_m_y_korlieut_01", hash = joaat("g_m_y_korlieut_01") },
+	{ name = "g_m_y_lost_01", hash = joaat("g_m_y_lost_01") },
+	{ name = "g_m_y_lost_02", hash = joaat("g_m_y_lost_02") },
+	{ name = "g_m_y_lost_03", hash = joaat("g_m_y_lost_03") },
+	{ name = "g_m_y_mexgang_01", hash = joaat("g_m_y_mexgang_01") },
+	{ name = "g_m_y_mexgoon_01", hash = joaat("g_m_y_mexgoon_01") },
+	{ name = "g_m_y_mexgoon_02", hash = joaat("g_m_y_mexgoon_02") },
+	{ name = "g_m_y_mexgoon_03", hash = joaat("g_m_y_mexgoon_03") },
+	{ name = "g_m_y_pologoon_01", hash = joaat("g_m_y_pologoon_01") },
+	{ name = "g_m_y_pologoon_02", hash = joaat("g_m_y_pologoon_02") },
+	{ name = "g_m_y_salvaboss_01", hash = joaat("g_m_y_salvaboss_01") },
+	{ name = "g_m_y_salvagoon_01", hash = joaat("g_m_y_salvagoon_01") },
+	{ name = "g_m_y_salvagoon_02", hash = joaat("g_m_y_salvagoon_02") },
+	{ name = "g_m_y_salvagoon_03", hash = joaat("g_m_y_salvagoon_03") },
+	{ name = "g_m_y_strpunk_01", hash = joaat("g_m_y_strpunk_01") },
+	{ name = "g_m_y_strpunk_02", hash = joaat("g_m_y_strpunk_02") },
+	{ name = "mp_f_bennymech_01", hash = joaat("mp_f_bennymech_01") },
+	{ name = "mp_f_boatstaff_01", hash = joaat("mp_f_boatstaff_01") },
+	{ name = "mp_f_cardesign_01", hash = joaat("mp_f_cardesign_01") },
+	{ name = "mp_f_chbar_01", hash = joaat("mp_f_chbar_01") },
+	{ name = "mp_f_cocaine_01", hash = joaat("mp_f_cocaine_01") },
+	{ name = "mp_f_counterfeit_01", hash = joaat("mp_f_counterfeit_01") },
+	{ name = "mp_f_deadhooker", hash = joaat("mp_f_deadhooker") },
+	{ name = "mp_f_execpa_01", hash = joaat("mp_f_execpa_01") },
+	{ name = "mp_f_execpa_02", hash = joaat("mp_f_execpa_02") },
+	{ name = "mp_f_forgery_01", hash = joaat("mp_f_forgery_01") },
+	{ name = "mp_f_helistaff_01", hash = joaat("mp_f_helistaff_01") },
+	{ name = "mp_f_meth_01", hash = joaat("mp_f_meth_01") },
+	{ name = "mp_f_misty_01", hash = joaat("mp_f_misty_01") },
+	{ name = "Nikki", hash = joaat("mp_f_stripperlite") },
+	{ name = "mp_f_weed_01", hash = joaat("mp_f_weed_01") },
+	{ name = "mp_g_m_pros_01", hash = joaat("mp_g_m_pros_01") },
+	{ name = "mp_headtargets", hash = joaat("mp_headtargets") },
+	{ name = "mp_m_avongoon", hash = joaat("mp_m_avongoon") },
+	{ name = "mp_m_boatstaff_01", hash = joaat("mp_m_boatstaff_01") },
+	{ name = "mp_m_bogdangoon", hash = joaat("mp_m_bogdangoon") },
+	{ name = "mp_m_claude_01", hash = joaat("mp_m_claude_01") },
+	{ name = "mp_m_cocaine_01", hash = joaat("mp_m_cocaine_01") },
+	{ name = "mp_m_counterfeit_01", hash = joaat("mp_m_counterfeit_01") },
+	{ name = "mp_m_exarmy_01", hash = joaat("mp_m_exarmy_01") },
+	{ name = "mp_m_execpa_01", hash = joaat("mp_m_execpa_01") },
+	{ name = "mp_m_famdd_01", hash = joaat("mp_m_famdd_01") },
+	{ name = "mp_m_fibsec_01", hash = joaat("mp_m_fibsec_01") },
+	{ name = "mp_m_forgery_01", hash = joaat("mp_m_forgery_01") },
+	{ name = "mp_m_g_vagfun_01", hash = joaat("mp_m_g_vagfun_01") },
+	{ name = "mp_m_marston_01", hash = joaat("mp_m_marston_01") },
+	{ name = "mp_m_meth_01", hash = joaat("mp_m_meth_01") },
+	{ name = "mp_m_niko_01", hash = joaat("mp_m_niko_01") },
+	{ name = "mp_m_securoguard_01", hash = joaat("mp_m_securoguard_01") },
+	{ name = "mp_m_shopkeep_01", hash = joaat("mp_m_shopkeep_01") },
+	{ name = "mp_m_waremech_01", hash = joaat("mp_m_waremech_01") },
+	{ name = "mp_m_weapexp_01", hash = joaat("mp_m_weapexp_01") },
+	{ name = "mp_m_weapwork_01", hash = joaat("mp_m_weapwork_01") },
+	{ name = "mp_m_weed_01", hash = joaat("mp_m_weed_01") },
+	{ name = "mp_s_m_armoured_01", hash = joaat("mp_s_m_armoured_01") },
+	{ name = "s_f_m_fembarber", hash = joaat("s_f_m_fembarber") },
+	{ name = "s_f_m_maid_01", hash = joaat("s_f_m_maid_01") },
+	{ name = "s_f_m_shop_high", hash = joaat("s_f_m_shop_high") },
+	{ name = "s_f_m_sweatshop_01", hash = joaat("s_f_m_sweatshop_01") },
+	{ name = "s_f_y_airhostess_01", hash = joaat("s_f_y_airhostess_01") },
+	{ name = "s_f_y_bartender_01", hash = joaat("s_f_y_bartender_01") },
+	{ name = "s_f_y_baywatch_01", hash = joaat("s_f_y_baywatch_01") },
+	{ name = "s_f_y_beachbarstaff_01", hash = joaat("s_f_y_beachbarstaff_01") },
+	{ name = "s_f_y_casino_01", hash = joaat("s_f_y_casino_01") },
+	{ name = "s_f_y_clubbar_01", hash = joaat("s_f_y_clubbar_01") },
+	{ name = "s_f_y_clubbar_02", hash = joaat("s_f_y_clubbar_02") },
+	{ name = "s_f_y_cop_01", hash = joaat("s_f_y_cop_01") },
+	{ name = "s_f_y_factory_01", hash = joaat("s_f_y_factory_01") },
+	{ name = "s_f_y_hooker_01", hash = joaat("s_f_y_hooker_01") },
+	{ name = "s_f_y_hooker_02", hash = joaat("s_f_y_hooker_02") },
+	{ name = "s_f_y_hooker_03", hash = joaat("s_f_y_hooker_03") },
+	{ name = "s_f_y_migrant_01", hash = joaat("s_f_y_migrant_01") },
+	{ name = "s_f_y_movprem_01", hash = joaat("s_f_y_movprem_01") },
+	{ name = "s_f_y_ranger_01", hash = joaat("s_f_y_ranger_01") },
+	{ name = "s_f_y_scrubs_01", hash = joaat("s_f_y_scrubs_01") },
+	{ name = "s_f_y_sheriff_01", hash = joaat("s_f_y_sheriff_01") },
+	{ name = "s_f_y_shop_low", hash = joaat("s_f_y_shop_low") },
+	{ name = "s_f_y_shop_mid", hash = joaat("s_f_y_shop_mid") },
+	{ name = "s_f_y_stripper_01", hash = joaat("s_f_y_stripper_01") },
+	{ name = "s_f_y_stripper_02", hash = joaat("s_f_y_stripper_02") },
+	{ name = "s_f_y_stripperlite", hash = joaat("s_f_y_stripperlite") },
+	{ name = "s_f_y_sweatshop_01", hash = joaat("s_f_y_sweatshop_01") },
+	{ name = "s_m_m_ammucountry", hash = joaat("s_m_m_ammucountry") },
+	{ name = "s_m_m_armoured_01", hash = joaat("s_m_m_armoured_01") },
+	{ name = "s_m_m_armoured_02", hash = joaat("s_m_m_armoured_02") },
+	{ name = "s_m_m_autoshop_01", hash = joaat("s_m_m_autoshop_01") },
+	{ name = "s_m_m_autoshop_02", hash = joaat("s_m_m_autoshop_02") },
+	{ name = "s_m_m_bouncer_01", hash = joaat("s_m_m_bouncer_01") },
+	{ name = "s_m_m_bouncer_02", hash = joaat("s_m_m_bouncer_02") },
+	{ name = "s_m_m_ccrew_01", hash = joaat("s_m_m_ccrew_01") },
+	{ name = "s_m_m_chemsec_01", hash = joaat("s_m_m_chemsec_01") },
+	{ name = "s_m_m_ciasec_01", hash = joaat("s_m_m_ciasec_01") },
+	{ name = "s_m_m_cntrybar_01", hash = joaat("s_m_m_cntrybar_01") },
+	{ name = "s_m_m_dockwork_01", hash = joaat("s_m_m_dockwork_01") },
+	{ name = "s_m_m_doctor_01", hash = joaat("s_m_m_doctor_01") },
+	{ name = "s_m_m_drugprocess_01", hash = joaat("s_m_m_drugprocess_01") },
+	{ name = "s_m_m_fiboffice_01", hash = joaat("s_m_m_fiboffice_01") },
+	{ name = "s_m_m_fiboffice_02", hash = joaat("s_m_m_fiboffice_02") },
+	{ name = "s_m_m_fibsec_01", hash = joaat("s_m_m_fibsec_01") },
+	{ name = "s_m_m_fieldworker_01", hash = joaat("s_m_m_fieldworker_01") },
+	{ name = "s_m_m_gaffer_01", hash = joaat("s_m_m_gaffer_01") },
+	{ name = "s_m_m_gardener_01", hash = joaat("s_m_m_gardener_01") },
+	{ name = "s_m_m_gentransport", hash = joaat("s_m_m_gentransport") },
+	{ name = "s_m_m_hairdress_01", hash = joaat("s_m_m_hairdress_01") },
+	{ name = "s_m_m_highsec_01", hash = joaat("s_m_m_highsec_01") },
+	{ name = "s_m_m_highsec_02", hash = joaat("s_m_m_highsec_02") },
+	{ name = "s_m_m_highsec_03", hash = joaat("s_m_m_highsec_03") },
+	{ name = "s_m_m_highsec_04", hash = joaat("s_m_m_highsec_04") },
+	{ name = "s_m_m_janitor", hash = joaat("s_m_m_janitor") },
+	{ name = "s_m_m_lathandy_01", hash = joaat("s_m_m_lathandy_01") },
+	{ name = "s_m_m_lifeinvad_01", hash = joaat("s_m_m_lifeinvad_01") },
+	{ name = "s_m_m_linecook", hash = joaat("s_m_m_linecook") },
+	{ name = "s_m_m_lsmetro_01", hash = joaat("s_m_m_lsmetro_01") },
+	{ name = "s_m_m_mariachi_01", hash = joaat("s_m_m_mariachi_01") },
+	{ name = "s_m_m_marine_01", hash = joaat("s_m_m_marine_01") },
+	{ name = "s_m_m_marine_02", hash = joaat("s_m_m_marine_02") },
+	{ name = "s_m_m_migrant_01", hash = joaat("s_m_m_migrant_01") },
+	{ name = "s_m_m_movalien_01", hash = joaat("s_m_m_movalien_01") },
+	{ name = "s_m_m_movprem_01", hash = joaat("s_m_m_movprem_01") },
+	{ name = "s_m_m_movspace_01", hash = joaat("s_m_m_movspace_01") },
+	{ name = "s_m_m_paramedic_01", hash = joaat("s_m_m_paramedic_01") },
+	{ name = "s_m_m_pilot_01", hash = joaat("s_m_m_pilot_01") },
+	{ name = "s_m_m_pilot_02", hash = joaat("s_m_m_pilot_02") },
+	{ name = "s_m_m_postal_01", hash = joaat("s_m_m_postal_01") },
+	{ name = "s_m_m_postal_02", hash = joaat("s_m_m_postal_02") },
+	{ name = "s_m_m_prisguard_01", hash = joaat("s_m_m_prisguard_01") },
+	{ name = "s_m_m_scientist_01", hash = joaat("s_m_m_scientist_01") },
+	{ name = "s_m_m_security_01", hash = joaat("s_m_m_security_01") },
+	{ name = "s_m_m_snowcop_01", hash = joaat("s_m_m_snowcop_01") },
+	{ name = "s_m_m_strperf_01", hash = joaat("s_m_m_strperf_01") },
+	{ name = "s_m_m_strpreach_01", hash = joaat("s_m_m_strpreach_01") },
+	{ name = "s_m_m_strvend_01", hash = joaat("s_m_m_strvend_01") },
+	{ name = "s_m_m_trucker_01", hash = joaat("s_m_m_trucker_01") },
+	{ name = "s_m_m_ups_01", hash = joaat("s_m_m_ups_01") },
+	{ name = "s_m_m_ups_02", hash = joaat("s_m_m_ups_02") },
+	{ name = "s_m_o_busker_01", hash = joaat("s_m_o_busker_01") },
+	{ name = "s_m_y_airworker", hash = joaat("s_m_y_airworker") },
+	{ name = "s_m_y_ammucity_01", hash = joaat("s_m_y_ammucity_01") },
+	{ name = "s_m_y_armymech_01", hash = joaat("s_m_y_armymech_01") },
+	{ name = "s_m_y_autopsy_01", hash = joaat("s_m_y_autopsy_01") },
+	{ name = "s_m_y_barman_01", hash = joaat("s_m_y_barman_01") },
+	{ name = "s_m_y_baywatch_01", hash = joaat("s_m_y_baywatch_01") },
+	{ name = "s_m_y_blackops_01", hash = joaat("s_m_y_blackops_01") },
+	{ name = "s_m_y_blackops_02", hash = joaat("s_m_y_blackops_02") },
+	{ name = "s_m_y_blackops_03", hash = joaat("s_m_y_blackops_03") },
+	{ name = "s_m_y_busboy_01", hash = joaat("s_m_y_busboy_01") },
+	{ name = "s_m_y_casino_01", hash = joaat("s_m_y_casino_01") },
+	{ name = "s_m_y_chef_01", hash = joaat("s_m_y_chef_01") },
+	{ name = "s_m_y_clown_01", hash = joaat("s_m_y_clown_01") },
+	{ name = "s_m_y_clubbar_01", hash = joaat("s_m_y_clubbar_01") },
+	{ name = "s_m_y_construct_01", hash = joaat("s_m_y_construct_01") },
+	{ name = "s_m_y_construct_02", hash = joaat("s_m_y_construct_02") },
+	{ name = "s_m_y_cop_01", hash = joaat("s_m_y_cop_01") },
+	{ name = "s_m_y_dealer_01", hash = joaat("s_m_y_dealer_01") },
+	{ name = "s_m_y_devinsec_01", hash = joaat("s_m_y_devinsec_01") },
+	{ name = "s_m_y_dockwork_01", hash = joaat("s_m_y_dockwork_01") },
+	{ name = "s_m_y_doorman_01", hash = joaat("s_m_y_doorman_01") },
+	{ name = "s_m_y_dwservice_01", hash = joaat("s_m_y_dwservice_01") },
+	{ name = "s_m_y_dwservice_02", hash = joaat("s_m_y_dwservice_02") },
+	{ name = "s_m_y_factory_01", hash = joaat("s_m_y_factory_01") },
+	{ name = "s_m_y_fireman_01", hash = joaat("s_m_y_fireman_01") },
+	{ name = "s_m_y_garbage", hash = joaat("s_m_y_garbage") },
+	{ name = "s_m_y_grip_01", hash = joaat("s_m_y_grip_01") },
+	{ name = "s_m_y_hwaycop_01", hash = joaat("s_m_y_hwaycop_01") },
+	{ name = "s_m_y_marine_01", hash = joaat("s_m_y_marine_01") },
+	{ name = "s_m_y_marine_02", hash = joaat("s_m_y_marine_02") },
+	{ name = "s_m_y_marine_03", hash = joaat("s_m_y_marine_03") },
+	{ name = "s_m_y_mime", hash = joaat("s_m_y_mime") },
+	{ name = "s_m_y_pestcont_01", hash = joaat("s_m_y_pestcont_01") },
+	{ name = "s_m_y_pilot_01", hash = joaat("s_m_y_pilot_01") },
+	{ name = "s_m_y_prismuscl_01", hash = joaat("s_m_y_prismuscl_01") },
+	{ name = "s_m_y_prisoner_01", hash = joaat("s_m_y_prisoner_01") },
+	{ name = "s_m_y_ranger_01", hash = joaat("s_m_y_ranger_01") },
+	{ name = "s_m_y_robber_01", hash = joaat("s_m_y_robber_01") },
+	{ name = "s_m_y_sheriff_01", hash = joaat("s_m_y_sheriff_01") },
+	{ name = "s_m_y_shop_mask", hash = joaat("s_m_y_shop_mask") },
+	{ name = "s_m_y_strvend_01", hash = joaat("s_m_y_strvend_01") },
+	{ name = "s_m_y_swat_01", hash = joaat("s_m_y_swat_01") },
+	{ name = "s_m_y_uscg_01", hash = joaat("s_m_y_uscg_01") },
+	{ name = "s_m_y_valet_01", hash = joaat("s_m_y_valet_01") },
+	{ name = "s_m_y_waiter_01", hash = joaat("s_m_y_waiter_01") },
+	{ name = "s_m_y_waretech_01", hash = joaat("s_m_y_waretech_01") },
+	{ name = "s_m_y_westsec_01", hash = joaat("s_m_y_westsec_01") },
+	{ name = "s_m_y_westsec_02", hash = joaat("s_m_y_westsec_02") },
+	{ name = "s_m_y_winclean_01", hash = joaat("s_m_y_winclean_01") },
+	{ name = "s_m_y_xmech_01", hash = joaat("s_m_y_xmech_01") },
+	{ name = "s_m_y_xmech_02", hash = joaat("s_m_y_xmech_02") },
+	{ name = "s_m_y_xmech_02_mp", hash = joaat("s_m_y_xmech_02_mp") },
+	{ name = "u_f_m_casinocash_01", hash = joaat("u_f_m_casinocash_01") },
+	{ name = "u_f_m_casinoshop_01", hash = joaat("u_f_m_casinoshop_01") },
+	{ name = "u_f_m_corpse_01", hash = joaat("u_f_m_corpse_01") },
+	{ name = "u_f_m_debbie_01", hash = joaat("u_f_m_debbie_01") },
+	{ name = "u_f_m_drowned_01", hash = joaat("u_f_m_drowned_01") },
+	{ name = "u_f_m_miranda", hash = joaat("u_f_m_miranda") },
+	{ name = "u_f_m_miranda_02", hash = joaat("u_f_m_miranda_02") },
+	{ name = "u_f_m_promourn_01", hash = joaat("u_f_m_promourn_01") },
+	{ name = "u_f_o_carol", hash = joaat("u_f_o_carol") },
+	{ name = "u_f_o_eileen", hash = joaat("u_f_o_eileen") },
+	{ name = "u_f_o_moviestar", hash = joaat("u_f_o_moviestar") },
+	{ name = "u_f_o_prolhost_01", hash = joaat("u_f_o_prolhost_01") },
+	{ name = "u_f_y_beth", hash = joaat("u_f_y_beth") },
+	{ name = "u_f_y_bikerchic", hash = joaat("u_f_y_bikerchic") },
+	{ name = "u_f_y_comjane", hash = joaat("u_f_y_comjane") },
+	{ name = "u_f_y_corpse_01", hash = joaat("u_f_y_corpse_01") },
+	{ name = "u_f_y_corpse_02", hash = joaat("u_f_y_corpse_02") },
+	{ name = "u_f_y_danceburl_01", hash = joaat("u_f_y_danceburl_01") },
+	{ name = "u_f_y_dancelthr_01", hash = joaat("u_f_y_dancelthr_01") },
+	{ name = "u_f_y_dancerave_01", hash = joaat("u_f_y_dancerave_01") },
+	{ name = "u_f_y_hotposh_01", hash = joaat("u_f_y_hotposh_01") },
+	{ name = "u_f_y_jewelass_01", hash = joaat("u_f_y_jewelass_01") },
+	{ name = "u_f_y_lauren", hash = joaat("u_f_y_lauren") },
+	{ name = "u_f_y_mistress", hash = joaat("u_f_y_mistress") },
+	{ name = "u_f_y_poppymich", hash = joaat("u_f_y_poppymich") },
+	{ name = "u_f_y_poppymich_02", hash = joaat("u_f_y_poppymich_02") },
+	{ name = "u_f_y_princess", hash = joaat("u_f_y_princess") },
+	{ name = "u_f_y_spyactress", hash = joaat("u_f_y_spyactress") },
+	{ name = "u_f_y_taylor", hash = joaat("u_f_y_taylor") },
+	{ name = "u_m_m_aldinapoli", hash = joaat("u_m_m_aldinapoli") },
+	{ name = "u_m_m_bankman", hash = joaat("u_m_m_bankman") },
+	{ name = "u_m_m_bikehire_01", hash = joaat("u_m_m_bikehire_01") },
+	{ name = "u_m_m_blane", hash = joaat("u_m_m_blane") },
+	{ name = "u_m_m_curtis", hash = joaat("u_m_m_curtis") },
+	{ name = "u_m_m_doa_01", hash = joaat("u_m_m_doa_01") },
+	{ name = "u_m_m_edtoh", hash = joaat("u_m_m_edtoh") },
+	{ name = "u_m_m_fibarchitect", hash = joaat("u_m_m_fibarchitect") },
+	{ name = "u_m_m_filmdirector", hash = joaat("u_m_m_filmdirector") },
+	{ name = "u_m_m_glenstank_01", hash = joaat("u_m_m_glenstank_01") },
+	{ name = "u_m_m_griff_01", hash = joaat("u_m_m_griff_01") },
+	{ name = "u_m_m_jesus_01", hash = joaat("u_m_m_jesus_01") },
+	{ name = "u_m_m_jewelsec_01", hash = joaat("u_m_m_jewelsec_01") },
+	{ name = "u_m_m_jewelthief", hash = joaat("u_m_m_jewelthief") },
+	{ name = "u_m_m_markfost", hash = joaat("u_m_m_markfost") },
+	{ name = "u_m_m_prolsec_01", hash = joaat("u_m_m_prolsec_01") },
+	{ name = "u_m_m_promourn_01", hash = joaat("u_m_m_promourn_01") },
+	{ name = "u_m_m_rivalpap", hash = joaat("u_m_m_rivalpap") },
+	{ name = "u_m_m_spyactor", hash = joaat("u_m_m_spyactor") },
+	{ name = "u_m_m_streetart_01", hash = joaat("u_m_m_streetart_01") },
+	{ name = "u_m_m_vince", hash = joaat("u_m_m_vince") },
+	{ name = "u_m_m_willyfist", hash = joaat("u_m_m_willyfist") },
+	{ name = "u_m_o_dean", hash = joaat("u_m_o_dean") },
+	{ name = "u_m_o_filmnoir", hash = joaat("u_m_o_filmnoir") },
+	{ name = "u_m_o_finguru_01", hash = joaat("u_m_o_finguru_01") },
+	{ name = "u_m_o_taphillbilly", hash = joaat("u_m_o_taphillbilly") },
+	{ name = "u_m_o_tramp_01", hash = joaat("u_m_o_tramp_01") },
+	{ name = "u_m_y_abner", hash = joaat("u_m_y_abner") },
+	{ name = "u_m_y_antonb", hash = joaat("u_m_y_antonb") },
+	{ name = "u_m_y_babyd", hash = joaat("u_m_y_babyd") },
+	{ name = "u_m_y_baygor", hash = joaat("u_m_y_baygor") },
+	{ name = "u_m_y_burgerdrug_01", hash = joaat("u_m_y_burgerdrug_01") },
+	{ name = "u_m_y_caleb", hash = joaat("u_m_y_caleb") },
+	{ name = "u_m_y_cyclist_01", hash = joaat("u_m_y_cyclist_01") },
+	{ name = "u_m_y_dancerave_01", hash = joaat("u_m_y_dancerave_01") },
+	{ name = "u_m_y_fibmugger_01", hash = joaat("u_m_y_fibmugger_01") },
+	{ name = "u_m_y_gabriel", hash = joaat("u_m_y_gabriel") },
+	{ name = "u_m_y_guido_01", hash = joaat("u_m_y_guido_01") },
+	{ name = "u_m_y_gunvend_01", hash = joaat("u_m_y_gunvend_01") },
+	{ name = "u_m_y_hippie_01", hash = joaat("u_m_y_hippie_01") },
+	{ name = "u_m_y_imporage", hash = joaat("u_m_y_imporage") },
+	{ name = "u_m_y_juggernaut_01", hash = joaat("u_m_y_juggernaut_01") },
+	{ name = "u_m_y_justin", hash = joaat("u_m_y_justin") },
+	{ name = "u_m_y_mani", hash = joaat("u_m_y_mani") },
+	{ name = "u_m_y_militarybum", hash = joaat("u_m_y_militarybum") },
+	{ name = "u_m_y_paparazzi", hash = joaat("u_m_y_paparazzi") },
+	{ name = "u_m_y_party_01", hash = joaat("u_m_y_party_01") },
+	{ name = "u_m_y_pogo_01", hash = joaat("u_m_y_pogo_01") },
+	{ name = "u_m_y_prisoner_01", hash = joaat("u_m_y_prisoner_01") },
+	{ name = "u_m_y_proldriver_01", hash = joaat("u_m_y_proldriver_01") },
+	{ name = "Space Ranger", hash = joaat("u_m_y_rsranger_01") },
+	{ name = "u_m_y_sbike", hash = joaat("u_m_y_sbike") },
+	{ name = "u_m_y_smugmech_01", hash = joaat("u_m_y_smugmech_01") },
+	{ name = "u_m_y_staggrm_01", hash = joaat("u_m_y_staggrm_01") },
+	{ name = "u_m_y_tattoo_01", hash = joaat("u_m_y_tattoo_01") },
+	{ name = "u_m_y_ushi", hash = joaat("u_m_y_ushi") },
+	{ name = "u_m_y_zombie_01", hash = joaat("u_m_y_zombie_01") },
+}
+
+local PedSelf = {
+	{ name = "Male", hash = joaat("mp_m_freemode_01") },
+	{ name = "Female", hash = joaat("mp_f_freemode_01") },
+}
 local animal_hash = joaat("a_c_cat_01")
 local ped_hash = joaat("player_one")
 local bird_hash = joaat("a_c_seagull")
 local sea_hash = joaat("a_c_dolphin")
+local special_hash = joaat("ig_furry")
 local self_hash = joaat("mp_m_freemode_01")
-pedMenu:add_array_item("Set Delay First", { "1", "2", "3", "4", "5", "6", "7", "8" }, function()
-	return xox_12
-end, function(value)
-	xox_12 = value
-	if value == 1 then
-		duFF = 0.01
-	elseif value == 2 then
-		duFF = 0.05
-	elseif value == 3 then
-		duFF = 0.08
-	elseif value == 4 then
-		duFF = 0.1
-	elseif value == 5 then
-		duFF = 0.15
-	elseif value == 6 then
-		duFF = 0.2
-	elseif value == 7 then
-		duFF = 0.25
-	else
-		duFF = 0.3
+
+local self_names = {}
+for i = 1, #PedSelf do
+	table.insert(self_names, PedSelf[i].name)
+end
+
+pedMenu:add_array_item("Normal Skin", self_names, function()
+	for i, model in ipairs(PedSelf) do
+		if model.hash == self_hash then
+			return i
+		end
 	end
-end)
-pedMenu:add_action("---", function() end)
-pedMenu:add_array_item("Normal Skin", PedSelf, function()
-	return self_hash
-end, function(value)
-	self_hash = value
+	return 1
+end, function(index)
+	self_hash = PedSelf[index].hash
 	globals.set_int(NORS1, 1)
-	globals.set_int(NORS2, value)
-	sleep(duFF)
+	globals.set_int(NORS2, self_hash)
+	sleep(0.015)
 	globals.set_int(NORS1, 0)
 end)
-pedMenu:add_array_item("Animals", PedModelAnimal, function()
-	return animal_hash
-end, function(value)
-	animal_hash = value
+
+local animal_names = {}
+for i = 1, #PedModelAnimal do
+	table.insert(animal_names, PedModelAnimal[i].name)
+end
+
+pedMenu:add_array_item("Animals", animal_names, function()
+	for i, model in ipairs(PedModelAnimal) do
+		if model.hash == animal_hash then
+			return i
+		end
+	end
+	return 1
+end, function(index)
+	animal_hash = PedModelAnimal[index].hash
 	globals.set_int(NORS1, 1)
-	globals.set_int(NORS2, value)
-	sleep(duFF)
+	globals.set_int(NORS2, animal_hash)
+	sleep(0.015)
 	globals.set_int(NORS1, 0)
 end)
-pedMenu:add_array_item("Peds", PedModel1, function()
-	return ped_hash
-end, function(value)
-	ped_hash = value
+
+local ped1_names = {}
+for i = 1, #PedModel1 do
+	table.insert(ped1_names, PedModel1[i].name)
+end
+
+pedMenu:add_array_item("Peds", ped1_names, function()
+	for i, model in ipairs(PedModel1) do
+		if model.hash == ped_hash then
+			return i
+		end
+	end
+	return 1
+end, function(index)
+	ped_hash = PedModel1[index].hash
 	globals.set_int(NORS1, 1)
-	globals.set_int(NORS2, value)
-	sleep(duFF)
+	globals.set_int(NORS2, ped_hash)
+	sleep(0.015)
 	globals.set_int(NORS1, 0)
 end)
-pedMenu:add_array_item("Birds", PedModelBird, function()
-	return bird_hash
-end, function(value)
-	bird_hash = value
+
+local bird_names = {}
+for i = 1, #PedModelBird do
+	table.insert(bird_names, PedModelBird[i].name)
+end
+
+pedMenu:add_array_item("Birds", bird_names, function()
+	for i, model in ipairs(PedModelBird) do
+		if model.hash == bird_hash then
+			return i
+		end
+	end
+	return 1
+end, function(index)
+	bird_hash = PedModelBird[index].hash
 	globals.set_int(NORS1, 1)
-	globals.set_int(NORS2, value)
-	sleep(duFF)
+	globals.set_int(NORS2, bird_hash)
+	sleep(0.015)
 	globals.set_int(NORS1, 0)
 end)
-pedMenu:add_array_item("Sea Animals", PedModelSeaAnimal, function()
-	return sea_hash
-end, function(value)
-	sea_hash = value
+
+local seaanimal_names = {}
+for i = 1, #PedModelSeaAnimal do
+	table.insert(seaanimal_names, PedModelSeaAnimal[i].name)
+end
+
+pedMenu:add_array_item("Sea Animals", seaanimal_names, function()
+	for i, model in ipairs(PedModelSeaAnimal) do
+		if model.hash == sea_hash then
+			return i
+		end
+	end
+	return 1
+end, function(index)
+	sea_hash = PedModelSeaAnimal[index].hash
 	globals.set_int(NORS1, 1)
-	globals.set_int(NORS2, value)
-	sleep(duFF)
+	globals.set_int(NORS2, sea_hash)
+	sleep(0.015)
 	globals.set_int(NORS1, 0)
 end)
-pedMenu:add_action("Become Bigfoot", function()
+
+local special_names = {}
+for i = 1, #PedModelSpecial do
+	table.insert(special_names, PedModelSpecial[i].name)
+end
+
+pedMenu:add_array_item("Special", special_names, function()
+	for i, model in ipairs(PedModelSpecial) do
+		if model.hash == special_hash then
+			return i
+		end
+	end
+	return 1
+end, function(index)
+	special_hash = PedModelSpecial[index].hash
 	globals.set_int(NORS1, 1)
-	globals.set_int(NORS2, -1389097126)
-	sleep(duFF)
+	globals.set_int(NORS2, special_hash)
+	sleep(0.015)
 	globals.set_int(NORS1, 0)
 end)
-pedMenu:add_action("      ---[Change delay if not working]---", function() end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32437,9 +32510,9 @@ e6 = false
 --Required Stats--
 
 PlayerID = function()
-    if localplayer ~= nil then
-      return localplayer:get_player_id()
-    end
+	if localplayer ~= nil then
+		return localplayer:get_player_id()
+	end
 end
 
 MPX = PI
