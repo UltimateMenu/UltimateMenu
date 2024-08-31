@@ -32436,7 +32436,11 @@ e6 = false
 
 --Required Stats--
 
-PlayerID = localplayer:get_player_id()
+PlayerID = function()
+    if localplayer ~= nil then
+      return localplayer:get_player_id()
+    end
+end
 
 MPX = PI
 PI = stats.get_int("MPPLY_LAST_MP_CHAR")
