@@ -23813,7 +23813,7 @@ b23 = 1
 CasinoServices:add_array_item("Select Prize (before «S»)", prizes_name, function()
 	return b23
 end, function(SelLucPri)
-	CMLWPl = 117 + 1 + (PlayerID * 5)
+	CMLWPl = 117 + 1 + (localplayer:get_player_id() * 5)
 	if CLW:get_int(CMLWPl) ~= -1 then
 		b23 = SelLucPri
 		CLW:set_int(CMLWPl, prizes_id[b23])
@@ -31595,30 +31595,6 @@ end)
 
 NightLoop = UltimateMoneyMethodsMenu:add_submenu("NightClub Remote Safe Loop Menu")
 
-a64 = 1
-DefDelay3 = 0.6
-NightLoop:add_array_item("Delay", { "Default", "Fast", "Medium", "Slow" }, function()
-	return a64
-end, function(DelayType3)
-	if DelayType3 == 1 then
-		DefDelay3 = 0.6
-	elseif DelayType3 == 2 then
-		DefDelay3 = 0.9
-	elseif DelayType3 == 3 then
-		DefDelay3 = 1.2
-	elseif DelayType3 == 4 then
-		DefDelay3 = 1.5
-	end
-	a64 = DelayType3
-end)
-
-BypassTransError = false
-NightLoop:add_toggle("Bypass Transaction Error", function()
-	return BypassTransError
-end, function()
-	BypassTransError = not BypassTransError
-end)
-
 SafeAmount = 300000
 SafeCollection = 181 + 32 + 1
 SafeCapacity = 23680 --NIGHTCLUBMAXSAFEVALUE
@@ -31630,22 +31606,17 @@ local function NightLoop1()
 		return
 	end
 	while a44 do
-		SafeValue = 1845281 + (PlayerID * 883) + 267 + 356 + 6
+		SafeValue = 1845281 + (localplayer:get_player_id() * 883) + 267 + 356 + 6
 		for i = IncomeStart, IncomeEnd do
 			globals.set_int(262145 + i, SafeAmount)
 		end
 		globals.set_int(262145 + SafeCapacity, SafeAmount)
 		stats.set_int(MPX .. "CLUB_PAY_TIME_LEFT", -1)
-		sleep(DefDelay3)
+		sleep(1.2)
 		if globals.get_int(SafeValue) ~= 0 then
-			if BypassTransError == true then
-				globals.set_int(4537456, 0)
-				globals.set_int(4537457, 0)
-				globals.set_int(4537458, 0)
-			end
-			AMN:set_int(SafeCollection, 1)
-			sleep(DefDelay3)
 		end
+		AMN:set_int(SafeCollection, 1)
+		sleep(1.2)
 	end
 end
 NightLoop:add_toggle("$300k Loop (AFK)", function()
@@ -31661,10 +31632,6 @@ NightLoopNote = NightLoop:add_submenu("Read Me")
 
 NightLoopNote:add_action("  Come inside your nightclub and activate", function() end)
 NightLoopNote:add_action("", function() end)
-NightLoopNote:add_action("                            Delay:", function() end)
-NightLoopNote:add_action("  Change this if you aren't getting money", function() end)
-NightLoopNote:add_action("              Bypass Transaction Error:", function() end)
-NightLoopNote:add_action(" Toggle this if you're still getting an error", function() end)
 NightLoopNote:add_action("Credits: Silent", function() end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -32508,12 +32475,6 @@ e6 = false
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Required Stats--
-
-PlayerID = function()
-	if localplayer ~= nil then
-		return localplayer:get_player_id()
-	end
-end
 
 MPX = PI
 PI = stats.get_int("MPPLY_LAST_MP_CHAR")
