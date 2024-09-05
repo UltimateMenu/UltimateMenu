@@ -24158,6 +24158,8 @@ end)
 HHDs = VehiclesMenu:add_submenu("Custom Plate")
 
 PlateChar = {
+	"",
+	" ",
 	"0",
 	"1",
 	"2",
@@ -24194,102 +24196,148 @@ PlateChar = {
 	"X",
 	"Y",
 	"Z",
-	"",
 }
-PI1 = PlateChar[1]
-PI1Current = 1
+PIs = {}
+PICurrents = {}
+
+for pi = 1, 8 do
+	PIs[pi] = PlateChar[1]
+	PICurrents[pi] = 1
+end
+
+function loadPresets()
+	Presets = json.loadfile("presets.json")
+end
+
+if not pcall(loadPresets) then
+	Presets = { "" }
+end
+
+PRE = Presets[1]
+PRECurrent = 1
+HHDs:add_array_item("presets", Presets, function()
+	if localplayer ~= nil and localplayer:is_in_vehicle() then
+		return PRECurrent
+	end
+end, function(value)
+	PRE = Presets[value]
+	PRECurrent = value
+
+	nPIs = {}
+	temp = {}
+	for idx = 1, #PRE do
+		nPIs[#nPIs + 1] = PRE:sub(idx, idx)
+		for cur = 1, #PlateChar do
+			if PlateChar[cur] == nPIs[#nPIs] then
+				temp[idx] = cur
+			end
+		end
+	end
+
+	for pi = 1, #PRE do
+		PIs[pi] = nPIs[pi]
+		PICurrents[pi] = temp[pi]
+	end
+
+	for pi = #PRE + 1, 8 do
+		PIs[pi] = PlateChar[1]
+		PICurrents[pi] = 1
+	end
+end)
+
 HHDs:add_array_item("Char #1", PlateChar, function()
 	if localplayer ~= nil and localplayer:is_in_vehicle() then
-		return PI1Current
+		return PICurrents[1]
 	end
 end, function(value)
-	PI1 = PlateChar[value]
-	PI1Current = value
+	PIs[1] = PlateChar[value]
+	PICurrents[1] = value
 end)
 
-PI2 = PlateChar[1]
-PI2Current = 1
 HHDs:add_array_item("Char #2", PlateChar, function()
 	if localplayer ~= nil and localplayer:is_in_vehicle() then
-		return PI2Current
+		return PICurrents[2]
 	end
 end, function(value)
-	PI2 = PlateChar[value]
-	PI2Current = value
+	PIs[2] = PlateChar[value]
+	PICurrents[2] = value
 end)
 
-PI3 = PlateChar[1]
-PI3Current = 1
 HHDs:add_array_item("Char #3", PlateChar, function()
 	if localplayer ~= nil and localplayer:is_in_vehicle() then
-		return PI3Current
+		return PICurrents[3]
 	end
 end, function(value)
-	PI3 = PlateChar[value]
-	PI3Current = value
+	PIs[3] = PlateChar[value]
+	PICurrents[3] = value
 end)
 
-PI4 = PlateChar[1]
-PI4Current = 1
 HHDs:add_array_item("Char #4", PlateChar, function()
 	if localplayer ~= nil and localplayer:is_in_vehicle() then
-		return PI4Current
+		return PICurrents[4]
 	end
 end, function(value)
-	PI4 = PlateChar[value]
-	PI4Current = value
+	PIs[4] = PlateChar[value]
+	PICurrents[4] = value
 end)
 
-PI5 = PlateChar[1]
-PI5Current = 1
 HHDs:add_array_item("Char #5", PlateChar, function()
 	if localplayer ~= nil and localplayer:is_in_vehicle() then
-		return PI5Current
+		return PICurrents[5]
 	end
 end, function(value)
-	PI5 = PlateChar[value]
-	PI5Current = value
+	PIs[5] = PlateChar[value]
+	PICurrents[5] = value
 end)
 
-PI6 = PlateChar[1]
-PI6Current = 1
 HHDs:add_array_item("Char #6", PlateChar, function()
 	if localplayer ~= nil and localplayer:is_in_vehicle() then
-		return PI6Current
+		return PICurrents[6]
 	end
 end, function(value)
-	PI6 = PlateChar[value]
-	PI6Current = value
+	PIs[6] = PlateChar[value]
+	PICurrents[6] = value
 end)
 
-PI7 = PlateChar[1]
-PI7Current = 1
 HHDs:add_array_item("Char #7", PlateChar, function()
 	if localplayer ~= nil and localplayer:is_in_vehicle() then
-		return PI7Current
+		return PICurrents[7]
 	end
 end, function(value)
-	PI7 = PlateChar[value]
-	PI7Current = value
+	PIs[7] = PlateChar[value]
+	PICurrents[7] = value
 end)
 
-PI8 = PlateChar[1]
-PI8Current = 1
 HHDs:add_array_item("Char #8", PlateChar, function()
 	if localplayer ~= nil and localplayer:is_in_vehicle() then
-		return PI8Current
+		return PICurrents[8]
 	end
 end, function(value)
-	PI8 = PlateChar[value]
-	PI8Current = value
+	PIs[8] = PlateChar[value]
+	PICurrents[8] = value
 end)
 
 HHDs:add_bare_item("", function()
-	return "Apply plate: " .. PI1 .. PI2 .. PI3 .. PI4 .. PI5 .. PI6 .. PI7 .. PI8
+	return "Apply plate: " .. PIs[1] .. PIs[2] .. PIs[3] .. PIs[4] .. PIs[5] .. PIs[6] .. PIs[7] .. PIs[8]
 end, function()
 	if localplayer ~= nil and localplayer:is_in_vehicle() then
-		localplayer:get_current_vehicle():set_number_plate_text(PI1 .. PI2 .. PI3 .. PI4 .. PI5 .. PI6 .. PI7 .. PI8)
+		localplayer
+			:get_current_vehicle()
+			:set_number_plate_text(PIs[1] .. PIs[2] .. PIs[3] .. PIs[4] .. PIs[5] .. PIs[6] .. PIs[7] .. PIs[8])
 	end
+end, function() end, function() end)
+
+HHDs:add_bare_item("", function()
+	return "Reload presets"
+end, function()
+	pcall(loadPresets)
+end, function() end, function() end)
+
+HHDs:add_bare_item("", function()
+	return "Add current plate to presets"
+end, function()
+	Presets[#Presets] = PIs[1] .. PIs[2] .. PIs[3] .. PIs[4] .. PIs[5] .. PIs[6] .. PIs[7] .. PIs[8]
+	json.savefile("presets.json", Presets)
 end, function() end, function() end)
 
 HHDs7 = VehiclesMenu:add_submenu("Car Speed Menu")
