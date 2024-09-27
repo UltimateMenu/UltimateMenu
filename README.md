@@ -13,6 +13,12 @@
 > [!NOTE]  
 > Thank You All For The Support You Gave me on ultimate menu script for modest menu it was fun when it was lasted for over 2 years this project is now closed as modest menu by the legendary kiddion is closed i hope you all to have the best in your real life and for yimmenu version of the script it is now depends on yimura and his dev team either to make it up or down but i think it will be up fr
 
+> [!NOTE]  
+> Where IS Yimura's Chat And What Is Matrix Chat?
+> well its simple matrix chat is a platform like telegram but with encrypted chat messages which focus on privacy
+> the link where is official yimura is in here https://matrix.to/#/!WIGXIeVdyETOYUHIdj:matrix.org?via=matrix.org&via=t2bot.io&via=beeper.com
+> Note: you need to be respectful it is not a random discord chat
+
 
 > [!WARNING]  
 > RIP Cargo Method 
