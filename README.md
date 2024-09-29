@@ -16,7 +16,7 @@
 > [!NOTE]  
 > Where IS Yimura's Chat And What Is Matrix Chat?
 > well its simple matrix chat is a platform like telegram but with encrypted chat messages which focus on privacy
-> the link where is official yimura is in here --> https://matrix.to/#/!WIGXIeVdyETOYUHIdj:matrix.org
+> the link where is official yimura is in here --> https://matrix.to/#/!WIGXIeVdyETOYUHIdj:matrix.org or https://matrix.to/#/#yimmenu:matrix.org
 > Note: you need to be respectful it is not a random discord chat
 
 
