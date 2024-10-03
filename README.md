@@ -10,11 +10,7 @@
   <h1><a href="https://www.unknowncheats.me/forum/grand-theft-auto-v/597103-ultimate-menu-yimmenu.html">Ultimate Menu For YimMenu</a></h1>
 </div>
 
-<<<<<<< HEAD
-> !NOTE]  
-=======
 > [!NOTE]  
->>>>>>> 8515113297dfc3d44d5efb8706553ce5c12bbcac
 > Thank You All For The Support You Gave me on ultimate menu script for modest menu it was fun when it was lasted for over 2 years this project is now closed as modest menu by the legendary kiddion is closed i hope you all to have the best in your real life and for yimmenu version of the script it is now depends on yimura and his dev team either to make it up or down but i think it will be up fr
 
 > [!NOTE]  
