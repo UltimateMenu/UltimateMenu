@@ -120,7 +120,7 @@ TEQUILA = 262145 + 29458
 L7NEG = gui.get_tab("Ultimate Menu 1.69 By L7NEG")
 
 L7NEG:add_text("                      Ultimate Menu 1.69 ")
-L7NEG:add_text("                                v2.3")
+L7NEG:add_text("                                v2.4")
 
 L7NEG:add_text("Your level                " .. stats.get_int(MPX() .. "CHAR_RANK_FM"))
 
@@ -145,14 +145,22 @@ script.register_looped("UnlockGenderChange", function(script)
 end)
 
 RTPT = Self:add_checkbox("Remove Transaction Error")
-script.register_looped("Remove Transaction Error", function(script)
-	script:yield()
-	if RTPT:is_enabled() then
+script.register_looped("RemoveTransactionError", function(script)
+	if RemoveTransactionError then
 		globals.set_int(4537456, 0)
 		globals.set_int(4537457, 0)
 		globals.set_int(4537458, 0)
-	else
 	end
+end)
+
+Self:add_button("Remove Published And Players Job Liked To You", function()
+	stats.set_int("MPPLY_AWD_FM_CR_DM_MADE", 0)
+	stats.set_int("MPPLY_AWD_FM_CR_RACES_MADE", 0)
+	stats.set_int("MPPLY_NUM_CAPTURES_CREATED", 0)
+	stats.set_int("MPPLY_LTS_CREATED", 0)
+	stats.set_int("MPPLY_AWD_FM_CR_PLAYED_BY_PEEP", 0)
+	stats.set_int("MPPLY_AWD_FM_CR_MISSION_SCORE", 0)
+	stats.set_int("MPPLY_FM_MISSION_LIKES", 0)
 end)
 
 Self:add_button("Remove Orbital Cannon Cooldown", function()
@@ -9284,47 +9292,6 @@ EventsMenu = L7NEG:add_tab("Events Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-WM29Menu = EventsMenu:add_tab("WM29 Event Menu")
-
-WM29Menu:add_button("Enable Event", function()
-	if globals.get_int(1882632 + (1 + (PLAYER.PLAYER_ID() * 146)) + 82) ~= 1 then
-		return
-	end
-	if globals.get_int(1882247 + 1 + 226) > 1 then
-		return
-	end
-	if not globals.get_int(2672855 + 4 + 4) then
-		return
-	end
-	if globals.get_int(1882247 + 1 + 226) == 1 then
-		globals.set_int(1882247 + 1 + 226, 0)
-		globals.set_int(1882247 + 304, -1)
-		globals.set_int(1882247 + 304 + 1, 0)
-		globals.set_int(1882247 + 1 + 226 + 3, 1)
-		globals.set_int(1882247 + 1 + 226 + 5, -1)
-		globals.set_int(1882247 + 1 + 226 + 6, -1)
-		globals.set_float(1882247 + 1 + 226 + 10, 0.0)
-		globals.set_float(1882247 + 1 + 226 + 11, 0.0)
-		globals.set_float(1882247 + 1 + 226 + 12, 0.0)
-		globals.set_float(1882247 + 1 + 226 + 13, 400.0)
-	end
-	if globals.get_int(1882247 + 1 + 226) ~= 0 then
-		return
-	end
-	local value = globals.get_int(1882247 + 1 + 226 + 3 + 1) | (1 << 1)
-	globals.set_int(1882247 + 1 + 226 + 3 + 1, value)
-	globals.set_int(1882247 + 1 + 226 + 5, 0)
-	globals.set_int(1882247 + 1 + 226 + 6, 0)
-	local freemodescript = "freemode"
-	freemodescript:set_int(freemodescript, 15727 + 181 + 1 + 1, 0x75F9)
-end)
-
-WM29Menu:add_button("Teleport", function()
-	PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), -889.3795166015625, -447.8448181152344, 171.81410217285156)
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 SnowToggleMenu = EventsMenu:add_tab("Snow Toggle Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -9385,7 +9352,7 @@ YetiHuntMenu:add_button("Clue Location 5", function()
 	PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), -1569.665, 4478.485, 20.215)
 end)
 
-YetiHuntMenu:add_button("Clue Location 6", function()
+YetiHuntMenu:add_button("Teleport To Yeti Fight Location", function()
 	PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), -1345.828, 4838.062, 137.522)
 end)
 
@@ -9664,7 +9631,7 @@ end)
 
 -- Look for what reads DISABLE_DAILY_OBJECTIVES and then there should be a while loop that stops at 3.
 local current_objectives_global = 2359296
-local weekly_words_global = 2737992
+local weekly_words_global = 2737993
 local objectives_state_global = 1574744
 
 FAUT:add_button("Complete All Daily & Weekly Challenges", function()
@@ -12379,6 +12346,8 @@ FAUT:add_button("Unlock All", function()
 	stats.set_packed_stat_int(22058, 20) --Gold Business Battle Trophy (Nightclub)
 	stats.set_packed_stat_int(22063, 20) --Dinka Go Go Monkey Blista
 	stats.set_packed_stat_int(41237, 10) --Taxi Livery
+	stats.set_int(MPX() .. "FM_CUT_DONE", -1) -- Skip Interior Tutorials
+    stats.set_int(MPX() .. "FM_CUT_DONE_2", -1) -- Skip Interior Tutorials 2
 	stats.set_int(MPX() .. "HOLDUPS_BITSET", -1)
 	stats.set_int(MPX() .. "CHAR_WEAP_UNLOCKED", -1)
 	stats.set_int(MPX() .. "CHAR_WEAP_UNLOCKED2", -1)
