@@ -10,34 +10,18 @@
   <h1><a href="https://www.unknowncheats.me/forum/grand-theft-auto-v/597103-ultimate-menu-yimmenu.html">Ultimate Menu For YimMenu</a></h1>
 </div>
 
-> [!NOTE]  
-> Thank You All For The Support You Gave me on ultimate menu script for modest menu it was fun when it was lasted for over 2 years this project is now closed as modest menu by the legendary kiddion is closed i hope you all to have the best in your real life and for yimmenu version of the script it is now depends on yimura and his dev team either to make it up or down but i think it will be up fr
-
-> [!NOTE]  
-> Where IS Yimura's Chat And What Is Matrix Chat?
-> well its simple matrix chat is a platform like telegram but with encrypted chat messages which focus on privacy
-> the link where is official yimura is in here --> https://matrix.to/#/!WIGXIeVdyETOYUHIdj:matrix.org or https://matrix.to/#/#yimmenu:matrix.org
-> Note: you need to be respectful it is not a random discord chat
-
-
-> [!WARNING]  
-> RIP Cargo Method 
-> Yes You Heard it Right Unfotunately The Most Used Money Method Among Modders Just Got Detected So > Just Stay Away From Any Ceo 6 mil script including UltimateMenu if you want to use it just use it with your own risk 
-> until then you can just use nightclub safe loop or modded heists cuts 
-> it was the beast from late 2022 when it was 10 mil per crate till it got just detected on 13/8/2024 > which is just 6 mil per crate xD gg rockstar if you really need money use nightclub safeloop or air cargo crates.
-
-# How To Use Ultimate Menu Script
+# How To Use Ultimate Menu Script ?
 For every Version of the ultimate menu (Kiddion/YimMenu) there is a different use and ways to fully Run It. 
 
 For Kiddions script is just puting the script into scripts directory, inside the Kiddions files.
 
-For YimMenu it is actually the same way, but first before initiating the script you will need to go to Settings > Lua > Open Folder Option 
+For YimMenu it is actually the same way, but first before initiating the script you will need to go to Settings > Lua > Open Folder Option or type in your windows file explorer '%APPDATA%/YimMenu/scripts' And hit enter then just paste the .lua file in it and done ✅
 
 From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 
 --------------------------------------------------------------------------------------------------
 <div align="center">
-  <h1> New ScreenShots V2.3 ModestMenu</h1>
+  <h1> New ScreenShots V2.3 ModestMenu (Final Update)</h1>
 </div>
 
 ![Ultimate Menu V2.3](https://ultimatemenu.github.io/ScreenShots/ModestMenu/110.png)
@@ -47,8 +31,6 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 <div align="center">
   <h1> New ScreenShots V2.3 YimMenu</h1>
 </div>
-
-
 
 ![Ultimate Menu For YimMenu V2.3](https://ultimatemenu.github.io/ScreenShots/YimMenu/4.png)
 ![Ultimate Menu For YimMenu V2.3](https://ultimatemenu.github.io/ScreenShots/YimMenu/5.png)
@@ -146,9 +128,10 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 
 --------------------------------------------------------------------------------------------------
 ## When Your New Updates Will Be Out?
-No ETA for big updates also because i don't know actually if im going to be able to continue this script (boths) because i have a life and i need to study. This is a helpfull and fun project for everyone who wants to use it, is free and you can use my script as a template.
+No ETA for big updates also because i don't know actually if im going to be able to continue this script (both) because i have a life and i need to study. 
+This is a helpfull and fun project for everyone who wants to use it, is free and you can use my scripts as a template/base.
 --------------------------------------------------------------------------------------------------
 ## About
--  By the way to anyone who ask's about the Ultimate-Menu script, is not entire mine, there is actually in credits every single person who i taked code from and who helped me with this.
-## Latest Ultimate Menu Kiddions update was on: 05/09/2024
+-  By the way to anyone who ask's about the Ultimate-Menu script, is not entire mine, there is actually a credits section with every single person i took code from etc.
+## Latest Ultimate Menu Kiddions update was on: 05/09/2024 (Final Update)
 ## Latest Ultimate Menu YimMenu update was on: 31/08/2024
