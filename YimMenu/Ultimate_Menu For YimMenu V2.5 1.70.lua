@@ -33,51 +33,54 @@ HIP = "heist_island_planning"
 --Globals & Locals & Variables--
 
 FMg = 262145 -- free mode global ("CASH_MULTIPLIER") //correct
-ACg1 = 1928958 + 1 + 1 -- global apartment player 1 cut global
-ACg2 = 1928958 + 1 + 2 -- global apartment player 2 cut global
-ACg3 = 1928958 + 1 + 3 -- global apartment player 3 cut global
-ACg4 = 1928958 + 1 + 4 -- global apartment player 4 cut global
-ACg5 = 1930201 + 3008 + 1 -- local apartment player 1 cut global
+ACg1 = 1929317 + 1 + 1 -- global apartment player 1 cut global
+ACg2 = 1929317 + 1 + 2 -- global apartment player 2 cut global
+ACg3 = 1929317 + 1 + 3 -- global apartment player 3 cut global
+ACg4 = 1929317 + 1 + 4 -- global apartment player 4 cut global
+ACg5 = 1931285 + 3008 + 1 -- local apartment player 1 cut global
 
 AUAJg1 = FMg + 9101 -- apartment unlock all jobs global 1 ("ROOT_ID_HASH_THE_FLECCA_JOB")
 AUAJg2 = FMg + 9106 -- apartment unlock all jobs global 2 ("ROOT_ID_HASH_THE_PRISON_BREAK")
 AUAJg3 = FMg + 9113 -- apartment unlock all jobs global 3 ("ROOT_ID_HASH_THE_HUMANE_LABS_RAID")
 AUAJg4 = FMg + 9119 -- apartment unlock all jobs global 4 ("ROOT_ID_HASH_SERIES_A_FUNDING")
 AUAJg5 = FMg + 9125 -- apartment unlock all jobs global 5 ("ROOT_ID_HASH_THE_PACIFIC_STANDARD_JOB")
-AIFl3 = 19746 -- apartment instant finish local 1
-AIFl4 = 28365 + 1 -- apartment instant finish local 2
-AIFl5 = 31621 + 69 -- apartment instant finish local 3
+AIFl3 = 20612 -- apartment instant finish local 1
+AIFl4 = 28400 + 1 -- apartment instant finish local 2
+AIFl5 = 31656 + 69 -- apartment instant finish local 3
+AFHl = 11812 + 24 -- apartment fleeca hack local 
+AFDl = 10143 + 11 -- apartment fleeca drill local
 
 DCRBl = 185 -- diamond casino reload board local
-DCCg1 = 1964849 + 1497 + 736 + 92 + 1 -- diamond casino player 1 cut global
-DCCg2 = 1964849 + 1497 + 736 + 92 + 2 -- diamond casino player 2 cut global
-DCCg3 = 1964849 + 1497 + 736 + 92 + 3 -- diamond casino player 3 cut global
-DCCg4 = 1964849 + 1497 + 736 + 92 + 4 -- diamond casino player 4 cut global
+DCCg1 = 1965614 + 1497 + 736 + 92 + 1 -- diamond casino player 1 cut global ("gb_casino_heist_planning")
+DCCg2 = 1965614 + 1497 + 736 + 92 + 2 -- diamond casino player 2 cut global
+DCCg3 = 1965614 + 1497 + 736 + 92 + 3 -- diamond casino player 3 cut global
+DCCg4 = 1965614 + 1497 + 736 + 92 + 4 -- diamond casino player 4 cut global
 DCCl = FMg + 28313 -- Casino_Cut_Lester_offset
 DCCh = FMg + 28349 - 1 --Casino_Cut_Hacker_offset
 DCCd = FMg + 28344 - 1 --Casino_Cut_Driver_offset
 DCCgun = FMg + 28339 - 1 --Casino_Cut_Gunman_offset
-DCFHl = 53019 -- diamond casino fingerprint hack local
-DCKHl = 54085 -- diamond casino keypad hack local
-DCDVDl1 = 10109 + 7 -- diamond casino drill vault door local 1
-DCDVDl2 = 10109 + 37 -- diamond casino drill vault door local 2
+DCFHl = 53087 -- diamond casino fingerprint hack local
+DCKHl = 54153 -- diamond casino keypad hack local
+DCDVDl1 = 10143 + 7 -- diamond casino drill vault door local 1 --("DLC_HEIST_MINIGAME_FLEECA_DRILLING_SCENE")
+DCDVDl2 = 10143 + 37 -- diamond casino drill vault door local 2
 
-GCg = 2685249 + 6615 -- global cut global (value2 = value2 * (num / 100f);)
-CPRSl = 1546 -- cayo perico reload screen local //correct
-CPCg1 = 1971648 + 831 + 56 + 1 -- cayo perico player 1 cut global
-CPCg2 = 1971648 + 831 + 56 + 2 -- cayo perico player 2 cut global
-CPCg3 = 1971648 + 831 + 56 + 3 -- cayo perico player 3 cut global
-CPCg4 = 1971648 + 831 + 56 + 4 -- cayo perico player 4 cut global
-CPBg = FMg + 29211 -- cayo perico bag global (1859395035)
-CPFHl = 24880 -- cayo perico fingerprint hack local
-CPPCCl = 30939 + 3 -- cayo perico plasma cutter cut local ("DLC_H4_anims_glass_cutter_Sounds")
-CPSTCl = 29700 -- cayo perico drainage pipe cut local
+CPCg1 = 1972414 + 831 + 56 + 1 -- cayo perico player 1 cut global
+CPCg2 = 1972414 + 831 + 56 + 2 -- cayo perico player 2 cut global
+CPCg3 = 1972414 + 831 + 56 + 3 -- cayo perico player 3 cut global
+CPCg4 = 1972414 + 831 + 56 + 4 -- cayo perico player 4 cut global
 
-DDSHl = 1271 + 135 -- doomsday doomsday scenario hack local
+CPFHl = 24986 -- cayo perico fingerprint hack local ("MP_STAT_CR_FINGERPRINT")
+CPPCCl = 31049 + 3 -- cayo perico plasma cutter cut local ("DLC_H4_anims_glass_cutter_Sounds")
+CPSTCl = 29810 -- cayo perico drainage pipe cut local ("IntroFinished")
+
+DDSHl = 1292 + 135 -- doomsday doomsday scenario hack local
 DCg1 = 1960755 + 812 + 50 + 1 -- doomsday player 1 cut global
 DCg2 = 1960755 + 812 + 50 + 2 -- doomsday player 2 cut global
 DCg3 = 1960755 + 812 + 50 + 3 -- doomsday player 3 cut global
 DCg4 = 1960755 + 812 + 50 + 4 -- doomsday player 4 cut global
+
+IHPB = 52171 --Instant Heist Passed Local Base (Casino And CayoPerico)
+IHPL = 52171 + 1776 + 1 --Instant Heist Passed Locals (Casino And CayoPerico)
 
 SNOW = 262145 + 4413
 halloweatherAddress = 262145 + 32158
@@ -117,10 +120,10 @@ TEQUILA = 262145 + 29458
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG = gui.get_tab("Ultimate Menu 1.69 By L7NEG")
+L7NEG = gui.get_tab("Ultimate Menu 1.70 By L7NEG")
 
-L7NEG:add_text("                      Ultimate Menu 1.69 ")
-L7NEG:add_text("                                v2.4")
+L7NEG:add_text("                      Ultimate Menu 1.70 ")
+L7NEG:add_text("                                v2.5")
 
 L7NEG:add_text("Your level                " .. stats.get_int(MPX() .. "CHAR_RANK_FM"))
 
@@ -147,9 +150,9 @@ end)
 RTPT = Self:add_checkbox("Remove Transaction Error")
 script.register_looped("RemoveTransactionError", function(script)
 	if RemoveTransactionError then
-		globals.set_int(4537456, 0)
-		globals.set_int(4537457, 0)
-		globals.set_int(4537458, 0)
+		globals.set_int(4538090, 0)
+		globals.set_int(4538091, 0)
+		globals.set_int(4538092, 0)
 	end
 end)
 
@@ -225,7 +228,7 @@ local function BadSport(State, Overall, Bool)
 		stats.set_int("MPPLY_BADSPORT_MESSAGE", State)
 		stats.set_float("MPPLY_OVERALL_BADSPORT", Overall)
 		stats.set_bool("MPPLY_CHAR_IS_BADSPORT", Bool)
-		globals.set_int(1575035, 11)
+		globals.set_int(1575036, 11)
 		globals.set_int(1574589, 1)
 		script:sleep(300)
 		globals.set_int(1574589, 0)
@@ -8311,7 +8314,7 @@ RankSetter:add_button("Set Rank", function()
 		)
 	else
 		stats.set_int(MPX() .. "CHAR_SET_RP_GIFT_ADMIN", rp[rankValue] or 0)
-		globals.set_int(1575035, 11)
+		globals.set_int(1575036, 11)
 		globals.set_int(1574589, 1)
 		globals.set_int(1574589, 0)
 		gui.show_message(
@@ -8474,8 +8477,8 @@ CasinoServicesMenu = OnlineServicesMenu:add_tab("Casino Services Menu")
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local cslots = "casino_slots"
-slots_random_results_table = 1348
-prize_wheel_win_state = 280
+slots_random_results_table = 1366
+prize_wheel_win_state = 298
 prize_wheel_prize = 14
 prize_wheel_prize_state = 45
 
@@ -8588,7 +8591,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-DLCUnlockerMenu = L7NEG:add_tab("1.69 Unlocker Menu")
+DLCUnlockerMenu = L7NEG:add_tab("1.70 Unlocker Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -9292,6 +9295,47 @@ EventsMenu = L7NEG:add_tab("Events Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+WM29Menu = EventsMenu:add_tab("WM29 Event Menu")
+
+WM29Menu:add_button("Enable Event", function()
+	if globals.get_int(1882780 + (1 + (PLAYER.PLAYER_ID() * 149)) + 82) ~= 1 then
+		return
+	end
+	if globals.get_int(1882379 + 1 + 226) > 1 then
+		return
+	end
+	if not globals.get_int(2672939 + 4 + 4) then
+		return
+	end
+	if globals.get_int(1882379 + 1 + 226) == 1 then
+		globals.set_int(1882379 + 1 + 226, 0)
+		globals.set_int(1882379 + 319, -1)
+		globals.set_int(1882379 + 319 + 1, 0)
+		globals.set_int(1882379 + 1 + 226 + 3, 1)
+		globals.set_int(1882379 + 1 + 226 + 5, -1)
+		globals.set_int(1882379 + 1 + 226 + 6, -1)
+		globals.set_float(1882379 + 1 + 226 + 10, 0.0)
+		globals.set_float(1882379 + 1 + 226 + 11, 0.0)
+		globals.set_float(1882379 + 1 + 226 + 12, 0.0)
+		globals.set_float(1882379 + 1 + 226 + 13, 400.0)
+	end
+	if globals.get_int(1882379 + 1 + 226) ~= 0 then
+		return
+	end
+	local value = globals.get_int(1882379 + 1 + 226 + 3 + 1) | (1 << 1)
+	globals.set_int(1882379 + 1 + 226 + 3 + 1, value)
+	globals.set_int(1882379 + 1 + 226 + 5, 0)
+	globals.set_int(1882379 + 1 + 226 + 6, 0)
+	local freemodescript = "freemode"
+	freemodescript:set_int(freemodescript, 15827 + 181 + 1 + 1, 0x75F9)
+end)
+
+WM29Menu:add_button("Teleport", function()
+	PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), -889.3795166015625, -447.8448181152344, 171.81410217285156)
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 SnowToggleMenu = EventsMenu:add_tab("Snow Toggle Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -9379,7 +9423,7 @@ end)
 AcMenu = CSU:add_tab("Achievements")
 
 Acv0 = false
-AG = 4543384 + 1
+AG = 4546323 + 1 --("CHEAT_ACHIEVE")
 
 AcMenu:add_button("Unlock All Achievements", function()
 	script.run_in_fiber(function(script)
@@ -9631,13 +9675,13 @@ end)
 
 -- Look for what reads DISABLE_DAILY_OBJECTIVES and then there should be a while loop that stops at 3.
 local current_objectives_global = 2359296
-local weekly_words_global = 2737993
+local weekly_words_global = 2738865
 local objectives_state_global = 1574744
 
 FAUT:add_button("Complete All Daily & Weekly Challenges", function()
 	script.run_in_fiber(function(script)
 		for i = 0, 2 do --Unlock all daily rewards.
-			local objective = globals.get_int(current_objectives_global + (1 + (0 * 5570)) + 681 + 4244 + (1 + (i * 3)))
+			local objective = globals.get_int(current_objectives_global + (1 + (0 * 5571)) + 681 + 4245 + (1 + (i * 3)))
 			globals.set_int(objectives_state_global + 1 + (1 + (i * 1)), objective)
 		end
 		globals.set_int(objectives_state_global, 1)
@@ -12921,7 +12965,7 @@ AirCargoEditorMenu:add_button("Reset Crate Sell Stats-0/0 Sales", function()
 	stats.set_int(MPX() .. "HANGAR_CONTRABAND_TOTAL", 0)
 	stats.set_int(MPX() .. "LFETIME_HANGAR_EARN_BONUS", 0)
 	stats.set_int(MPX() .. "RIVAL_HANGAR_CRATES_STOLEN", 0)
-	globals.set_int(1575035, 11) ----PlayerSessionBlank--------
+	globals.set_int(1575036, 11) ----PlayerSessionBlank--------
 	globals.set_int(1574589, 1) ----PlayerSessionNew----------
 	globals.set_int(1574589, 0) ----PlayerSessionNew------
 end)
@@ -12959,18 +13003,18 @@ CeoManagerMenu = UseAtYourOwnRiskMenu:add_tab("Ceo Manager Menu")
 CEO1 = 262145 + 15732
 CEO2 = 262145 + 15499
 CEO3 = 262145 + 15500
-SMC1 = 545 + 1
-SMC2 = 545 + 7
-SMC3 = 545 + 584
-SMC4 = 545 + 55
-SMC5 = 545 + 595
-SMC6 = 560
-SMC7 = 741
-SMC8 = 742
-SMC9 = 603 + 5
-SMC10 = 603 + 1
-SMC11 = 603 + 191
-SMC12 = 603 + 192
+SMC1 = 563 + 1
+SMC2 = 563 + 7
+SMC3 = 563 + 584
+SMC4 = 563 + 55
+SMC5 = 563 + 595
+SMC6 = 560 --("GTAO_Exec_SecuroServ_Computer_Sounds")
+SMC7 = 759 --("MP_WH_SELL")
+SMC8 = 760
+SMC9 = 621 + 5
+SMC10 = 621 + 1
+SMC11 = 621 + 191
+SMC12 = 621 + 192
 
 local cs = "appsecuroserv"
 
@@ -13485,7 +13529,7 @@ WareHouseDataEditorMenu:add_button("Reset Crate Sell Stats-0/0 Sales", function(
 	stats.set_int(MPX() .. "LIFETIME_SELL_COMPLETE", 0)
 	stats.set_int(MPX() .. "LIFETIME_SELL_UNDERTAKEN", 0)
 	stats.set_int(MPX() .. "LIFETIME_CONTRA_EARNINGS", 0)
-	globals.set_int(1575035, 11) ----PlayerSessionBlank--------
+	globals.set_int(1575036, 11) ----PlayerSessionBlank--------
 	globals.set_int(1574589, 1) ----PlayerSessionNew----------
 	globals.set_int(1574589, 0) ----PlayerSessionNew------
 end)
@@ -13891,8 +13935,8 @@ end)
 CasinoHeistEditorMenu:add_separator()
 CasinoHeistEditorMenu:add_text("Instant Heist Passed")
 CasinoHeistEditorMenu:add_button("Instant Finish $$", function()
-	locals.set_int(FMC2020, 50150, 9)
-	locals.set_int(FMC2020, 50150 + 1770 + 1, 50)
+	locals.set_int(FMC2020, IHPB, 9)
+	locals.set_int(FMC2020, IHPL, 50)
 	gui.show_message("Instant Heist Passed", "Activated")
 end)
 
@@ -14408,7 +14452,7 @@ CayoHeistEditorMenu:add_text(
 	"Press this after clicking one of the above presets or after the reset heist Completely Option"
 )
 CayoHeistEditorMenu:add_button("Reset Kosatka Board", function()
-	locals.set_int(HIP, 1546, 2)
+	locals.set_int(HIP, 1564, 2)
 	gui.show_message("Cayo Heist", "Planning board has been reset!")
 end)
 
@@ -14504,8 +14548,8 @@ CayoHeistEditorMenu:add_text("Click Skip Cooldown, then click on your Preset and
 CayoHeistEditorMenu:add_separator()
 CayoHeistEditorMenu:add_text("Instant Heist Passed")
 CayoHeistEditorMenu:add_button("Instant Finish $$", function()
-	locals.set_int(FMC2020, 50150, 9)
-	locals.set_int(FMC2020, 50150 + 1770 + 1, 50)
+	locals.set_int(FMC2020, IHPB, 9)
+	locals.set_int(FMC2020, IHPL, 50)
 	gui.show_message("Instant Heist Passed", "Activated")
 end)
 
@@ -14650,7 +14694,7 @@ cayoSizeEditor:add_text("Minimum values are exact defaults for ALL targets.")
 cayoSizeEditor:add_separator()
 cayoSizeEditor:add_text("Press this after setting values.")
 cayoSizeEditor:add_button("Reset Kosatka Board", function()
-	locals.set_int(HIP, 1546, 2)
+	locals.set_int(HIP, 1564, 2)
 	gui.show_message("Cayo Heist", "Planning board has been reset!")
 end)
 
@@ -14712,8 +14756,8 @@ DoomsdayHeistEditorMenu:add_text("Instant Heist Passed")
 DoomsdayHeistEditorMenu:add_button("Instant Finish $$", function()
 	locals.set_int(FMC, 19746, 12)
 	locals.set_int(FMC, 19746 + 2686, 10000000)
-	locals.set_int(FMC, 28365 + 1, 99999)
-	locals.set_int(FMC, 31621 + 69, 99999)
+	locals.set_int(FMC, 28400 + 1, 99999)
+	locals.set_int(FMC, 31656 + 69, 99999)
 	gui.show_message("Instant Heist Passed", "Activated")
 end)
 
