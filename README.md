@@ -36,7 +36,7 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
   <h1> New ScreenShots V2.5 YimMenu</h1>
 </div>
 
-![Ultimate Menu For YimMenu V2.5(https://ultimatemenu.github.io/ScreenShots/YimMenu/9.png)
+![Ultimate Menu For YimMenu V2.5](https://ultimatemenu.github.io/ScreenShots/YimMenu/9.png)
 --------------------------------------------------------------------------------------------------
 <div align="center"> <h1> <details>
   <summary>Old Versions ScreenShots Modest Menu</summary>
