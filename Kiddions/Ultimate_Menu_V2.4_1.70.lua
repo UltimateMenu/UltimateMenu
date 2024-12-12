@@ -20,14 +20,14 @@ inc_speed = 107
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG = menu.add_submenu("\u{1F53B}" .. " Ultimate Menu 1.69 By L7NEG " .. "\u{1F53B}")
+L7NEG = menu.add_submenu("\u{1F53B}" .. " Ultimate Menu 1.70 By L7NEG " .. "\u{1F53B}")
 
 local function Text(text)
 	L7NEG:add_action(text, function() end)
 end
 
 Text("-----------------------------------------------------")
-Text("       ✅ Ultimate Menu 1.69 [V2.3] ✅ ")
+Text("       ✅ Ultimate Menu 1.70 [V2.4] ✅ ")
 Text("-----------------------------------------------------")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -84,42 +84,42 @@ Self:add_array_item("Online Session", {
 end, function(value)
 	xox_0 = value
 	if value == 1 then
-		globals.set_int(1575035, 0)
+		globals.set_int(1575036, 0)
 		globals.set_int(1574589, 1)
 		sleep(0.2)
 		globals.set_int(1574589, 0)
 	elseif value == 2 then
-		globals.set_int(1575035, 1)
+		globals.set_int(1575036, 1)
 		globals.set_int(1574589, 1)
 		sleep(0.2)
 		globals.set_int(1574589, 0)
 	elseif value == 3 then
-		globals.set_int(1575035, 11)
+		globals.set_int(1575036, 11)
 		globals.set_int(1574589, 1)
 		sleep(0.2)
 		globals.set_int(1574589, 0)
 	elseif value == 4 then
-		globals.set_int(1575035, 2)
+		globals.set_int(1575036, 2)
 		globals.set_int(1574589, 1)
 		sleep(0.2)
 		globals.set_int(1574589, 0)
 	elseif value == 5 then
-		globals.set_int(1575035, 3)
+		globals.set_int(1575036, 3)
 		globals.set_int(1574589, 1)
 		sleep(0.2)
 		globals.set_int(1574589, 0)
 	elseif value == 6 then
-		globals.set_int(1575035, 6)
+		globals.set_int(1575036, 6)
 		globals.set_int(1574589, 1)
 		sleep(0.2)
 		globals.set_int(1574589, 0)
 	elseif value == 7 then
-		globals.set_int(1575035, 9)
+		globals.set_int(1575036, 9)
 		globals.set_int(1574589, 1)
 		sleep(0.2)
 		globals.set_int(1574589, 0)
 	elseif value == 8 then
-		globals.set_int(1575035, 8)
+		globals.set_int(1575036, 8)
 		globals.set_int(1574589, 1)
 		sleep(0.2)
 		globals.set_int(1574589, 0)
@@ -137,7 +137,7 @@ end, function(BadSport)
 		stats.set_int("MPPLY_BECAME_BADSPORT_NUM", -1)
 		stats.set_float("MPPLY_OVERALL_BADSPORT", 60000)
 		stats.set_bool("MPPLY_CHAR_IS_BADSPORT", true)
-		globals.set_int(1575035, 8)
+		globals.set_int(1575036, 8)
 		globals.set_int(1574589, 1)
 		sleep(3)
 		globals.set_int(1574589, 0)
@@ -146,7 +146,7 @@ end, function(BadSport)
 		stats.set_int("MPPLY_BECAME_BADSPORT_NUM", 0)
 		stats.set_float("MPPLY_OVERALL_BADSPORT", 0)
 		stats.set_bool("MPPLY_CHAR_IS_BADSPORT", false)
-		globals.set_int(1575035, 8)
+		globals.set_int(1575036, 8)
 		globals.set_int(1574589, 1)
 		sleep(3)
 		globals.set_int(1574589, 0)
@@ -165,7 +165,7 @@ end, function(FRAR)
 		stats.set_int(MPX .. "CHAR_FM_ABILITY_1_UNLCK", -1)
 		stats.set_int(MPX .. "CHAR_FM_ABILITY_2_UNLCK", -1)
 		stats.set_int(MPX .. "CHAR_FM_ABILITY_3_UNLCK", -1)
-		globals.set_int(1575035, 1)
+		globals.set_int(1575036, 1)
 		globals.set_int(1574589, 1)
 		sleep(0.2)
 		globals.set_int(1574589, 0)
@@ -176,7 +176,7 @@ end, function(FRAR)
 		stats.set_int(MPX .. "CHAR_FM_ABILITY_1_UNLCK", 0)
 		stats.set_int(MPX .. "CHAR_FM_ABILITY_2_UNLCK", 0)
 		stats.set_int(MPX .. "CHAR_FM_ABILITY_3_UNLCK", 0)
-		globals.set_int(1575035, 1)
+		globals.set_int(1575036, 1)
 		globals.set_int(1574589, 1)
 		sleep(0.2)
 		globals.set_int(1574589, 0)
@@ -278,7 +278,7 @@ end, function(God)
 end)
 
 Self:add_action("Equip Ballistic Equipment Directly", function()
-	globals.set_int(REQS1 + 917, 1)
+	globals.set_int(REQS1 + 928, 1)
 end)
 
 PassiveMode = false
@@ -348,7 +348,7 @@ Self:add_action("Remove Arena War Wheel Cooldown", function()
 end)
 
 Self:add_action("Remove Transaction Error", function()
-	for i = 4537456, 4537458 do
+	for i = 4538090, 4538092 do
 		globals.set_int(i, 0)
 	end
 end)
@@ -411,8 +411,8 @@ Config.SubmenuStyle = false
 Config.SlamType = 1
 Config.SlamHeight = 1
 Config.SlamTypes = { "Rhino", "Khanjali", "Halftrack" }
-Config.VehicleSpawnGlobal = 2640096
-Config.TrickOrTreatBase = 2640096
+Config.VehicleSpawnGlobal = 2640052
+Config.TrickOrTreatBase = 2640052
 Config.TrickOrTreatType = Config.TrickOrTreatBase + 579
 Config.TrickOrTreatTimer = Config.TrickOrTreatBase + 581
 Config.TrickOrTreatTrigger = Config.TrickOrTreatBase + 581 + 1
@@ -516,11 +516,11 @@ local function GetPlayerCount()
 end
 
 local function createVehicle(modelhash, pos)
-	globals.set_int(Config.VehicleSpawnGlobal + 48, modelhash)
-	globals.set_float(Config.VehicleSpawnGlobal + 44, pos.x)
-	globals.set_float(Config.VehicleSpawnGlobal + 45, pos.y)
-	globals.set_float(Config.VehicleSpawnGlobal + 46, pos.z)
-	globals.set_boolean(Config.VehicleSpawnGlobal + 43, true)
+	globals.set_int(Config.VehicleSpawnGlobal + 50, modelhash)
+	globals.set_float(Config.VehicleSpawnGlobal + 46, pos.x)
+	globals.set_float(Config.VehicleSpawnGlobal + 47, pos.y)
+	globals.set_float(Config.VehicleSpawnGlobal + 48, pos.z)
+	globals.set_boolean(Config.VehicleSpawnGlobal + 45, true)
 end
 
 local function GiveVehicle(ply, model)
@@ -9188,7 +9188,7 @@ Rank:add_bare_item("", function()
 end, function()
 	stats.set_int(MPX .. "CHAR_SET_RP_GIFT_ADMIN", RPtoRank[NewRank] + 100)
 	sleep(2)
-	globals.set_int(1575035, 8)
+	globals.set_int(1575036, 8)
 	globals.set_int(1574589, 1)
 	sleep(1)
 	globals.set_int(1574589, 0)
@@ -20451,6 +20451,23 @@ Text("Notifications Will Stop")
 
 FAUT = RecoveryMenu:add_submenu("Full Account Unlock Menu")
 
+-- Look for what reads DISABLE_DAILY_OBJECTIVES and then there should be a while loop that stops at 3.
+local current_objectives_global = 2359296
+local weekly_words_global = 2738865
+local objectives_state_global = 1574744
+
+FAUT:add_action("Complete All Daily & Weekly Challenges", function()
+		for i = 0, 2 do --Unlock all daily rewards.
+			local objective = globals.get_int(current_objectives_global + (1 + (0 * 5571)) + 681 + 4245 + (1 + (i * 3)))
+			globals.set_int(objectives_state_global + 1 + (1 + (i * 1)), objective)
+		end
+		globals.set_int(objectives_state_global, 1)
+		globals.set_int(
+		weekly_words_global + (1 + (0 * 6)) + 1,
+		globals.get_int(weekly_words_global + (1 + (0 * 6)) + 2)
+		) --Unlock Weekly Objective
+	end)
+
 --Character's Stats-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 CSU = FAUT:add_submenu("Character's Stats")
@@ -20458,11 +20475,11 @@ CSU = FAUT:add_submenu("Character's Stats")
 AcMenu = CSU:add_submenu("Achievements")
 
 Acv0 = false
-AG = 4543384 + 1
+AG = 4546323 + 1 --("CHEAT_ACHIEVE")
 local function AchUnlock()
 	while Acv0 == true do
 		for i = 1, 78 do
-			globals.set_int(4543384 + 1, i)
+			globals.set_int(4546323 + 1, i)
 		end
 	end
 end
@@ -23982,7 +23999,7 @@ CashRemover:add_bare_item("", function()
 	end
 	return "Remove Cash: $" .. FormatMoney(CashToRemove)
 end, function()
-	globals.set_int(2707037 + 36, CashToRemove)
+	globals.set_int(262145 + 23969, CashToRemove)
 	sleep(1)
 	DefNum1Cur = 1
 	DefNum2Cur = 1
@@ -24040,23 +24057,23 @@ VehiclesMenu:add_array_item("Request Services", {
 	return xox_1
 end, function(v)
 	if v == 1 then
-		globals.set_int(REQS1 + 945, 1)
+		globals.set_int(REQS1 + 956, 1)
 	elseif v == 2 then
-		globals.set_int(REQS1 + 953, 1)
+		globals.set_int(REQS1 + 964, 1)
 	elseif v == 3 then
-		globals.set_int(REQS1 + 958, 1)
+		globals.set_int(REQS1 + 969, 1)
 	elseif v == 4 then
-		globals.set_int(REQS1 + 975, 1)
+		globals.set_int(REQS1 + 991, 1)
 	elseif v == 5 then
-		globals.set_int(REQS1 + 987, 1)
+		globals.set_int(REQS1 + 1003, 1)
 	elseif v == 6 then
-		globals.set_int(REQS1 + 959, 1)
+		globals.set_int(REQS1 + 970, 1)
 	elseif v == 7 then
-		globals.set_int(REQS1 + 1009, 1)
+		globals.set_int(REQS1 + 1025, 1)
 	elseif v == 8 then
-		globals.set_int(REQS1 + 916, 1)
+		globals.set_int(REQS1 + 927, 1)
 	else
-		globals.set_int(REQS1 + 906, 1)
+		globals.set_int(REQS1 + 917, 1)
 	end
 	xox_1 = v
 end)
@@ -24393,11 +24410,11 @@ end)
 -- MAIN SYSTEM ()
 function SpawnVehicle(Hash)
 	local pos = localplayer:get_position()
-	globals.set_int(2640096 + 48, Hash)
-	globals.set_float(2640096 + 44, pos.x)
-	globals.set_float(2640096 + 45, pos.y)
-	globals.set_float(2640096 + 46, pos.z)
-	globals.set_boolean(2640096 + 43, true)
+	globals.set_int(2640052 + 50, Hash)
+	globals.set_float(2640052 + 46, pos.x)
+	globals.set_float(2640052 + 47, pos.y)
+	globals.set_float(2640052 + 48, pos.z)
+	globals.set_boolean(2640052 + 45, true)
 	sleep(0.5)
 	menu.send_key_press(70)
 	Logs:add_action("Vehicle Spawned | " .. Hash, function()
@@ -26523,17 +26540,17 @@ ApartmentDataEditorMenu:add_action("Skip Current Apartment Heist Preps", functio
 end)
 
 ApartmentDataEditorMenu:add_action("Bypass Fleeca Hack", function()
-	FMC:set_int(11778 + 24, 7)
+	FMC:set_int(11812 + 24, 7)
 end)
 
 ApartmentDataEditorMenu:add_action("Bypass Fleeca Drill", function()
-	FMC:set_float(10069 + 11, 100)
+	FMC:set_float(10143 + 11, 100)
 end)
 
 ApartmentDataEditorMenu:add_action("Instant Finish (Self Only)", function()
-	FMC:set_int(19746, 12)
-	FMC:set_int(28365 + 1, 99999)
-	FMC:set_int(31621 + 69, 99999)
+	FMC:set_int(20612, 12)
+	FMC:set_int(28400 + 1, 99999)
+	FMC:set_int(31656 + 69, 99999)
 end)
 
 ApartmentNormalCutsEditorMenu = ApartmentDataEditorMenu:add_submenu("Apartment Normal Cuts Editor Menu")
@@ -26560,9 +26577,9 @@ end, function(value)
 end)
 
 ApartmentNormalCutsEditorMenu:add_int_range("Self Cut (Non-Host)", 1, 0, 1000, function()
-	return globals.get_int(2685444 + 6639)
+	return globals.get_int(2685658 + 6651)
 end, function(value)
-	globals.set_int(2685444 + 6639, value)
+	globals.set_int(2685658 + 6651, value)
 end)
 
 ApartmentNormalCutsEditorMenu:add_action("All 100", function()
@@ -26776,44 +26793,44 @@ end
 Text("--------------Casino Cuts--------------------")
 
 CasinoHeistMenu:add_int_range("Casino Player1 Cut", 5.0, 15, 100, function()
-	return globals.get_int(1964849 + 1497 + 736 + 92 + 1)
+	return globals.get_int(1965614 + 1497 + 736 + 92 + 1)
 end, function(value)
-	globals.set_int(1964849 + 1497 + 736 + 92 + 1, value)
+	globals.set_int(1965614 + 1497 + 736 + 92 + 1, value)
 	H3C1 = p1
 end)
 
 CasinoHeistMenu:add_int_range("Casino Player2 Cut", 5.0, 15, 100, function()
-	return globals.get_int(1964849 + 1497 + 736 + 92 + 1 + 1)
+	return globals.get_int(1965614 + 1497 + 736 + 92 + 1 + 1)
 end, function(value)
-	globals.set_int(1964849 + 1497 + 736 + 92 + 1 + 1, value)
+	globals.set_int(1965614 + 1497 + 736 + 92 + 1 + 1, value)
 	H3C2 = p2
 end)
 
 CasinoHeistMenu:add_int_range("Casino Player3 Cut", 5.0, 15, 100, function()
-	return globals.get_int(1964849 + 1497 + 736 + 92 + 1 + 1 + 1)
+	return globals.get_int(1965614 + 1497 + 736 + 92 + 1 + 1 + 1)
 end, function(value)
-	globals.set_int(1964849 + 1497 + 736 + 92 + 1 + 1 + 1, value)
+	globals.set_int(1965614 + 1497 + 736 + 92 + 1 + 1 + 1, value)
 	H3C3 = p3
 end)
 
 CasinoHeistMenu:add_int_range("Casino Player4 Cut", 5.0, 15, 100, function()
-	return globals.get_int(1964849 + 1497 + 736 + 92 + 1 + 1 + 1 + 1)
+	return globals.get_int(1965614 + 1497 + 736 + 92 + 1 + 1 + 1 + 1)
 end, function(value)
-	globals.set_int(1964849 + 1497 + 736 + 92 + 1 + 1 + 1 + 1, value)
+	globals.set_int(1965614 + 1497 + 736 + 92 + 1 + 1 + 1 + 1, value)
 	H3C4 = p4
 end)
 
 CasinoHeistMenu:add_int_range("Self Cut (non-host)", 1, 0, 1000, function()
-	return globals.get_int(2685444 + 6639)
+	return globals.get_int(2685658 + 6651)
 end, function(value)
-	globals.set_int(2685444 + 6639, value)
+	globals.set_int(2685658 + 6651, value)
 end)
 
 CasinoHeistMenu:add_int_range("Casino Lifes - Self", 1, 1, 999999999, function()
-	return FMC:get_int(26172 + 1325 + 1)
+	return FMC:get_int(26207 + 1325 + 1)
 end, function(life)
 	if FMC and FMC:is_active() then
-		FMC:set_int(26172 + 1325 + 1, life)
+		FMC:set_int(26207 + 1325 + 1, life)
 	end
 end)
 
@@ -26834,7 +26851,7 @@ end, function()
 	Cctv(e6)
 end)
 
-local STRKM52 = 53019
+local STRKM52 = 53087
 CasinoHeistMenu:add_action("Crack Casino Fingerprint", function()
 	local heist_script = script("fm_mission_controller")
 	if heist_script and heist_script:is_active() then
@@ -26844,7 +26861,7 @@ CasinoHeistMenu:add_action("Crack Casino Fingerprint", function()
 	end
 end)
 
-local STRKM51 = 54085
+local STRKM51 = 54153
 CasinoHeistMenu:add_action("Crack Casino Keypads", function()
 	local heist_script = script("fm_mission_controller")
 	if heist_script and heist_script:is_active() then
@@ -27148,13 +27165,13 @@ end)
 
 CayoPericoHeistMenu:add_action("Reset Preps", function()
 	if HIP:is_active() then
-		HIP:set_int(1544, 2)
+		HIP:set_int(1562, 2)
 	end
 end)
 
 CayoPericoHeistMenu:add_action("Instant Finish $$", function()
-	FMC2020:set_int(50150, 9)
-	FMC2020:set_int(50150 + 1770 + 1, 50)
+	FMC2020:set_int(52171, 9)
+	FMC2020:set_int(52171 + 1776 + 1, 50)
 end)
 
 CayoPericoHeistMenu:add_action("---", function() end)
@@ -27184,7 +27201,7 @@ end, function(Ses)
 		sleep(0.01)
 		menu.send_key_press(13)
 	elseif Ses == 2 then
-		globals.set_int(1575035, 8)
+		globals.set_int(1575036, 8)
 		globals.set_int(1574589, 1)
 		sleep(3)
 		globals.set_int(1574589, 0)
@@ -27245,7 +27262,7 @@ end)
 CayoPericoHeistMenu:add_action("Kill all npcs", function()
 	menu.kill_all_npcs()
 end)
-RestartKosatkaBoard = 1546
+RestartKosatkaBoard = 1564
 
 CayoPericoHeistMenu:add_action("Reset Kosatka Board", function()
 	if script("heist_island_planning"):is_active() then
@@ -27456,27 +27473,27 @@ cutsMenu:add_array_item(
 	end,
 	function(G)
 		if G == 1 then
-			for i = 1971648 + 831 + 56 + 1, 1971648 + 831 + 56 + 4 do
+			for i = 1972414 + 831 + 56 + 1, 1972414 + 831 + 56 + 4 do
 				globals.set_int(i, 65)
 			end
 		elseif G == 2 then
-			for i = 1971648 + 831 + 56 + 1, 1971648 + 831 + 56 + 4 do
+			for i = 1972414 + 831 + 56 + 1, 1972414 + 831 + 56 + 4 do
 				globals.set_int(i, 80)
 			end
 		elseif G == 3 then
-			for i = 1971648 + 831 + 56 + 1, 1971648 + 831 + 56 + 4 do
+			for i = 1972414 + 831 + 56 + 1, 1972414 + 831 + 56 + 4 do
 				globals.set_int(i, 90)
 			end
 		elseif G == 4 then
-			for i = 1971648 + 831 + 56 + 1, 1971648 + 831 + 56 + 4 do
+			for i = 1972414 + 831 + 56 + 1, 1972414 + 831 + 56 + 4 do
 				globals.set_int(i, 100)
 			end
 		elseif G == 5 then
-			for i = 1971648 + 831 + 56 + 1, 1971648 + 831 + 56 + 4 do
+			for i = 1972414 + 831 + 56 + 1, 1972414 + 831 + 56 + 4 do
 				globals.set_int(i, 138)
 			end
 		elseif G == 6 then
-			for i = 1971648 + 831 + 56 + 1, 1971648 + 831 + 56 + 4 do
+			for i = 1972414 + 831 + 56 + 1, 1972414 + 831 + 56 + 4 do
 				globals.set_int(i, 202)
 			end
 		end
@@ -27485,29 +27502,29 @@ cutsMenu:add_array_item(
 )
 
 cutsMenu:add_int_range("Player 1", 1, 15, 300, function()
-	return globals.get_int(1971648 + 831 + 56 + 1)
+	return globals.get_int(1972414 + 831 + 56 + 1)
 end, function(value)
-	globals.set_int(1971648 + 831 + 56 + 1, value)
+	globals.set_int(1972414 + 831 + 56 + 1, value)
 end)
 cutsMenu:add_int_range("Player 2", 1, 15, 300, function()
-	return globals.get_int(1971648 + 831 + 56 + 2)
+	return globals.get_int(1972414 + 831 + 56 + 2)
 end, function(value)
-	globals.set_int(1971648 + 831 + 56 + 2, value)
+	globals.set_int(1972414 + 831 + 56 + 2, value)
 end)
 cutsMenu:add_int_range("Player 3", 1, 15, 300, function()
-	return globals.get_int(1971648 + 831 + 56 + 3)
+	return globals.get_int(1972414 + 831 + 56 + 3)
 end, function(value)
-	globals.set_int(1971648 + 831 + 56 + 3, value)
+	globals.set_int(1972414 + 831 + 56 + 3, value)
 end)
 cutsMenu:add_int_range("Player 4", 1, 15, 300, function()
-	return globals.get_int(1971648 + 831 + 56 + 4)
+	return globals.get_int(1972414 + 831 + 56 + 4)
 end, function(value)
-	globals.set_int(1971648 + 831 + 56 + 4, value)
+	globals.set_int(1972414 + 831 + 56 + 4, value)
 end)
 cutsMenu:add_int_range("Self Cut (non-host)", 1, 0, 1000, function()
-	return globals.get_int(2685444 + 6639)
+	return globals.get_int(2685658 + 6651)
 end, function(value)
-	globals.set_int(2685444 + 6639, value)
+	globals.set_int(2685658 + 6651, value)
 end)
 
 CPVMenu = CayoPericoHeistMenu:add_submenu("Size/Value Editor")
@@ -27629,8 +27646,8 @@ DoomsdayHeistEditoRecoveryMenu:add_action("-----", function() end)
 DoomsdayHeistEditoRecoveryMenu:add_action("Instant Finish $$", function()
 	FMC:set_int(19746, 12)
 	FMC:set_int(19746 + 2686, 10000000)
-	FMC:set_int(28365 + 1, 99999)
-	FMC:set_int(31621 + 69, 99999)
+	FMC:set_int(28400 + 1, 99999)
+	FMC:set_int(31656 + 69, 99999)
 end)
 
 DoomsdayHeistEditoRecoveryMenu:add_action("(Wait 5 secs  to use after loading, press", function() end)
@@ -27640,7 +27657,7 @@ DoomsdayHeistEditoRecoveryMenu:add_action("again 5 secs after loading inside bui
 DoomsdayHeistEditoRecoveryMenu:add_action("-----", function() end)
 
 DoomsdayHeistEditoRecoveryMenu:add_action("Bypass Act III Hack", function()
-	FMC:set_int(1271 + 135, 3)
+	FMC:set_int(1292 + 135, 3)
 end)
 
 DoomsdayHeistEditoRecoveryMenu:add_action("Kill mission npcs", function()
@@ -27706,9 +27723,9 @@ end, function(value)
 end)
 
 ddCMenu:add_int_range("Self Cut (non-host)", 1, 0, 1000, function()
-	return globals.get_int(2685444 + 6639)
+	return globals.get_int(2685658 + 6651)
 end, function(value)
-	globals.set_int(2685444 + 6639, value)
+	globals.set_int(2685658 + 6651, value)
 end)
 
 DoomsdayHeistEditoRecoveryMenu:add_action("-----", function() end)
@@ -29833,107 +29850,107 @@ ColMenu = CSU:add_submenu("Collectibles Menu")
 ColTMenu = ColMenu:add_submenu("Unlock All (Temporarily)")
 
 ColTMenu:add_bare_item("", function()
-	return "Action Figures (" .. globals.get_int(2708057 + 209) .. "/100)"
+	return "Action Figures (" .. globals.get_int(2708409 + 209) .. "/100)"
 end, function()
-	globals.set_int(2708057 + 209, 100)
+	globals.set_int(2708409 + 209, 100)
 end, function() end, function() end)
 ColTMenu:add_bare_item("", function()
-	return "LD Organics (" .. globals.get_int(2708057 + 593) .. "/100)"
+	return "LD Organics (" .. globals.get_int(2708409 + 593) .. "/100)"
 end, function()
-	globals.set_int(2708057 + 593, 100)
+	globals.set_int(2708409 + 593, 100)
 end, function() end, function() end)
 ColTMenu:add_bare_item("", function()
-	return "Playing Cards (" .. globals.get_int(2708057 + 210) .. "/54)"
+	return "Playing Cards (" .. globals.get_int(2708409 + 210) .. "/54)"
 end, function()
-	globals.set_int(2708057 + 210, 54)
+	globals.set_int(2708409 + 210, 54)
 end, function() end, function() end)
 ColTMenu:add_bare_item("", function()
-	return "Signal Jammers (" .. globals.get_int(2708057 + 211) .. "/50)"
+	return "Signal Jammers (" .. globals.get_int(2708409 + 211) .. "/50)"
 end, function()
-	globals.set_int(2708057 + 211, 50)
+	globals.set_int(2708409 + 211, 50)
 end, function() end, function() end)
 ColTMenu:add_bare_item("", function()
-	return "Treasure Chests (" .. globals.get_int(2708057 + 506) .. "/30)"
+	return "Treasure Chests (" .. globals.get_int(2708409 + 506) .. "/30)"
 end, function()
-	globals.set_int(2708057 + 506, 30)
+	globals.set_int(2708409 + 506, 30)
 end, function() end, function() end)
 ColTMenu:add_bare_item("", function()
-	return "Snowmen (" .. globals.get_int(2708057 + 600) .. "/25)"
+	return "Snowmen (" .. globals.get_int(2708409 + 600) .. "/25)"
 end, function()
-	globals.set_int(2708057 + 600, 25)
+	globals.set_int(2708409 + 600, 25)
 end, function() end, function() end)
 ColTMenu:add_bare_item("", function()
-	return "Buried Stashes (" .. globals.get_int(2708057 + 553) .. "/10)"
+	return "Buried Stashes (" .. globals.get_int(2708409 + 553) .. "/10)"
 end, function()
-	globals.set_int(2708057 + 553, 10)
+	globals.set_int(2708409 + 553, 10)
 end, function() end, function() end)
 ColTMenu:add_bare_item("", function()
-	return "Hidden Caches (" .. globals.get_int(2708057 + 504) .. "/10)"
+	return "Hidden Caches (" .. globals.get_int(2708409 + 504) .. "/10)"
 end, function()
-	globals.set_int(2708057 + 504, 10)
+	globals.set_int(2708409 + 504, 10)
 end, function() end, function() end)
 ColTMenu:add_bare_item("", function()
-	return "Jack o Lantern (" .. globals.get_int(2708057 + 591) .. "/10)"
+	return "Jack o Lantern (" .. globals.get_int(2708409 + 591) .. "/10)"
 end, function()
-	globals.set_int(2708057 + 591, 10)
+	globals.set_int(2708409 + 591, 10)
 end, function() end, function() end)
 ColTMenu:add_bare_item("", function()
-	return "Movie Props (" .. globals.get_int(2708057 + 494) .. "/10)"
+	return "Movie Props (" .. globals.get_int(2708409 + 494) .. "/10)"
 end, function()
-	globals.set_int(2708057 + 494, 10)
+	globals.set_int(2708409 + 494, 10)
 end, function() end, function() end)
 
 ColPMenu = ColMenu:add_submenu("Unlock All (Permanently)")
 
 ColPMenu:add_bare_item("", function()
-	return "Action Figures (" .. globals.get_int(2708057 + 209) .. "/100)"
+	return "Action Figures (" .. globals.get_int(2708409 + 209) .. "/100)"
 end, function()
-	globals.set_int(2708057 + 209, 99)
+	globals.set_int(2708409 + 209, 99)
 end, function() end, function() end)
 ColPMenu:add_bare_item("", function()
-	return "LD Organics (" .. globals.get_int(2708057 + 593) .. "/100)"
+	return "LD Organics (" .. globals.get_int(2708409 + 593) .. "/100)"
 end, function()
-	globals.set_int(2708057 + 593, 99)
+	globals.set_int(2708409 + 593, 99)
 end, function() end, function() end)
 ColPMenu:add_bare_item("", function()
-	return "Playing Cards (" .. globals.get_int(2708057 + 210) .. "/54)"
+	return "Playing Cards (" .. globals.get_int(2708409 + 210) .. "/54)"
 end, function()
-	globals.set_int(2708057 + 210, 53)
+	globals.set_int(2708409 + 210, 53)
 end, function() end, function() end)
 ColPMenu:add_bare_item("", function()
-	return "Signal Jammers (" .. globals.get_int(2708057 + 211) .. "/50)"
+	return "Signal Jammers (" .. globals.get_int(2708409 + 211) .. "/50)"
 end, function()
-	globals.set_int(2708057 + 211, 49)
+	globals.set_int(2708409 + 211, 49)
 end, function() end, function() end)
 ColPMenu:add_bare_item("", function()
-	return "Treasure Chests (" .. globals.get_int(2708057 + 506) .. "/30)"
+	return "Treasure Chests (" .. globals.get_int(2708409 + 506) .. "/30)"
 end, function()
-	globals.set_int(2708057 + 506, 29)
+	globals.set_int(2708409 + 506, 29)
 end, function() end, function() end)
 ColPMenu:add_bare_item("", function()
-	return "Snowmen (" .. globals.get_int(2708057 + 600) .. "/25)"
+	return "Snowmen (" .. globals.get_int(2708409 + 600) .. "/25)"
 end, function()
-	globals.set_int(2708057 + 600, 24)
+	globals.set_int(2708409 + 600, 24)
 end, function() end, function() end)
 ColPMenu:add_bare_item("", function()
-	return "Buried Stashes (" .. globals.get_int(2708057 + 553) .. "/10)"
+	return "Buried Stashes (" .. globals.get_int(2708409 + 553) .. "/10)"
 end, function()
-	globals.set_int(2708057 + 553, 9)
+	globals.set_int(2708409 + 553, 9)
 end, function() end, function() end)
 ColPMenu:add_bare_item("", function()
-	return "Hidden Caches (" .. globals.get_int(2708057 + 504) .. "/10)"
+	return "Hidden Caches (" .. globals.get_int(2708409 + 504) .. "/10)"
 end, function()
-	globals.set_int(2708057 + 504, 9)
+	globals.set_int(2708409 + 504, 9)
 end, function() end, function() end)
 ColPMenu:add_bare_item("", function()
-	return "Jack o Lantern (" .. globals.get_int(2708057 + 591) .. "/10)"
+	return "Jack o Lantern (" .. globals.get_int(2708409 + 591) .. "/10)"
 end, function()
-	globals.set_int(2708057 + 591, 9)
+	globals.set_int(2708409 + 591, 9)
 end, function() end, function() end)
 ColPMenu:add_bare_item("", function()
-	return "Movie Props (" .. globals.get_int(2708057 + 494) .. "/10)"
+	return "Movie Props (" .. globals.get_int(2708409 + 494) .. "/10)"
 end, function()
-	globals.set_int(2708057 + 494, 9)
+	globals.set_int(2708409 + 494, 9)
 end, function() end, function() end)
 
 ColPMenu:add_action("", function() end)
@@ -31605,16 +31622,16 @@ end)
 
 AirCargoMenu:add_action("Instant Finish Sell Mission", function()
 	if SMU:is_active() then
-		local value = SMU:get_int(1934 + 1078)
+		local value = SMU:get_int(1985 + 1078)
 		sleep(0.1)
-		SMU:set_int(1934 + 1035, value)
+		SMU:set_int(1985 + 1035, value)
 	end
 end)
 
 AirCargoMenu:add_action("Instant Finish Buy Mission", function()
 	if SMU:is_active() then
-		SMU:set_int(2003, 5632)
-		SMU:set_int(2005, 175427)
+		SMU:set_int(2022, 5632)
+		SMU:set_int(2024, 175427)
 	end
 end)
 
@@ -31633,7 +31650,7 @@ AirCargoEditorMenu:add_action("Reset Crate Sell Stats-0/0 Sales", function()
 	stats.set_int(MPX .. "HANGAR_CONTRABAND_TOTAL", 0)
 	stats.set_int(MPX .. "LFETIME_HANGAR_EARN_BONUS", 0)
 	stats.set_int(MPX .. "RIVAL_HANGAR_CRATES_STOLEN", 0)
-	globals.set_int(1575035, 11) ----PlayerSessionBlank--------
+	globals.set_int(1575036, 11) ----PlayerSessionBlank--------
 	globals.set_int(1574589, 1) ----PlayerSessionNew----------
 	sleep(0.2)
 	globals.set_int(1574589, 0) ----PlayerSessionNew------
@@ -31644,7 +31661,7 @@ end)
 NightLoop = UltimateMoneyMethodsMenu:add_submenu("NightClub Remote Safe Loop Menu")
 
 SafeAmount = 300000
-SafeCollection = 181 + 32 + 1
+SafeCollection = 202 + 32 + 1
 SafeCapacity = 23680 --NIGHTCLUBMAXSAFEVALUE
 IncomeStart = 23657 --NIGHTCLUBINCOMEUPTOPOP5
 IncomeEnd = 23676 --NIGHTCLUBINCOMEUPTOPOP100
@@ -31654,7 +31671,7 @@ local function NightLoop1()
 		return
 	end
 	while a44 do
-		SafeValue = 1845281 + (localplayer:get_player_id() * 883) + 267 + 356 + 6
+		SafeValue = 1845221 + (localplayer:get_player_id() * 889) + 268 + 360 + 6
 		for i = IncomeStart, IncomeEnd do
 			globals.set_int(262145 + i, SafeAmount)
 		end
@@ -31664,6 +31681,9 @@ local function NightLoop1()
 		if globals.get_int(SafeValue) ~= 0 then
 		end
 		AMN:set_int(SafeCollection, 1)
+		AMN:set_int(4538090, 0)
+		AMN:set_int(4538091, 0)
+		AMN:set_int(4538092, 0)
 		sleep(1.2)
 	end
 end
@@ -31708,25 +31728,25 @@ local function funcCeoManager()
 			globals.set_int(262145 + 15499, 0)
 			globals.set_int(262145 + 15500, 0)
 		end
-		globals.set_int(4537456, 0)
-		globals.set_int(4537457, 0)
-		globals.set_int(4537458, 0)
+		globals.set_int(4538090, 0)
+		globals.set_int(4538091, 0)
+		globals.set_int(4538092, 0)
 
 		if scrSecuroServ:is_active() then
-			scrSecuroServ:set_int(737, 1)
+			scrSecuroServ:set_int(759, 1)
 			sleep(1)
-			scrSecuroServ:set_int(738, 1)
+			scrSecuroServ:set_int(760, 1)
 			sleep(1)
 			scrSecuroServ:set_int(560, 3012)
 		end
 
 		if scrSellContraband:is_active() then
-			scrSellContraband:set_int(1136, 1)
-			scrSellContraband:set_int(596, 0)
-			scrSellContraband:set_int(1125, 0)
-			scrSellContraband:set_int(545 + 7, 7)
+			scrSellContraband:set_int(563 + 584, 1)
+			scrSellContraband:set_int(563 + 55, 0)
+			scrSellContraband:set_int(563 + 584, 0)
+			scrSellContraband:set_int(563 + 7, 7)
 			sleep(1)
-			scrSellContraband:set_int(545 + 1, 99999)
+			scrSellContraband:set_int(563 + 1, 99999)
 		end
 		sleep(1)
 	end
@@ -31843,10 +31863,10 @@ CratesMenu:add_int_range("Instant Buy", 1, 1, 111, function()
 	return GCv2
 end, function(CV)
 	if GCB:is_active() then
-		GCB:set_int(603 + 5, 1)
-		GCB:set_int(603 + 1, CV)
-		GCB:set_int(603 + 191, 6)
-		GCB:set_int(603 + 192, 4)
+		GCB:set_int(621 + 5, 1)
+		GCB:set_int(621 + 1, CV)
+		GCB:set_int(621 + 191, 6)
+		GCB:set_int(621 + 192, 4)
 		GCv2 = CV
 	end
 end)
@@ -31899,7 +31919,7 @@ WareHouseDataEditoRecoveryMenu:add_action("Auto-Reset stats-0/0Sales", function(
 	stats.set_int(MPX .. "LIFETIME_SELL_COMPLETE", 0)
 	stats.set_int(MPX .. "LIFETIME_SELL_UNDERTAKEN", 0)
 	stats.set_int(MPX .. "LIFETIME_CONTRA_EARNINGS", 0)
-	globals.set_int(1575035, 11) ----PlayerSessionBlank--------
+	globals.set_int(1575036, 11) ----PlayerSessionBlank--------
 	globals.set_int(1574589, 1) ----PlayerSessionNew----------
 	sleep(0.2)
 	globals.set_int(1574589, 0) ----PlayerSessionNew------
@@ -31907,7 +31927,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-local m = 1962237 --SERVICE_SPEND_ORBITAL_AUTO
+local m = 1962995 --SERVICE_SPEND_ORBITAL_AUTO
 local enable1 = false
 local enable2 = false
 local enable3 = false
@@ -32139,36 +32159,36 @@ end)
 WM29Menu = EventsMenu:add_submenu("WM29 Event Menu")
 
 WM29Menu:add_action("Enable Event", function()
-	if globals.get_int(1882632 + (1 + (localplayer:get_player_id() * 146)) + 82) ~= 1 then
+	if globals.get_int(1882780 + (1 + (localplayer:get_player_id() * 149)) + 82) ~= 1 then
 		return
 	end
-	if globals.get_int(1882247 + 1 + 226) > 1 then
+	if globals.get_int(1882379 + 1 + 226) > 1 then
 		return
 	end
-	if not globals.get_bool(2672855 + 4 + 4) then
+	if not globals.get_bool(2672939 + 4 + 4) then
 		return
 	end
-	if globals.get_int(1882247 + 1 + 226) == 1 then
-		globals.set_int(1882247 + 1 + 226, 0)
-		globals.set_int(1882247 + 304, -1)
-		globals.set_int(1882247 + 304 + 1, 0)
-		globals.set_int(1882247 + 1 + 226 + 3, 1)
-		globals.set_int(1882247 + 1 + 226 + 5, -1)
-		globals.set_int(1882247 + 1 + 226 + 6, -1)
-		globals.set_float(1882247 + 1 + 226 + 10, 0.0)
-		globals.set_float(1882247 + 1 + 226 + 11, 0.0)
-		globals.set_float(1882247 + 1 + 226 + 12, 0.0)
-		globals.set_float(1882247 + 1 + 226 + 13, 400.0)
+	if globals.get_int(1882379 + 1 + 226) == 1 then
+		globals.set_int(1882379 + 1 + 226, 0)
+		globals.set_int(1882379 + 319, -1)
+		globals.set_int(1882379 + 319 + 1, 0)
+		globals.set_int(1882379 + 1 + 226 + 3, 1)
+		globals.set_int(1882379 + 1 + 226 + 5, -1)
+		globals.set_int(1882379 + 1 + 226 + 6, -1)
+		globals.set_float(1882379 + 1 + 226 + 10, 0.0)
+		globals.set_float(1882379 + 1 + 226 + 11, 0.0)
+		globals.set_float(1882379 + 1 + 226 + 12, 0.0)
+		globals.set_float(1882379 + 1 + 226 + 13, 400.0)
 	end
-	if globals.get_int(1882247 + 1 + 226) ~= 0 then
+	if globals.get_int(1882379 + 1 + 226) ~= 0 then
 		return
 	end
-	local value = globals.get_int(1882247 + 1 + 226 + 3 + 1) | (1 << 1)
-	globals.set_int(1882247 + 1 + 226 + 3 + 1, value)
-	globals.set_int(1882247 + 1 + 226 + 5, 0)
-	globals.set_int(1882247 + 1 + 226 + 6, 0)
+	local value = globals.get_int(1882379 + 1 + 226 + 3 + 1) | (1 << 1)
+	globals.set_int(1882379 + 1 + 226 + 3 + 1, value)
+	globals.set_int(1882379 + 1 + 226 + 5, 0)
+	globals.set_int(1882379 + 1 + 226 + 6, 0)
 	local freemodescript = script("freemode")
-	freemodescript:set_int(15727 + 181 + 1 + 1, 0x75F9)
+	freemodescript:set_int(15827 + 181 + 1 + 1, 0x75F9)
 end)
 
 WM29Menu:add_action("Teleport", function()
@@ -32346,15 +32366,15 @@ CreditsMenu:add_action("https://discord.gg/wtVd2eNdd5", function() end)
 
 --CMSRRTl = casino master slots random results table local----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CMSRRTl = 1348
+CMSRRTl = 1366
 
 --CMGLPl1 = casino master lucky wheel win state local---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CMGLPl1 = 280 + 14
+CMGLPl1 = 298 + 14
 
 --CMGLPl2 = casino master lucky wheel prize state local-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CMGLPl2 = 280 + 45
+CMGLPl2 = 298 + 45
 
 --BV = Ballastic Value----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32477,13 +32497,13 @@ AR2 = 262145 + 27895
 
 --NORS=Skin Changer-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-NORS1 = 2640096 + 63
+NORS1 = 2640052 + 65
 
-NORS2 = 2640096 + 50
+NORS2 = 2640052 + 52
 
 ---REQS=Request---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-REQS1 = 2738934
+REQS1 = 2739811
 
 --IND=Independence Day----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
