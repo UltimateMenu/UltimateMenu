@@ -150,9 +150,9 @@ end)
 RTPT = Self:add_checkbox("Remove Transaction Error")
 script.register_looped("RemoveTransactionError", function(script)
 	if RemoveTransactionError then
+		globals.set_int(4538089, 0)
 		globals.set_int(4538090, 0)
 		globals.set_int(4538091, 0)
-		globals.set_int(4538092, 0)
 	end
 end)
 

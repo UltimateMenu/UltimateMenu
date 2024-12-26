@@ -348,7 +348,7 @@ Self:add_action("Remove Arena War Wheel Cooldown", function()
 end)
 
 Self:add_action("Remove Transaction Error", function()
-	for i = 4538090, 4538092 do
+	for i = 4538089, 4538091 do
 		globals.set_int(i, 0)
 	end
 end)
@@ -31681,9 +31681,9 @@ local function NightLoop1()
 		if globals.get_int(SafeValue) ~= 0 then
 		end
 		AMN:set_int(SafeCollection, 1)
+		AMN:set_int(4538089, 0)
 		AMN:set_int(4538090, 0)
 		AMN:set_int(4538091, 0)
-		AMN:set_int(4538092, 0)
 		sleep(1.2)
 	end
 end
