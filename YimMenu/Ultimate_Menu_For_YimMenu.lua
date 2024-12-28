@@ -82,6 +82,8 @@ DCg4 = 1960755 + 812 + 50 + 4 -- doomsday player 4 cut global
 IHPB = 52171 --Instant Heist Passed Local Base (Casino And CayoPerico)
 IHPL = 52171 + 1776 + 1 --Instant Heist Passed Locals (Casino And CayoPerico)
 
+NLCl = 202 + 32 + 1
+
 SNOW = 262145 + 4413
 halloweatherAddress = 262145 + 32158
 
@@ -12974,15 +12976,33 @@ end)
 
 NightClubSafeMenu = L7NEG7:add_tab("NightClub Safe Loop Menu")
 
-NCSCB = NightClubSafeMenu:add_checkbox("Enable Nitghtclub $250k/15s (Safe AFK)")
-script.register_looped("nightclubloop", function(script)
+SafeAmount = 250000
+SafeCapacity = 23680 --NIGHTCLUBMAXSAFEVALUE
+IncomeStart = 23657 --NIGHTCLUBINCOMEUPTOPOP5
+IncomeEnd = 23676 --NIGHTCLUBINCOMEUPTOPOP100
+
+NCRSCB = NightClubSafeMenu:add_checkbox("Enable Nitghtclub $300k/3.5s (Safe Remote AFK)")
+script.register_looped("nightclubremotelooptest", function(script)
 	script:yield()
-	if NCSCB:is_enabled() == true then
-		stats.set_int(MPX() .. "CLUB_POPULARITY", 1000)
+	if NCRSCB:is_enabled() == true then
+		SafeValue = 1845221 + self.get_id() + 268 + 360 + 6
+		for i = IncomeStart, IncomeEnd do
+			globals.set_int(262145 + i, SafeAmount)
+		end
+		globals.set_int(262145 + SafeCapacity, SafeAmount)
 		stats.set_int(MPX() .. "CLUB_PAY_TIME_LEFT", -1)
 		script:sleep(2500)
+		if globals.get_int(SafeValue) ~= 0 then
+		end
+		locals.set_int("am_mp_nightclub", NLCl, 1)
+		globals.set_int(4538089, 0)
+		globals.set_int(4538090, 0)
+		globals.set_int(4538091, 0)
+		script:sleep(1000)
 	end
 end)
+
+NightClubSafeMenu:add_separator()
 
 NightClubSafeMenu:add_button("Open Nightclub Screen", function()
 	SCRIPT.REQUEST_SCRIPT("appBusinessHub")
