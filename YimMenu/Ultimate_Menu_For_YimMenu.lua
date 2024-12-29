@@ -4,8 +4,10 @@ local function MPX()
 	local PI = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PI == 0 then
 		return "MP0_"
-	else
+	elseif PI == 1 then
 		return "MP1_"
+	else
+		return "MP0_"
 	end
 end
 
