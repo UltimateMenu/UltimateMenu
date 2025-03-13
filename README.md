@@ -11,7 +11,7 @@
 </div>
 
 > [!NOTE]  
-> You Can Use ModestMenu V1.0.1 With Heist Editor.exe or YimMenu A Tutorial Can Be Found Here [How To Use YimMenu After BattlEye Anticheat Update](https://forums.l7neg.us.kg/threads/how-to-use-yimmenu-after-battleye-anticheat-update.16/).
+> [How To Use YimMenu After BattlEye Anticheat Update](https://forums.l7neg.uk.to/threads/how-to-use-yimmenu-after-battleye-anticheat-update.16/).
 
 # How To Use Ultimate Menu Script ?
 For every Version of the ultimate menu (Kiddion/YimMenu) there is a different use and ways to fully Run It. 
