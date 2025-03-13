@@ -11,29 +11,18 @@
 </div>
 
 > [!NOTE]  
-> [How To Use YimMenu After BattlEye Anticheat Update](https://forums.l7neg.uk.to/threads/how-to-use-yimmenu-after-battleye-anticheat-update.16/).
+> [How To Use YimMenu After BattlEye Anticheat Update](https://forums.l7neg.uk.to/threads/how-to-use-yimmenu-after-battleye-anticheat-update.16/) Only For Legacy Version Of The Game.
 
-# How To Use Ultimate Menu Script ?
-For every Version of the ultimate menu (Kiddion/YimMenu) there is a different use and ways to fully Run It. 
+<div align="center"> <h1> <details>
+  <summary>How To Use Ultimate Menu Script</summary>
 
-For Kiddions script is just puting the script into scripts directory, inside the Kiddions files.
+- YimMenu just Paste The Script in Scripts Folder Then Click On Reload Scripts And Then It Will Show Up , For Newbies Its In Settings > Lua > Open Folder.
 
-For YimMenu it is actually the same way, but first before initiating the script you will need to go to Settings > Lua > Open Folder Option or type in your windows file explorer ```%APPDATA%/YimMenu/scripts``` And hit enter then just paste the .lua file in it and done ✅
-
-From There Go To Scripts Folder Then Paste The Ultimate Menu In There
+</details> </h1> </div>
 
 --------------------------------------------------------------------------------------------------
 <div align="center">
-  <h1> New ScreenShots V2.4 ModestMenu (Final Update)</h1>
-</div>
-
-![Ultimate Menu V2.4](https://ultimatemenu.github.io/ScreenShots/ModestMenu/100.jpg)
-![Ultimate Menu V2.4](https://ultimatemenu.github.io/ScreenShots/ModestMenu/101.png)
-![Ultimate Menu V2.4](https://ultimatemenu.github.io/ScreenShots/ModestMenu/102.jpg)
-![Ultimate Menu V2.4](https://ultimatemenu.github.io/ScreenShots/ModestMenu/103.jpg)
---------------------------------------------------------------------------------------------------
-<div align="center">
-  <h1> New ScreenShots V2.5 YimMenu</h1>
+  <h1>ScreenShots V2.5 YimMenu</h1>
 </div>
 
 ![Ultimate Menu For YimMenu V2.5](https://ultimatemenu.github.io/ScreenShots/YimMenu/9.png)
@@ -41,6 +30,10 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 <div align="center"> <h1> <details>
   <summary>Old Versions ScreenShots Modest Menu</summary>
 
+![Ultimate Menu V2.4 Final Update](https://ultimatemenu.github.io/ScreenShots/ModestMenu/100.jpg)
+![Ultimate Menu V2.4 Final Update](https://ultimatemenu.github.io/ScreenShots/ModestMenu/101.png)
+![Ultimate Menu V2.4 Final Update](https://ultimatemenu.github.io/ScreenShots/ModestMenu/102.jpg)
+![Ultimate Menu V2.4 Final Update](https://ultimatemenu.github.io/ScreenShots/ModestMenu/103.jpg)
 ![Old Versions ScreenShots](https://ultimatemenu.github.io/ScreenShots/ModestMenu/110.png)
 ![Old Versions ScreenShots](https://ultimatemenu.github.io/ScreenShots/ModestMenu/111.png)
 ![Old Versions ScreenShots](https://ultimatemenu.github.io/ScreenShots/ModestMenu/109.png)
@@ -137,7 +130,7 @@ From There Go To Scripts Folder Then Paste The Ultimate Menu In There
 
 --------------------------------------------------------------------------------------------------
 ## When Your New Updates Will Be Out?
-No ETA for big updates also because i don't know actually if im going to be able to continue this script (both) because i have a life and i need to study. 
+No ETA for big updates also because i don't know actually if im going to be able to continue this script because i have a life and i need to study. 
 This is a helpfull and fun project for everyone who wants to use it, is free and you can use my scripts as a template/base.
 --------------------------------------------------------------------------------------------------
 ## About
