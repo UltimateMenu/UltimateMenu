@@ -11,7 +11,7 @@
 </div>
 
 > [!NOTE]  
-> [How To Use YimMenu After BattlEye Anticheat Update](https://forums.l7neg.uk.to/threads/how-to-use-yimmenu-after-battleye-anticheat-update.16/) Only For Legacy Version Of The Game.
+> [How To Use YimMenu After BattlEye Anticheat Update](https://github.com/UltimateMenu/UltimateMenu/wiki/How-To-Use-UM-Script-With-YimMenu-After-Battleye-Anticheat) or [here](https://forums.l7neg.uk.to/threads/how-to-use-yimmenu-after-battleye-anticheat-update.16/) For Legacy Version Of The Game and For Enhanced Edition too.
 
 <div align="center"> <h1> <details>
   <summary>How To Use Ultimate Menu Script</summary>
@@ -22,7 +22,7 @@
 
 --------------------------------------------------------------------------------------------------
 <div align="center">
-  <h1>ScreenShots V2.5 YimMenu</h1>
+  <h1>ScreenShots V2.6 YimMenu (Waiting For Enhanced Editon aka YimMenuV2)</h1>
 </div>
 
 ![Ultimate Menu For YimMenu V2.5](https://ultimatemenu.github.io/ScreenShots/YimMenu/9.png)
@@ -136,4 +136,4 @@ This is a helpfull and fun project for everyone who wants to use it, is free and
 ## About
 -  By the way to anyone who ask's about the Ultimate-Menu script, is not entire mine, there is actually a credits section with every single person i took code from etc.
 ## Latest Ultimate Menu Kiddions update was on: 12/12/2024 (Final Update)
-## Latest Ultimate Menu YimMenu update was on: 12/12/2024
+## Latest Ultimate Menu YimMenu update was on: 03/17/2024
