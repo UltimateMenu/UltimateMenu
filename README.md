@@ -65,7 +65,7 @@ Credits For Everything I Used Is Included In The Script.
 <details>
   <summary><strong>Click to show donation options</strong></summary>
 
-If you'd like to support this project or say thanks yo can use one of the below options:
+If you'd like to support this project or say thanks you can use one of the below options:
 
 <p align="center">
   <a href="https://www.buymeacoffee.com/L7NEG" target="_blank">
