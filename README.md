@@ -104,4 +104,16 @@ If you'd like to support this project or say thanks yo can use one of the below 
 
 ---
 
+---
+
+<h2 align="left">💬 Discord Server</h2>
+
+<p align="left">
+  <a href="https://dsc.gg/l7neg">
+    <img src="https://discord.com/api/guilds/1025804814183047218/widget.png?style=banner2" alt="L7NEG Community Discord Server">
+  </a>
+</p>
+
+---
+
 **Thanks for using Ultimate Menu Made With ❤️ By L7NEG**
