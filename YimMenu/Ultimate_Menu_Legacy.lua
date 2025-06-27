@@ -164,9 +164,9 @@ TEQUILA = FMg + 29457
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG = gui.get_tab("Ultimate Menu 1.70 GTA Legacy")
+L7NEG = gui.get_tab("Ultimate Menu 1.71 GTA Legacy")
 
-L7NEG:add_text("                      Ultimate Menu 1.70 ")
+L7NEG:add_text("                      Ultimate Menu 1.71 ")
 L7NEG:add_text("                                v2.7")
 
 L7NEG:add_imgui(function()
