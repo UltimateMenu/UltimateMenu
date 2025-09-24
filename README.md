@@ -12,8 +12,8 @@
 </p>
 
 > [!NOTE]  
-> [How To Use YimMenu After BattlEye Anticheat Update](https://github.com/UltimateMenu/UltimateMenu/wiki/How-To-Use-UM-Script-With-YimMenu-After-Battleye-Anticheat)  
-> or [here](https://forums.l7neg.uk.to/threads/how-to-use-yimmenu-after-battleye-anticheat-update.16/) for both versions of the game.
+> [How To Use YimMenu After BattlEye Anticheat Update (Legacy & Enhanced)](https://github.com/UltimateMenu/UltimateMenu/wiki/How-To-Use-UM-Script-With-YimMenu-After-Battleye-Anticheat-(Legacy-&-Enhanced))  
+> or [here Mirrored on L7NEG Forums](https://forums.l7neg.uk.to/threads/how-to-use-yimmenu-after-battleye-anticheat-update.16/) .
 
 ---
 
