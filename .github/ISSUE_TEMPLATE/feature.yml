@@ -2,6 +2,7 @@ name: Feature request
 description: Suggest an idea for this project
 title: "[Request]: "
 labels: feature request
+type: feature request
 body:
 - type: textarea
   attributes:
