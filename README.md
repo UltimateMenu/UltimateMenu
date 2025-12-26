@@ -43,7 +43,7 @@
 ## 📅 Update Info
 
 - **Ultimate Menu for ModestMenu**: Last updated on **Dec 12, 2024** *(Final Update)*  
-- **Ultimate Menu for YimMenu Legacy**: Last updated on **Jun 27, 2025**
+- **Ultimate Menu for YimMenu Legacy**: Last updated on **Dec 26, 2025**
 - **Ultimate Menu for YimMenu Enhanced**: **Coming Soon (WIP)**
 
 ---
