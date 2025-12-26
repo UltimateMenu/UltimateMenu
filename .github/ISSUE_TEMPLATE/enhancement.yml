@@ -2,6 +2,7 @@ name: Enhancement request
 description: Enhance an existing feature in UltimateMenu.
 title: "[Enhancement]: "
 labels: enhancement
+type: enhancement
 body:
 - type: textarea
   attributes:
