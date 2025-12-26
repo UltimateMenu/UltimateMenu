@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Website
+    url: https://ultimatemenu.github.io
+    about: Main website of UltimateMenu.
+  - name: Docs | wiki
+    url: https://github.com/UltimateMenu/UltimateMenu/wiki
+    about: Maybe take a look a the docs in the main wiki of UltimateMenu?
+  - name: Discord Server
+    url: https://l7neg.uk.to/discord
+    about: Main Discord Server of UltimateMenu.
+  - name: UltimateMenu profile
+    url: https://github.com/UltimateMenu
+    about: Main github Orgnization profile of UltimateMenu for other sources.
+  - name: UltimateMenu Org discussions
+    url: https://github.com/orgs/UltimateMenu/discussions
+    about: Main github Orgnization profile of UltimateMenu.
