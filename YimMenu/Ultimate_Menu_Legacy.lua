@@ -24,6 +24,13 @@ local function SPX()
 	end
 end
 
+local function CutsPresetter(global_start, global_finish, cut)
+    globals.set_int(GCg, cut)
+    for i = global_start, global_finish do
+        globals.set_int(i, cut)        
+    end
+end
+
 is_player_male = (ENTITY.GET_ENTITY_MODEL(PLAYER.PLAYER_PED_ID()) == joaat("mp_m_freemode_01"))
 
 currentlevel = stats.get_int(MPX() .. "CHAR_RANK_FM")
@@ -103,6 +110,7 @@ DCg1 = 1967983 + 812 + 50 + 1 -- doomsday player 1 cut global --("gb_gang_ops_pl
 DCg2 = 1967983 + 812 + 50 + 2 -- doomsday player 2 cut global --("gb_gang_ops_planning")
 DCg3 = 1967983 + 812 + 50 + 3 -- doomsday player 3 cut global --("gb_gang_ops_planning")
 DCg4 = 1967983 + 812 + 50 + 4 -- doomsday player 4 cut global --("gb_gang_ops_planning")
+GCg = 2686090 + 6772 -- global cut global (value2 = value2 * (num / 100f);)
 
 IHPB = 55789 --Instant Heist Passed Local Base (Casino And CayoPerico)
 IHPL = 55789 + 1776 + 1 --Instant Heist Passed Locals (Casino And CayoPerico)
