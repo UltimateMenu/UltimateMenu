@@ -20,7 +20,11 @@
 <h2 align="center">📸 Preview (Legacy)</h2>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/a7a3e759-b90c-48a7-b750-57f136c4c282" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/10.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/11.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/12.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/13.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/14.png" alt="Ultimate Menu Preview">
 </p>
 
 ---
