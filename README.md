@@ -8,7 +8,8 @@
 
 <p align="center">
   <a href="https://www.unknowncheats.me/forum/grand-theft-auto-v/565688-ultimate-menu-script.html">[ModestMenu UKC Thread]</a> • 
-  <a href="https://www.unknowncheats.me/forum/grand-theft-auto-v/597103-ultimate-menu-yimmenu.html">[YimMenu UKC Thread]</a>
+  <a href="https://www.unknowncheats.me/forum/grand-theft-auto-v/597103-ultimate-menu-yimmenu.html">[YimMenu UKC Thread]</a> • 
+  <a href="https://github.com/UltimateMenu/UltimateMenu?tab=readme-ov-file#-faq">[FAQ]</a>
 </p>
 
 > [!NOTE]  
