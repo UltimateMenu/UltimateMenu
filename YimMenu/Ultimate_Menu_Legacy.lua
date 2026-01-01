@@ -1,3 +1,24 @@
+-- only initialize if local ped is rendered 1st time
+
+script.run_in_fiber(function()
+    local ped = 0
+
+    if NETWORK and NETWORK.NETWORK_IS_SESSION_STARTED then
+        repeat
+            ped = PLAYER.PLAYER_PED_ID()
+        until NETWORK.NETWORK_IS_PLAYER_ACTIVE(PLAYER.PLAYER_ID()) and ped ~= 0 and ENTITY.DOES_ENTITY_EXIST(ped)
+    else
+        repeat
+            ped = PLAYER.PLAYER_PED_ID()
+        until ped ~= 0 and ENTITY.DOES_ENTITY_EXIST(ped)
+    end
+
+    repeat
+    until PLAYER.IS_PLAYER_CONTROL_ON(PLAYER.PLAYER_ID())
+
+    ENTITY.SET_ENTITY_HEALTH(ped, 200)
+end)
+
 --Required Stats----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local function MPX()
