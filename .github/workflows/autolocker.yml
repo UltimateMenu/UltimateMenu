@@ -3,22 +3,40 @@ name: Autolocker
 on:
   pull_request_target:
     types: [closed]
+  issues:
+    types: [closed]
 
 permissions: write-all
 
 jobs:
-  autolock:
-#     if: ${{ github.event.pull_request.merged }} # Uncomment if you want it to run only when a PR gets MERGED
+  autolock-prs:
+    if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.merged }}
     runs-on: ubuntu-latest
-    name: Autolocker
+    name: Autolock merged PRs
     steps:
-    - name: Autolock PRs that got merged or closed
+    - name: Autolock merged PRs
       uses: actions/github-script@v6
       with:
         script: |
-            github.rest.issues.lock({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              lock_reason: "resolved" // ["off-topic", "too heated", "resolved", "spam"]
-            })
+          github.rest.issues.lock({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            lock_reason: "resolved"
+          });
+
+  autolock-issues:
+    if: ${{ github.event_name == 'issues' }}
+    runs-on: ubuntu-latest
+    name: Autolock closed Issues
+    steps:
+    - name: Autolock closed Issues
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.lock({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            lock_reason: "resolved"
+          });
