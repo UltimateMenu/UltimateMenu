@@ -13,8 +13,7 @@
 </p>
 
 > [!NOTE]  
-> [How To Use YimMenu After BattlEye Anticheat Update (Legacy & Enhanced)](https://github.com/UltimateMenu/UltimateMenu/wiki/How-To-Use-UM-Script-With-YimMenu-After-Battleye-Anticheat-(Legacy-&-Enhanced))  
-> or [here Mirrored on L7NEG Forums](https://forums.l7neg.uk.to/threads/how-to-use-yimmenu-after-battleye-anticheat-update.16/) .
+> [How To Use YimMenu After BattlEye Anticheat Update (Legacy & Enhanced)](https://github.com/UltimateMenu/UltimateMenu/wiki/How-To-Use-UM-Script-With-YimMenu-After-Battleye-Anticheat-(Legacy-&-Enhanced))
 
 ---
 
