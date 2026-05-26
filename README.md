@@ -47,8 +47,8 @@
 ## 📅 Update Info
 
 - **Ultimate Menu for ModestMenu**: Last updated on **Dec 12, 2024** *(Final Update)*  
-- **Ultimate Menu for YimMenu Legacy**: Last updated on **Dec 26, 2025**
-- **Ultimate Menu for YimMenu Enhanced**: **Coming Soon (WIP)**
+- **Ultimate Menu for YimMenu Legacy**: Last updated on **May 26, 2026**
+- **Ultimate Menu for YimMenu Enhanced**: **Might Not Coming Soon (WIP Waiting for completion of YimMenuV2 Lua API)**
 
 ---
 
