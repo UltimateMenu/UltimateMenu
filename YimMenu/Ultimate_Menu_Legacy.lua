@@ -3422,7 +3422,7 @@ end
 	acidUpdgrade = CFG.read("acidUpdgrade")
 
 	yim_resupplier:add_imgui(function()
-		if network.is_session_started() and not SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then
+		if network.is_session_started() and not (SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0) then
 			hangarOwned = stats.get_int(MPX() .. "PROP_HANGAR") ~= 0
 			fCashOwned = stats.get_int(MPX() .. "PROP_FAC_SLOT0") ~= 0
 			cokeOwned = stats.get_int(MPX() .. "PROP_FAC_SLOT1") ~= 0
