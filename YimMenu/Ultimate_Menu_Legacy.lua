@@ -250,112 +250,110 @@ HIP = "heist_island_planning"
 --Globals & Locals & Variables--
 
 FMg = 262145 -- free mode global ("CASH_MULTIPLIER") //correct
-CSg1 = 1575042 -- change session (type) 1 					// Guide:   NETWORK::UGC_SET_USING_OFFLINE_CONTENT(false);
-CSg2 = 1574589 -- change session (switch) 2 				// Guide:   MP_POST_MATCH_TRANSITION_SCENE
-CSg3 = 1574589 + 2 -- change session (quit) 3 				// Guide:   MP_POST_MATCH_TRANSITION_SCENE
+CSg1 = 1575046 -- change session (type) 1 					// Guide:   NETWORK::UGC_SET_USING_OFFLINE_CONTENT(false); in freemode.c
+CSg2 = 1574589 -- change session (switch) 2 				// Guide:   MP_POST_MATCH_TRANSITION_SCENE in freemode.c
+CSg3 = 1574589 + 2 -- change session (quit) 3 				// Guide:   MP_POST_MATCH_TRANSITION_SCENE in freemode.c
 
 -- Apartment Heist
-ACg1 = 1935536 + 1 + 1 -- global apartment player 1 cut global ("fmmc_launcher")
-ACg2 = 1935536 + 1 + 2 -- global apartment player 2 cut global ("fmmc_launcher")
-ACg3 = 1935536 + 1 + 3 -- global apartment player 3 cut global ("fmmc_launcher")
-ACg4 = 1935536 + 1 + 4 -- global apartment player 4 cut global ("fmmc_launcher")
-ACg5 = 1937504 + 3008 + 1 -- local apartment player 1 cut global ("fmmc_launcher")
+ACg1 = 1935929 + 1 + 1 -- global apartment player 1 cut global ("fmmc_launcher")
+ACg2 = 1935929 + 1 + 2 -- global apartment player 2 cut global ("fmmc_launcher")
+ACg3 = 1935929 + 1 + 3 -- global apartment player 3 cut global ("fmmc_launcher")
+ACg4 = 1935929 + 1 + 4 -- global apartment player 4 cut global ("fmmc_launcher")
+ACg5 = 1937897 + 3008 + 1 -- local apartment player 1 cut global ("fmmc_launcher")
 AUAJg1 = FMg + 9184 -- apartment unlock all jobs global 1 ("ROOT_ID_HASH_THE_FLECCA_JOB")
 AUAJg2 = FMg + 9189 -- apartment unlock all jobs global 2 ("ROOT_ID_HASH_THE_PRISON_BREAK")
 AUAJg3 = FMg + 9196 -- apartment unlock all jobs global 3 ("ROOT_ID_HASH_THE_HUMANE_LABS_RAID")
 AUAJg4 = FMg + 9202 -- apartment unlock all jobs global 4 ("ROOT_ID_HASH_SERIES_A_FUNDING")
 AUAJg5 = FMg + 9208 -- apartment unlock all jobs global 5 ("ROOT_ID_HASH_THE_PACIFIC_STANDARD_JOB")
-AIFl1 = 19791 -- apartment instant finish local 1
-AIFl2 = 19791 + 1062 -- apartment instant finish local 2
-AIFl3 = 19791 + 1740 + 1 -- apartment instant finish local 3 
-AIFl4 = 19791 + 2686 -- apartment instant finish local 4 
-AIFl5 = 28412 + 1 -- apartment instant finish local 5
-AIFl6 = 31668 + 1 + 68 -- apartment instant finish local 6
-AFHl = 11821 + 24 -- apartment fleeca hack local 
-AFDl = 10109 + 11 -- apartment fleeca drill local
-AFPl = 9815 -- apartment pacific hack local
-AHSo = 19791 + 2  -- Apartment heist skip checkpoint
-ACDg = 2686090 -- apartment cooldown global
+AIFl1 = 19808 -- apartment instant finish local 1
+AIFl2 = 19808 + 1062 -- apartment instant finish local 2
+AIFl3 = 19808 + 1740 + 1 -- apartment instant finish local 3 
+AIFl4 = 19808 + 2686 -- apartment instant finish local 4 
+AIFl5 = 28722 + 1 -- apartment instant finish local 5
+AIFl6 = 31981 + 1 + 68 -- apartment instant finish local 6
+AFHl = 11837 + 24 -- apartment fleeca hack local
+AFDl = 10125 + 11 -- apartment fleeca drill local
+AFPl = 9831 -- apartment pacific hack local
+AHSo = 19808 + 2  -- Apartment heist skip checkpoint
+ACDg = 2686119 -- apartment cooldown global
 AHRg = 2687102 + 67 -- apartment redraw board global
-ADSCS1 = 31668 -- Apartment & Diamond Casino heist card swipe skip
-ADSCS2 = 62430 -- Apartment & Diamond Casino heist card swipe skip
 
 -- Diamond Casino Heist
-DCRBl = 208 -- diamond casino reload board local
-DCCg1 = 1971951 + 1497 + 736 + 92 + 1 -- diamond casino player 1 cut global ("gb_casino_heist_planning")
-DCCg2 = 1971951 + 1497 + 736 + 92 + 2 -- diamond casino player 2 cut global ("gb_casino_heist_planning")
-DCCg3 = 1971951 + 1497 + 736 + 92 + 3 -- diamond casino player 3 cut global ("gb_casino_heist_planning")
-DCCg4 = 1971951 + 1497 + 736 + 92 + 4 -- diamond casino player 4 cut global ("gb_casino_heist_planning")
-DCCl = FMg + 28401 -- ("CH_LESTER_CUT")
-DCCh = FMg + 28437 - 1 --("2027377935")
-DCCd = FMg + 28432 - 1 --("88090906")
-DCCgun = FMg + 28427 - 1 --("74718927")
+DCRBl = 217 -- diamond casino reload board local
+DCCg1 = 1972483 + 1497 + 736 + 92 + 1 -- diamond casino player 1 cut global ("gb_casino_heist_planning")
+DCCg2 = 1972483 + 1497 + 736 + 92 + 2 -- diamond casino player 2 cut global ("gb_casino_heist_planning")
+DCCg3 = 1972483 + 1497 + 736 + 92 + 3 -- diamond casino player 3 cut global ("gb_casino_heist_planning")
+DCCg4 = 1972483 + 1497 + 736 + 92 + 4 -- diamond casino player 4 cut global ("gb_casino_heist_planning")
 DCAg = 53132 + 434 -- casino autograbber local 1
 DCAs = 53132 + 435 -- casino autograbber local 2
 DCFHl = 53132 -- diamond casino fingerprint hack local
 DCKHl = 54198 -- diamond casino keypad hack local
 DCDVDl1 = 10109 + 7 -- diamond casino drill vault door local 1 --("DLC_HEIST_MINIGAME_FLEECA_DRILLING_SCENE") in ("fm_mission_controller")
 DCDVDl2 = 10109 + 37 -- diamond casino drill vault door local 2 --("fm_mission_controller")
-DCXf1 = 19791
-DCXf2 = 19791 + 1062
-DCXf3 = 19791 + 1740 + 1
-DCXf4 = 19791 + 2686
-DCXf5 = 28412 + 1
-DCXf6 = 31668 + 1 + 68
+DCXf1 = 19808
+DCXf2 = 19808 + 1062
+DCXf3 = 19808 + 1740 + 1
+DCXf4 = 19808 + 2686
+DCXf5 = 28722 + 1
+DCXf6 = 31981 + 1 + 68
 
 -- Cayo Perico Heist
-CPRSl = 1568 -- cayo perico reload screen local
-CPCg1 = 1978755 + 831 + 56 + 1 -- cayo perico player 1 cut global --("heist_island_planning")
-CPCg2 = 1978755 + 831 + 56 + 2 -- cayo perico player 2 cut global --("heist_island_planning")
-CPCg3 = 1978755 + 831 + 56 + 3 -- cayo perico player 3 cut global --("heist_island_planning")
-CPCg4 = 1978755 + 831 + 56 + 4 -- cayo perico player 4 cut global --("heist_island_planning")
-CPFHl = 26084 -- cayo perico fingerprint hack local ("heist") in ("fm_mission_controller_2020")
-CPPCCl = 32187 + 3 -- cayo perico plasma cutter cut local ("DLC_H4_anims_glass_cutter_Sounds") in ("fm_mission_controller_2020")
-CPSTCl = 30947 -- cayo perico drainage pipe cut local ("IntroFinished") in ("fm_mission_controller_2020")
-CPXf1 = 55789 -- cayo perico instant finish local 1
-CPXf2 = 55789 + 1776 + 1 -- cayo perico instant finish local 2
+CPRSl = 1578 -- cayo perico reload screen local
+CPCg1 = 1980404 + 831 + 56 + 1 -- cayo perico player 1 cut global --("heist_island_planning")
+CPCg2 = 1980404 + 831 + 56 + 2 -- cayo perico player 2 cut global --("heist_island_planning")
+CPCg3 = 1980404 + 831 + 56 + 3 -- cayo perico player 3 cut global --("heist_island_planning")
+CPCg4 = 1980404 + 831 + 56 + 4 -- cayo perico player 4 cut global --("heist_island_planning")
+CPFHl = 26217 -- cayo perico fingerprint hack local ("heist") in ("fm_mission_controller_2020")
+CPPCCl = 32349 + 3 -- cayo perico plasma cutter cut local ("DLC_H4_anims_glass_cutter_Sounds") in ("fm_mission_controller_2020")
+CPSTCl = 31109 -- cayo perico drainage pipe cut local ("IntroFinished") in ("fm_mission_controller_2020")
+CPXf1 = 56070 -- cayo perico instant finish local 1
+CPXf2 = 56070 + 1776 + 1 -- cayo perico instant finish local 2
 
 -- Doomsday Heist
-DDSHl = 1296 + 135 -- doomsday doomsday scenario hack local
-DCg1 = 1967983 + 812 + 50 + 1 -- doomsday player 1 cut global --("gb_gang_ops_planning")
-DCg2 = 1967983 + 812 + 50 + 2 -- doomsday player 2 cut global --("gb_gang_ops_planning")
-DCg3 = 1967983 + 812 + 50 + 3 -- doomsday player 3 cut global --("gb_gang_ops_planning")
-DCg4 = 1967983 + 812 + 50 + 4 -- doomsday player 4 cut global --("gb_gang_ops_planning")
-GCg = 2686090 + 6772 -- global cut global (value2 = value2 * (num / 100f);)
-DDIF1 = 19791 -- doomsday instant finish local 1
-DDIF2 = 19791 + 1740 + 1 -- doomsday instant finish local 2
-DDIF3 = 28412 + 1 -- doomsday instant finish local 3
-DDIF4 = 31668 + 1 + 68 -- doomsday instant finish local 4
-DDIF5 = 31668 + 97 -- doomsday instant finish local 5
-AHDg = 4718592 + 3538 -- doomsday difficulty global (Silent Night AHDg)
+DDSHl = 1312 + 135 -- doomsday doomsday scenario hack local
+DCg1 = 1968511 + 812 + 50 + 1 -- doomsday player 1 cut global --("gb_gang_ops_planning")
+DCg2 = 1968511 + 812 + 50 + 2 -- doomsday player 2 cut global --("gb_gang_ops_planning")
+DCg3 = 1968511 + 812 + 50 + 3 -- doomsday player 3 cut global --("gb_gang_ops_planning")
+DCg4 = 1968511 + 812 + 50 + 4 -- doomsday player 4 cut global --("gb_gang_ops_planning")
+GCg = 2686119 + 6791 -- global cut global (value2 = value2 * (num / 100f);)
+DDIF1 = 19808 -- doomsday instant finish local 1
+DDIF2 = 19808 + 1740 + 1 -- doomsday instant finish local 2
+DDIF3 = 28722 + 1 -- doomsday instant finish local 3
+DDIF4 = 31981 + 1 + 68 -- doomsday instant finish local 4
+DDIF5 = 31981 + 97 -- doomsday instant finish local 5
 
 -- Agency Variables
-AGFl1 = 55789 + 1
-AGFl2 = 55789 + 1776 + 1
+AGFl1 = 56070 + 1
+AGFl2 = 56070 + 1776 + 1
 
 -- Auto Shop variables
-ASIFl1 = 55789 + 1 -- auto shop instant finish local 1 
-ASIFl2 = 55789 + 1776 + 1 -- auto shop finish local 2 
+ASIFl1 = 56070 + 1 -- auto shop instant finish local 1 
+ASIFl2 = 56070 + 1776 + 1 -- auto shop finish local 2 
 ASRBl = 406 -- auto shop reload board local 
 
 -- Salvage Yard
 SYRl1 = 1566 -- salvage yard reload board local
 
 -- Heists Meta
-HGLs1 = 4718592 + 3539
-HGLs2 = 4718592 + 3540
-HGLs3 = 4718592 + 3542 + 1
-HGLs4 = 4718592 + 185951 + 1
+HGLs1 = 4718592 + 3769
+HGLs2 = 4718592 + 3772
+HGLs3 = 4718592 + 3773
+HGLs4 = 4718592 + 190163 + 1
 HGGs1 = 20054 + 34
 HGGs2 = 20054 + 15
 
-IHPB = 55789 --Instant Heist Passed Local Base (Casino And CayoPerico)
-IHPL = 55789 + 1776 + 1 --Instant Heist Passed Locals (Casino And CayoPerico)
+IHPB = 56070 --Instant Heist Passed Local Base (Casino And CayoPerico)
+IHPL = 56070 + 1776 + 1 --Instant Heist Passed Locals (Casino And CayoPerico)
 
-NLCl = 206 + 32 + 19 + 1 --("nightclub_office_cutscene") in ("am_mp_nightclub")
+NLCl = 213 + 32 + 1 --("nightclub_office_cutscene") in ("am_mp_nightclub")
 
 SNOW = FMg + 4413
 halloweatherAddress = FMg + 32246
+
+--GUN VAN VARIABLES-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+GVADg = FMg + 33392
+GVWDg = FMg + 33373
+GVTDg = FMg + 33384
 
 --BV = Ballastic Value----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -368,34 +366,34 @@ CCBL1 = FMg + 26624
 
 --BAS=Bag Size------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-BAS1 = FMg + 29299
+BAS1 = FMg + 29300
 
 --PSV=Panther Statue-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-PSV = FMg + 29551
+PSV = FMg + 29552
 
 --PDIAMOND=Pink Diamond---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-PDIAMOND = FMg + 29549
+PDIAMOND = FMg + 29550
 
 --BB=Bearer Bonds---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-BB = FMg + 29548
+BB = FMg + 29549
 
 --RN=Ruby Necklace--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-RN = FMg + 29547
+RN = FMg + 29548
 
 --TEQUILA=Tequila---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-TEQUILA = FMg + 29546
+TEQUILA = FMg + 29547
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG = gui.add_tab("Ultimate Menu 1.72 Legacy")
+L7NEG = gui.add_tab("Ultimate Menu 1.73 Legacy")
 
-L7NEG:add_text("       Ultimate Menu 1.72 Legacy ")
-L7NEG:add_text("                       v2.9")
+L7NEG:add_text("       Ultimate Menu 1.73 Legacy ")
+L7NEG:add_text("                       v3")
 bypassOnlineCheckbox = L7NEG:add_checkbox("Bypass Online Check")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -420,9 +418,9 @@ script.register_looped("RemoveTransactionError", function(script)
 	script:yield()
 	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
 	if RTPT:is_enabled() then
-		globals.set_int(4516902, 0)
-		globals.set_int(4516903, 0)
-		globals.set_int(4516904, 0)
+		globals.set_int(4516981, 0)
+		globals.set_int(4516982, 0)
+		globals.set_int(4516983, 0)
 	end
 end)
 
@@ -804,8 +802,8 @@ ensureOnlineGuard(CasinoServicesMenu)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local cslots = "casino_slots"
-slots_random_results_table = 1372
-prize_wheel_win_state = 302
+slots_random_results_table = 1379
+prize_wheel_win_state = 309
 prize_wheel_prize = 14
 prize_wheel_prize_state = 45
 
@@ -971,7 +969,7 @@ YetiHuntMenu = EventsMenu:add_tab("Yeti Hunt Menu")
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 YetiHuntMenu:add_button("Enable Yeti Hunt Event", function()
-	globals.set_int(FMg + 34951, 1) -- enable the event 1833904680
+	globals.set_int(FMg + 35041, 1) -- enable the event 1833904680
 	gui.show_message("Yeti Hunt Event", "Enabled")
 end)
 
@@ -1669,6 +1667,28 @@ end)
 
 DLCAUM = AUM:add_tab("DLC Awards Menu")
 
+DLCAUM:add_button("The Kortz Center Heist", function()
+	stats.set_bool(MPX() .. "AWD_SCOPING", true)
+	stats.set_int(MPX() .. "AWD_PREPPER", 20)
+	stats.set_bool(MPX() .. "AWD_ADAPTABLE", true)
+	stats.set_bool(MPX() .. "AWD_KORTZCENTERHEIST", true)
+	stats.set_bool(MPX() .. "AWD_FINDSAWAY", true)
+	stats.set_bool(MPX() .. "AWD_WHOSTHERE", true)
+	stats.set_bool(MPX() .. "AWD_ELITETHIEF", true)
+	stats.set_bool(MPX() .. "AWD_NOLIFER", true)
+	stats.set_bool(MPX() .. "AWD_SOLITUDE", true)
+	stats.set_bool(MPX() .. "AWD_COORDINATION", true)
+	stats.set_bool(MPX() .. "AWD_FLEXIBLETHIEF", true)
+	stats.set_int(MPX() .. "AWD_REPEATOFFENDER", 20)
+	stats.set_int(MPX() .. "AWD_FULLBAGS", 5000000)
+	stats.set_bool(MPX() .. "AWD_HIDDENINPLAINSIGHT", true)
+	stats.set_int(MPX() .. "AWD_CURATOR", 5)
+	stats.set_int(MPX() .. "AWD_LAPIDARY", 5)
+	stats.set_bool(MPX() .. "AWD_PACIFIST", true)
+	stats.set_bool(MPX() .. "AWD_PUTRIDPILFERING", true)
+	stats.set_bool(MPX() .. "AWD_METEORITICS", true)
+end)
+
 DLCAUM:add_button("A Safehouse In The Hills", function()
 	stats.set_bool(MPX() .. "AWD_NEGATIVEPRESS", true)
 	stats.set_bool(MPX() .. "AWD_USESELFDRIVINGVEH", true)
@@ -2225,7 +2245,7 @@ end)
 AcMenu = CSU:add_tab("Achievements")
 
 Acv0 = false
-AG = 4546910 + 1 --("CHEAT_ACHIEVE")
+AG = 4525223 + 1 --("CHEAT_ACHIEVE")
 
 	if ImGui.Button("Unlock All Achievements") then
 		script.run_in_fiber(function(script)
@@ -2330,8 +2350,8 @@ AcMMenu = AcMenu:add_tab("Unlock One By One Menu")
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local current_objectives_global = 2359296 --("am_challenges")
-local weekly_objectives_global = 2731933 --("am_challenges")
-local objectives_state_global = 1574745 --("am_challenges")
+local weekly_objectives_global = 2732111 --("am_challenges")
+local objectives_state_global = 1574746 --("am_challenges")
 
 FAUT:add_imgui(function()
 	if isOffline() then return end
@@ -2640,7 +2660,7 @@ end
 
 script.register_looped("Gun Van", function()
 	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
-	gun_van_loc = globals.get_int(2652579 + 2706)
+	gun_van_loc = globals.get_int(2652581 + 2706)
 
 	if is_typing then
 		PAD.DISABLE_ALL_CONTROL_ACTIONS(0)
@@ -2651,10 +2671,10 @@ script.register_looped("Gun Van", function()
 	end
 
 	if livery_lock then
-		local value = locals.get_int("gunclub_shop", 199 + 747)
+		local value = locals.get_int("gunclub_shop", 206 + 747)
 		if value ~= nil then
 			value = value | (1 << 8)
-			locals.set_int("gunclub_shop", 199 + 747, value)
+			locals.set_int("gunclub_shop", 206 + 747, value)
 		end
 	end
 
@@ -2681,7 +2701,7 @@ GVMENU:add_imgui(function()
 	ImGui.SameLine()
 
 	if ImGui.Button("Set New Gun Van Location") then
-		globals.set_int(2652579 + 2706, selected_loc)
+		globals.set_int(2652581 + 2706, selected_loc)
 	end
 
 	ImGui.SameLine()
@@ -2709,10 +2729,10 @@ GVMENU:add_imgui(function()
 
 	if on_tick then
 		if not livery_lock then
-			local value = locals.get_int("gunclub_shop", 142 + 747)
+			local value = locals.get_int("gunclub_shop", 206 + 747)
 			if value ~= nil then
 				value = value & ~(1 << 8)
-				locals.set_int("gunclub_shop", 142 + 747, value)
+				locals.set_int("gunclub_shop", 206 + 747, value)
 			end
 		end
 	end
@@ -3247,7 +3267,7 @@ end
 -- ============================================================================
 -- UTILITY FUNCTIONS
 -- ============================================================================
-local TAGET_BUILD = "3788"
+local TAGET_BUILD = "3889"
 
 function GetBuildNumber()
 	local ptr = memory.scan_pattern("8B C3 33 D2 C6 44 24 20")
@@ -3386,7 +3406,7 @@ end
 	}
 
 	local CFG = YimConfig(DEFAULT_CONFIG)
-	log.info(string.format("Ultimate_Menu_V2.8_1.72_Legacy.lua: YimConfig v%s successfully loaded\n%s", CFG._version, CFG._credits))
+	log.info(string.format("Ultimate_Menu_V3_1.73_Legacy.lua: YimConfig v%s successfully loaded\n%s", CFG._version, CFG._credits))
 
 	yim_resupplier = L7NEG:add_tab("YimResupplier")
 	
@@ -4446,18 +4466,18 @@ CeoManagerMenu = UseAtYourOwnRiskMenu:add_tab("Ceo Manager Menu")
 CEO1 = FMg + 15821 --("EXEC_CONTRABAND_SALE_VALUE_THRESHOLD1")
 CEO2 = FMg + 15588 --("EXEC_BUY_COOLDOWN")
 CEO3 = FMg + 15589 --("EXEC_SELL_COOLDOWN")
-SMC1 = 567 + 1 --("gb_contraband_sell")
-SMC2 = 567 + 7 --("gb_contraband_sell")
-SMC3 = 567 + 584 --("gb_contraband_sell")
-SMC4 = 567 + 55 --("gb_contraband_sell")
-SMC5 = 567 + 595 --("gb_contraband_sell")
-SMC6 = 583 --("GTAO_Exec_SecuroServ_Computer_Sounds") in ("appsecuroserv")
-SMC7 = 763 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
-SMC8 = 764 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
-SMC9 = 625 + 5 --("SPEECH_PARAMS_SHOUTED_CRITICAL") in ("gb_contraband_buy")
-SMC10 = 625 + 1 --func_91() in ("gb_contraband_buy")
-SMC11 = 625 + 191 --("gb_contraband_buy")
-SMC12 = 625 + 192 --("gb_contraband_buy")
+SMC1 = 574 + 1 --("gb_contraband_sell")
+SMC2 = 574 + 7 --("gb_contraband_sell")
+SMC3 = 574 + 584 --("gb_contraband_sell")
+SMC4 = 574 + 55 --("gb_contraband_sell")
+SMC5 = 574 + 595 --("gb_contraband_sell")
+SMC6 = 590 --("GTAO_Exec_SecuroServ_Computer_Sounds") in ("appsecuroserv")
+SMC7 = 770 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
+SMC8 = 771 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
+SMC9 = 632 + 5 --("SPEECH_PARAMS_SHOUTED_CRITICAL") in ("gb_contraband_buy")
+SMC10 = 632 + 1 --func_91() in ("gb_contraband_buy")
+SMC11 = 632 + 191 --("gb_contraband_buy")
+SMC12 = 632 + 192 --("gb_contraband_buy")
 
 local cs = "appsecuroserv"
 
@@ -4553,7 +4573,7 @@ script.register_looped("nightclubremotelooptest", function(script)
 	script:yield()
 	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
 	if NCRSCB:is_enabled() == true then
-		SafeValue = 1845250 + self.get_id() + 260 + 364 + 5 --("am_mp_nightclub")
+		SafeValue = 1845298 + self.get_id() + 260 + 364 + 5 --("am_mp_nightclub") or we can just use TUNEABLE: NIGHTCLUBMAXSAFEVALUE
 		for i = IncomeStart, IncomeEnd do
 			globals.set_int(FMg + i, SafeAmount)
 		end
@@ -4563,9 +4583,9 @@ script.register_looped("nightclubremotelooptest", function(script)
 		if globals.get_int(SafeValue) ~= 0 then
 		end
 		locals.set_int("am_mp_nightclub", NLCl, 1)
-		globals.set_int(4516902, 0)
-		globals.set_int(4516903, 0)
-		globals.set_int(4516904, 0)
+		globals.set_int(4516981, 0)
+		globals.set_int(4516982, 0)
+		globals.set_int(4516983, 0)
 		script:sleep(2500)
 	end
 end)
@@ -4816,7 +4836,7 @@ function()
 		if locals.get_int("fmmc_launcher", HGGs1) ~= 0 then
 			if locals.get_int("fmmc_launcher", HGGs1) > 1 then
 					locals.set_int("fmmc_launcher", HGGs2, 1)
-                    globals.set_int(794954 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
+                    globals.set_int(794989 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
 			end
 			globals.set_int(HGLs1, 1)
             globals.set_int(HGLs2, 1)
@@ -5480,7 +5500,7 @@ function()
 		if locals.get_int("fmmc_launcher", HGGs1) ~= 0 then
 			if locals.get_int("fmmc_launcher", HGGs1) > 1 then
 					locals.set_int("fmmc_launcher", HGGs2, 1)
-                    globals.set_int(794954 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
+                    globals.set_int(794989 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
 			end
 			globals.set_int(HGLs1, 1)
             globals.set_int(HGLs2, 1)
@@ -6040,7 +6060,7 @@ CasinoHeistEditorMenu:add_button("Solo Launch", function()
 	if locals.get_int("fmmc_launcher", HGGs1) ~= nil and locals.get_int("fmmc_launcher", HGGs1) ~= 0 then
 		if locals.get_int("fmmc_launcher", HGGs1) > 1 then
 			locals.set_int("fmmc_launcher", HGGs2, 1)
-			globals.set_int(794954 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
+			globals.set_int(794989 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
 		end
 		globals.set_int(HGLs1, 1); globals.set_int(HGLs2, 1); globals.set_int(HGLs3, 1); globals.set_int(HGLs4, 0)
 	end
@@ -6364,7 +6384,7 @@ CayoHeistEditorMenu:add_button("Solo Launch", function()
 	if locals.get_int("fmmc_launcher", HGGs1) ~= nil and locals.get_int("fmmc_launcher", HGGs1) ~= 0 then
 		if locals.get_int("fmmc_launcher", HGGs1) > 1 then
 			locals.set_int("fmmc_launcher", HGGs2, 1)
-			globals.set_int(794954 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
+			globals.set_int(794989 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
 		end
 		globals.set_int(HGLs1, 1); globals.set_int(HGLs2, 1); globals.set_int(HGLs3, 1); globals.set_int(HGLs4, 0)
 	end
@@ -6572,6 +6592,8 @@ Yimura:add_text("https://github.com/YimMenu/YimMenuV2")
 SILENTSALO = CreditsMenu:add_tab("Silent")
 SILENTSALO:add_text("Source:")
 SILENTSALO:add_text("https://github.com/SilentSal0/Silent-Night")
+SILENTSALO:add_text("Maintained by nightli:")
+SILENTSALO:add_test("https://github.com/xnightli06x/Silent-Night")
 
 XESDDOOG = CreditsMenu:add_tab("SAMURAI aka xesdoog")
 XESDDOOG:add_text("Source:")
