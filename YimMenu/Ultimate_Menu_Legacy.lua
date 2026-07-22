@@ -345,7 +345,7 @@ HGGs2 = 20054 + 15
 IHPB = 56070 --Instant Heist Passed Local Base (Casino And CayoPerico)
 IHPL = 56070 + 1776 + 1 --Instant Heist Passed Locals (Casino And CayoPerico)
 
-NLCl = 213 + 32 + 1 --("nightclub_office_cutscene") in ("am_mp_nightclub")
+NLCl = 213 + 32 + 19 + 1 --("nightclub_office_cutscene") in ("am_mp_nightclub")
 
 SNOW = FMg + 4413
 halloweatherAddress = FMg + 32246
@@ -6593,7 +6593,7 @@ SILENTSALO = CreditsMenu:add_tab("Silent")
 SILENTSALO:add_text("Source:")
 SILENTSALO:add_text("https://github.com/SilentSal0/Silent-Night")
 SILENTSALO:add_text("Maintained by nightli:")
-SILENTSALO:add_test("https://github.com/xnightli06x/Silent-Night")
+SILENTSALO:add_text("https://github.com/xnightli06x/Silent-Night")
 
 XESDDOOG = CreditsMenu:add_tab("SAMURAI aka xesdoog")
 XESDDOOG:add_text("Source:")
