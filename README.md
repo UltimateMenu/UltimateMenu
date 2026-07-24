@@ -22,6 +22,9 @@
 <p align="center">
   <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/15.png" alt="Ultimate Menu Preview">
   <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/16.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/17.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/18.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/19.png" alt="Ultimate Menu Preview">
 </p>
 
 ---
