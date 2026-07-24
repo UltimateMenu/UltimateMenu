@@ -7388,6 +7388,11 @@ XESDDOOG = CreditsMenu:add_tab("SAMURAI aka xesdoog")
 XESDDOOG:add_text("Source:")
 XESDDOOG:add_text("https://github.com/YimMenu-Lua/YimResupplier")
 
+IMAGINENOTHING = CreditsMenu:add_tab("ImagineNothing")
+IMAGINENOTHING:add_text("For Kortz Center Heist stats and Locals/globals:")
+IMAGINENOTHING:add_text("https://www.unknowncheats.me/forum/4742522-post603.html")
+IMAGINENOTHING:add_text("https://www.unknowncheats.me/forum/4746347-post762.html")
+
 SLON = CreditsMenu:add_tab("SLON")
 SLON:add_text("Source:")
 SLON:add_text("https://www.unknowncheats.me/forum/grand-theft-auto-v/591335-yimceo-ceo-crates-method-yimmenu.html")
