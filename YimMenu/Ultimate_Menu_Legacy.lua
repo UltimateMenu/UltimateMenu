@@ -1,5 +1,145 @@
 --Required Stats----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+--Globals & Locals & Variables--
+
+FMg = 262145 -- free mode global ("CASH_MULTIPLIER") //correct
+CSg1 = 1575046 -- change session (type) 1 					// Guide:   NETWORK::UGC_SET_USING_OFFLINE_CONTENT(false); in freemode.c
+CSg2 = 1574589 -- change session (switch) 2 				// Guide:   MP_POST_MATCH_TRANSITION_SCENE in freemode.c
+CSg3 = 1574589 + 2 -- change session (quit) 3 				// Guide:   MP_POST_MATCH_TRANSITION_SCENE in freemode.c
+
+-- Apartment Heist
+ACg1 = 1935929 + 1 + 1 -- global apartment player 1 cut global ("fmmc_launcher")
+ACg2 = 1935929 + 1 + 2 -- global apartment player 2 cut global ("fmmc_launcher")
+ACg3 = 1935929 + 1 + 3 -- global apartment player 3 cut global ("fmmc_launcher")
+ACg4 = 1935929 + 1 + 4 -- global apartment player 4 cut global ("fmmc_launcher")
+ACg5 = 1937897 + 3008 + 1 -- local apartment player 1 cut global ("fmmc_launcher")
+AUAJg1 = FMg + 9184 -- apartment unlock all jobs global 1 ("ROOT_ID_HASH_THE_FLECCA_JOB")
+AUAJg2 = FMg + 9189 -- apartment unlock all jobs global 2 ("ROOT_ID_HASH_THE_PRISON_BREAK")
+AUAJg3 = FMg + 9196 -- apartment unlock all jobs global 3 ("ROOT_ID_HASH_THE_HUMANE_LABS_RAID")
+AUAJg4 = FMg + 9202 -- apartment unlock all jobs global 4 ("ROOT_ID_HASH_SERIES_A_FUNDING")
+AUAJg5 = FMg + 9208 -- apartment unlock all jobs global 5 ("ROOT_ID_HASH_THE_PACIFIC_STANDARD_JOB")
+AIFl1 = 19808 -- apartment instant finish local 1
+AIFl2 = 19808 + 1062 -- apartment instant finish local 2
+AIFl3 = 19808 + 1740 + 1 -- apartment instant finish local 3 
+AIFl4 = 19808 + 2686 -- apartment instant finish local 4 
+AIFl5 = 28722 + 1 -- apartment instant finish local 5
+AIFl6 = 31981 + 1 + 68 -- apartment instant finish local 6
+AFHl = 11837 + 24 -- apartment fleeca hack local
+AFDl = 10125 + 11 -- apartment fleeca drill local
+AFPl = 9831 -- apartment pacific hack local
+AHSo = 19808 + 2  -- Apartment heist skip checkpoint
+ACDg = 2686119 -- apartment cooldown global
+
+-- Diamond Casino Heist
+DCRBl = 217 -- diamond casino reload board local
+DCCg1 = 1972483 + 1497 + 736 + 92 + 1 -- diamond casino player 1 cut global ("gb_casino_heist_planning")
+DCCg2 = 1972483 + 1497 + 736 + 92 + 2 -- diamond casino player 2 cut global ("gb_casino_heist_planning")
+DCCg3 = 1972483 + 1497 + 736 + 92 + 3 -- diamond casino player 3 cut global ("gb_casino_heist_planning")
+DCCg4 = 1972483 + 1497 + 736 + 92 + 4 -- diamond casino player 4 cut global ("gb_casino_heist_planning")
+DCAg = 10311 -- casino autograbber local 1
+DCAs = 10311 + 14 -- casino autograbber local 2
+DCFHl = 54118 -- diamond casino fingerprint hack local
+DCKHl = 55188 -- diamond casino keypad hack local
+DCDVDl1 = 10125 + 7 -- diamond casino drill vault door local 1 --("DLC_HEIST_MINIGAME_FLEECA_DRILLING_SCENE") in ("fm_mission_controller")
+DCDVDl2 = 10125 + 37 -- diamond casino drill vault door local 2 --("fm_mission_controller")
+DCXf1 = 19808
+DCXf2 = 19808 + 1062
+DCXf3 = 19808 + 1740 + 1
+DCXf4 = 19808 + 2686
+DCXf5 = 28722 + 1
+DCXf6 = 31981 + 1 + 68
+
+-- Cayo Perico Heist
+CPRSl = 1578 -- cayo perico reload screen local
+CPCg1 = 1980404 + 831 + 56 + 1 -- cayo perico player 1 cut global --("heist_island_planning")
+CPCg2 = 1980404 + 831 + 56 + 2 -- cayo perico player 2 cut global --("heist_island_planning")
+CPCg3 = 1980404 + 831 + 56 + 3 -- cayo perico player 3 cut global --("heist_island_planning")
+CPCg4 = 1980404 + 831 + 56 + 4 -- cayo perico player 4 cut global --("heist_island_planning")
+CPFHl = 26217 -- cayo perico fingerprint hack local ("heist") in ("fm_mission_controller_2020")
+CPPCCl = 32349 + 3 -- cayo perico plasma cutter cut local ("DLC_H4_anims_glass_cutter_Sounds") in ("fm_mission_controller_2020")
+CPSTCl = 31109 -- cayo perico drainage pipe cut local ("IntroFinished") in ("fm_mission_controller_2020")
+CPXf1 = 56070 -- cayo perico instant finish local 1
+CPXf2 = 56070 + 1776 + 1 -- cayo perico instant finish local 2
+
+-- Doomsday Heist
+DDSHl = 1312 + 135 -- doomsday doomsday scenario hack local
+DCg1 = 1968511 + 812 + 50 + 1 -- doomsday player 1 cut global --("gb_gang_ops_planning")
+DCg2 = 1968511 + 812 + 50 + 2 -- doomsday player 2 cut global --("gb_gang_ops_planning")
+DCg3 = 1968511 + 812 + 50 + 3 -- doomsday player 3 cut global --("gb_gang_ops_planning")
+DCg4 = 1968511 + 812 + 50 + 4 -- doomsday player 4 cut global --("gb_gang_ops_planning")
+GCg = 2686119 + 6791 -- global cut global (value2 = value2 * (num / 100f);)
+DDIF1 = 19808 -- doomsday instant finish local 1
+DDIF2 = 19808 + 1740 + 1 -- doomsday instant finish local 2
+DDIF3 = 28722 + 1 -- doomsday instant finish local 3
+DDIF4 = 31981 + 1 + 68 -- doomsday instant finish local 4
+DDIF5 = 31981 + 97 -- doomsday instant finish local 5
+
+-- Agency Variables
+AGFl1 = 56070 + 1
+AGFl2 = 56070 + 1776 + 1
+
+-- Auto Shop variables
+ASIFl1 = 56070 + 1 -- auto shop instant finish local 1 
+ASIFl2 = 56070 + 1776 + 1 -- auto shop finish local 2 
+ASRBl = 416 -- auto shop reload board local 
+
+-- Salvage Yard
+SYRl1 = 545 -- salvage yard reload board local
+
+-- Heists Meta
+HGLs1 = 4718592 + 3769
+HGLs2 = 4718592 + 3772
+HGLs3 = 4718592 + 3773
+HGLs4 = 4718592 + 190163 + 1
+HGGs1 = 20194 + 34
+HGGs2 = 20194 + 15
+
+IHPB = 56070 --Instant Heist Passed Local Base (Casino And CayoPerico)
+IHPL = 56070 + 1776 + 1 --Instant Heist Passed Locals (Casino And CayoPerico)
+
+NLCl = 213 + 32 + 19 + 1 --("nightclub_office_cutscene") in ("am_mp_nightclub")
+
+SNOW = FMg + 4413
+halloweatherAddress = FMg + 32246
+
+--GUN VAN VARIABLES-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+GVADg = FMg + 33392
+GVWDg = FMg + 33373
+GVTDg = FMg + 33384
+
+--CCBL = Casino Chips Buy Limit-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CCBL0 = FMg + 26623
+CCBL1 = FMg + 26624
+
+--BAS=Bag Size------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+BAS1 = FMg + 29300
+
+--PSV=Panther Statue-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PSV = FMg + 29552
+
+--PDIAMOND=Pink Diamond---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+PDIAMOND = FMg + 29550
+
+--BB=Bearer Bonds---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+BB = FMg + 29549
+
+--RN=Ruby Necklace--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+RN = FMg + 29548
+
+--TEQUILA=Tequila---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+TEQUILA = FMg + 29547
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--Required Stats----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 local function MPX()
 	local PI = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PI == 1 then
@@ -17,13 +157,6 @@ local function SkipCutscene()
         end
     end)
 end
-
-local CamList = {
-	joaat("prop_cctv_cam_01a"), joaat("prop_cctv_cam_01b"), joaat("prop_cctv_cam_02a"), joaat("prop_cctv_cam_03a"),
-	joaat("prop_cctv_cam_04a"), joaat("prop_cctv_cam_04c"), joaat("prop_cctv_cam_05a"), joaat("prop_cctv_cam_06a"),
-	joaat("prop_cctv_cam_07a"), joaat("prop_cs_cctv"), joaat("p_cctv_s"), joaat("hei_prop_bank_cctv_01"),
-	joaat("hei_prop_bank_cctv_02"), joaat("ch_prop_ch_cctv_cam_02a"), joaat("xm_prop_x17_server_farm_cctv_01"),
-}
 
 local function SPX()
 	local player_ped = PLAYER.PLAYER_PED_ID()
@@ -48,7 +181,7 @@ local function checkOnline()
 		return true
 	end
 	if not network.is_session_started() then
-		ImGui.Text("This feature requires GTA Online.")
+		ImGui.Text("\nUnavailable in Single Player.\n\n")
 		return true
 	end
 	return false
@@ -60,7 +193,7 @@ local function checkStoryMode()
 		return true
 	end
 	if network.is_session_started() then
-		ImGui.Text("This menu is for Story Mode only.")
+		ImGui.Text("\nUnavailable in MultiPlayer.\n\n")
 		return true
 	end
 	return false
@@ -89,6 +222,134 @@ local function ensureOnlineGuard(tab)
 			checkOnline() -- only this one shows the warning text
 		end)
 	end
+end
+
+-- Story Mode widget system
+local story_widgets = {}
+local story_initialized = {}
+
+local function initStoryTab(tab)
+    if not story_initialized[tab] then
+        story_initialized[tab] = true
+        story_widgets[tab] = {}
+        tab:add_imgui(function()
+            -- Only call checkStoryMode() once here
+            if checkStoryMode() then return end
+            for _, widget in ipairs(story_widgets[tab]) do
+                if widget.type == "button" then
+                    if ImGui.Button(widget.label) then
+                        widget.callback()
+                    end
+                elseif widget.type == "sameline" then
+                    ImGui.SameLine()
+                elseif widget.type == "separator" then
+                    ImGui.Separator()
+                elseif widget.type == "text" then
+                    ImGui.Text(widget.label)
+                elseif widget.type == "checkbox" then
+                    local changed
+                    widget.state, changed = ImGui.Checkbox(widget.label, widget.state)
+                elseif widget.type == "input_int" then
+                    widget.value, _ = ImGui.InputInt(widget.label, widget.value)
+                end
+            end
+        end)
+    end
+end
+
+local function addStoryButton(tab, label, callback)
+    initStoryTab(tab)
+    table.insert(story_widgets[tab], { type = "button", label = label, callback = callback })
+end
+
+local function addStorySameline(tab)
+    initStoryTab(tab)
+    table.insert(story_widgets[tab], { type = "sameline" })
+end
+
+local function addStorySeparator(tab)
+    initStoryTab(tab)
+    table.insert(story_widgets[tab], { type = "separator" })
+end
+
+local function addStoryText(tab, label)
+    initStoryTab(tab)
+    table.insert(story_widgets[tab], { type = "text", label = label })
+end
+
+local function addStoryCheckbox(tab, label, default_value)
+    initStoryTab(tab)
+    local checkbox_obj = {
+        type = "checkbox",
+        label = label,
+        state = default_value or false,
+        is_enabled = function(self)
+            return self.state
+        end,
+        set_enabled = function(self, val)
+            self.state = val
+        end
+    }
+    table.insert(story_widgets[tab], checkbox_obj)
+    return checkbox_obj
+end
+
+local function addStoryInputInt(tab, label, default_value)
+    initStoryTab(tab)
+    local input_obj = {
+        type = "input_int",
+        label = label,
+        value = default_value or 0,
+        get_value = function(self)
+            return self.value
+        end,
+        set_value = function(self, val)
+            self.value = val
+        end
+    }
+    table.insert(story_widgets[tab], input_obj)
+    return input_obj
+end
+
+local function makeStoryTab(tab)
+    local wrapped = {}
+    
+    function wrapped:add_tab(name)
+        return makeStoryTab(tab:add_tab(name))
+    end
+    
+    function wrapped:add_button(label, callback)
+        addStoryButton(tab, label, callback)
+    end
+    
+    function wrapped:add_checkbox(label, default_value)
+        return addStoryCheckbox(tab, label, default_value)
+    end
+    
+    function wrapped:add_input_int(label, default_value)
+        return addStoryInputInt(tab, label, default_value)
+    end
+    
+    function wrapped:add_text(label)
+        addStoryText(tab, label)
+    end
+    
+    function wrapped:add_separator()
+        addStorySeparator(tab)
+    end
+    
+    function wrapped:add_sameline()
+        addStorySameline(tab)
+    end
+    
+    function wrapped:add_imgui(callback)
+        tab:add_imgui(function()
+            if checkStoryMode() then return end
+            callback()
+        end)
+    end
+    
+    return wrapped
 end
 
 local online_widgets = {}
@@ -240,167 +501,25 @@ end
 local currentlevel = 0
 local currentcrewlevel = 0
 
+local function null() end
+
 --Required Scripts--
 
 FMC = "fm_mission_controller"
 FMMCL = "fmmc_launcher"
 FMC2020 = "fm_mission_controller_2020"
 HIP = "heist_island_planning"
-
---Globals & Locals & Variables--
-
-FMg = 262145 -- free mode global ("CASH_MULTIPLIER") //correct
-CSg1 = 1575042 -- change session (type) 1 					// Guide:   NETWORK::UGC_SET_USING_OFFLINE_CONTENT(false);
-CSg2 = 1574589 -- change session (switch) 2 				// Guide:   MP_POST_MATCH_TRANSITION_SCENE
-CSg3 = 1574589 + 2 -- change session (quit) 3 				// Guide:   MP_POST_MATCH_TRANSITION_SCENE
-
--- Apartment Heist
-ACg1 = 1935536 + 1 + 1 -- global apartment player 1 cut global ("fmmc_launcher")
-ACg2 = 1935536 + 1 + 2 -- global apartment player 2 cut global ("fmmc_launcher")
-ACg3 = 1935536 + 1 + 3 -- global apartment player 3 cut global ("fmmc_launcher")
-ACg4 = 1935536 + 1 + 4 -- global apartment player 4 cut global ("fmmc_launcher")
-ACg5 = 1937504 + 3008 + 1 -- local apartment player 1 cut global ("fmmc_launcher")
-AUAJg1 = FMg + 9184 -- apartment unlock all jobs global 1 ("ROOT_ID_HASH_THE_FLECCA_JOB")
-AUAJg2 = FMg + 9189 -- apartment unlock all jobs global 2 ("ROOT_ID_HASH_THE_PRISON_BREAK")
-AUAJg3 = FMg + 9196 -- apartment unlock all jobs global 3 ("ROOT_ID_HASH_THE_HUMANE_LABS_RAID")
-AUAJg4 = FMg + 9202 -- apartment unlock all jobs global 4 ("ROOT_ID_HASH_SERIES_A_FUNDING")
-AUAJg5 = FMg + 9208 -- apartment unlock all jobs global 5 ("ROOT_ID_HASH_THE_PACIFIC_STANDARD_JOB")
-AIFl1 = 19791 -- apartment instant finish local 1
-AIFl2 = 19791 + 1062 -- apartment instant finish local 2
-AIFl3 = 19791 + 1740 + 1 -- apartment instant finish local 3 
-AIFl4 = 19791 + 2686 -- apartment instant finish local 4 
-AIFl5 = 28412 + 1 -- apartment instant finish local 5
-AIFl6 = 31668 + 1 + 68 -- apartment instant finish local 6
-AFHl = 11821 + 24 -- apartment fleeca hack local 
-AFDl = 10109 + 11 -- apartment fleeca drill local
-AFPl = 9815 -- apartment pacific hack local
-AHSo = 19791 + 2  -- Apartment heist skip checkpoint
-ACDg = 2686090 -- apartment cooldown global
-AHRg = 2687102 + 67 -- apartment redraw board global
-ADSCS1 = 31668 -- Apartment & Diamond Casino heist card swipe skip
-ADSCS2 = 62430 -- Apartment & Diamond Casino heist card swipe skip
-
--- Diamond Casino Heist
-DCRBl = 208 -- diamond casino reload board local
-DCCg1 = 1971951 + 1497 + 736 + 92 + 1 -- diamond casino player 1 cut global ("gb_casino_heist_planning")
-DCCg2 = 1971951 + 1497 + 736 + 92 + 2 -- diamond casino player 2 cut global ("gb_casino_heist_planning")
-DCCg3 = 1971951 + 1497 + 736 + 92 + 3 -- diamond casino player 3 cut global ("gb_casino_heist_planning")
-DCCg4 = 1971951 + 1497 + 736 + 92 + 4 -- diamond casino player 4 cut global ("gb_casino_heist_planning")
-DCCl = FMg + 28401 -- ("CH_LESTER_CUT")
-DCCh = FMg + 28437 - 1 --("2027377935")
-DCCd = FMg + 28432 - 1 --("88090906")
-DCCgun = FMg + 28427 - 1 --("74718927")
-DCAg = 53132 + 434 -- casino autograbber local 1
-DCAs = 53132 + 435 -- casino autograbber local 2
-DCFHl = 53132 -- diamond casino fingerprint hack local
-DCKHl = 54198 -- diamond casino keypad hack local
-DCDVDl1 = 10109 + 7 -- diamond casino drill vault door local 1 --("DLC_HEIST_MINIGAME_FLEECA_DRILLING_SCENE") in ("fm_mission_controller")
-DCDVDl2 = 10109 + 37 -- diamond casino drill vault door local 2 --("fm_mission_controller")
-DCXf1 = 19791
-DCXf2 = 19791 + 1062
-DCXf3 = 19791 + 1740 + 1
-DCXf4 = 19791 + 2686
-DCXf5 = 28412 + 1
-DCXf6 = 31668 + 1 + 68
-
--- Cayo Perico Heist
-CPRSl = 1568 -- cayo perico reload screen local
-CPCg1 = 1978755 + 831 + 56 + 1 -- cayo perico player 1 cut global --("heist_island_planning")
-CPCg2 = 1978755 + 831 + 56 + 2 -- cayo perico player 2 cut global --("heist_island_planning")
-CPCg3 = 1978755 + 831 + 56 + 3 -- cayo perico player 3 cut global --("heist_island_planning")
-CPCg4 = 1978755 + 831 + 56 + 4 -- cayo perico player 4 cut global --("heist_island_planning")
-CPFHl = 26084 -- cayo perico fingerprint hack local ("heist") in ("fm_mission_controller_2020")
-CPPCCl = 32187 + 3 -- cayo perico plasma cutter cut local ("DLC_H4_anims_glass_cutter_Sounds") in ("fm_mission_controller_2020")
-CPSTCl = 30947 -- cayo perico drainage pipe cut local ("IntroFinished") in ("fm_mission_controller_2020")
-CPXf1 = 55789 -- cayo perico instant finish local 1
-CPXf2 = 55789 + 1776 + 1 -- cayo perico instant finish local 2
-
--- Doomsday Heist
-DDSHl = 1296 + 135 -- doomsday doomsday scenario hack local
-DCg1 = 1967983 + 812 + 50 + 1 -- doomsday player 1 cut global --("gb_gang_ops_planning")
-DCg2 = 1967983 + 812 + 50 + 2 -- doomsday player 2 cut global --("gb_gang_ops_planning")
-DCg3 = 1967983 + 812 + 50 + 3 -- doomsday player 3 cut global --("gb_gang_ops_planning")
-DCg4 = 1967983 + 812 + 50 + 4 -- doomsday player 4 cut global --("gb_gang_ops_planning")
-GCg = 2686090 + 6772 -- global cut global (value2 = value2 * (num / 100f);)
-DDIF1 = 19791 -- doomsday instant finish local 1
-DDIF2 = 19791 + 1740 + 1 -- doomsday instant finish local 2
-DDIF3 = 28412 + 1 -- doomsday instant finish local 3
-DDIF4 = 31668 + 1 + 68 -- doomsday instant finish local 4
-DDIF5 = 31668 + 97 -- doomsday instant finish local 5
-AHDg = 4718592 + 3538 -- doomsday difficulty global (Silent Night AHDg)
-
--- Agency Variables
-AGFl1 = 55789 + 1
-AGFl2 = 55789 + 1776 + 1
-
--- Auto Shop variables
-ASIFl1 = 55789 + 1 -- auto shop instant finish local 1 
-ASIFl2 = 55789 + 1776 + 1 -- auto shop finish local 2 
-ASRBl = 406 -- auto shop reload board local 
-
--- Salvage Yard
-SYRl1 = 1566 -- salvage yard reload board local
-
--- Heists Meta
-HGLs1 = 4718592 + 3539
-HGLs2 = 4718592 + 3540
-HGLs3 = 4718592 + 3542 + 1
-HGLs4 = 4718592 + 185951 + 1
-HGGs1 = 20054 + 34
-HGGs2 = 20054 + 15
-
-IHPB = 55789 --Instant Heist Passed Local Base (Casino And CayoPerico)
-IHPL = 55789 + 1776 + 1 --Instant Heist Passed Locals (Casino And CayoPerico)
-
-NLCl = 206 + 32 + 19 + 1 --("nightclub_office_cutscene") in ("am_mp_nightclub")
-
-SNOW = FMg + 4413
-halloweatherAddress = FMg + 32246
-
---BV = Ballastic Value----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-BV = FMg + 20113
-
---CCBL = Casino Chips Buy Limit-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-CCBL0 = FMg + 26623
-CCBL1 = FMg + 26624
-
---BAS=Bag Size------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-BAS1 = FMg + 29299
-
---PSV=Panther Statue-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-PSV = FMg + 29551
-
---PDIAMOND=Pink Diamond---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-PDIAMOND = FMg + 29549
-
---BB=Bearer Bonds---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-BB = FMg + 29548
-
---RN=Ruby Necklace--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-RN = FMg + 29547
-
---TEQUILA=Tequila---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-TEQUILA = FMg + 29546
-
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG = gui.add_tab("Ultimate Menu 1.72 Legacy")
+L7NEG = gui.get_tab("Ultimate Menu 1.73 By L7NEG")
 
-L7NEG:add_text("       Ultimate Menu 1.72 Legacy ")
-L7NEG:add_text("                       v2.9")
+L7NEG:add_text("       Ultimate Menu 1.73 Legacy ")
+L7NEG:add_text("                       v3")
 bypassOnlineCheckbox = L7NEG:add_checkbox("Bypass Online Check")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Self = L7NEG:add_tab("Self Menu")
+Self = makeOnlineTab(L7NEG:add_tab("Self Menu"))
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -420,9 +539,9 @@ script.register_looped("RemoveTransactionError", function(script)
 	script:yield()
 	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
 	if RTPT:is_enabled() then
-		globals.set_int(4516902, 0)
-		globals.set_int(4516903, 0)
-		globals.set_int(4516904, 0)
+		globals.set_int(4516981, 0)
+		globals.set_int(4516982, 0)
+		globals.set_int(4516983, 0)
 	end
 end)
 
@@ -515,10 +634,9 @@ Self:add_button("Execute", function()
 	end
 end)
 
-StoryCharacters = L7NEG:add_tab("Story Mode")
+StoryCharacters = makeStoryTab(L7NEG:add_tab("Story Mode"))
 
 StoryCharacters:add_imgui(function()
-	if checkStoryMode() then return end
 	local CurrentSPMoneyValue = stats.get_int(SPX() .. "TOTAL_CASH")
 	local used
 	CurrentSPMoneyValue, used = ImGui.SliderInt("Current Character Cash", CurrentSPMoneyValue, 1, 2147483646)
@@ -561,7 +679,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-RecoveryMenu = L7NEG:add_tab("Recovery Menu")
+RecoveryMenu = makeOnlineTab(L7NEG:add_tab("Recovery Menu"))
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -770,7 +888,10 @@ CrewRankSetter:add_imgui(function()
 	end
 end)
 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 SkillsMenu = RecoveryMenu:add_tab("Skills Menu")
+
 SkillsMenu:add_button("Max Current Skills", function()
     stats.set_int(MPX() .. "SCRIPT_INCREASE_STAM", 100)
     stats.set_int(MPX() .. "SCRIPT_INCREASE_STRN", 100)
@@ -781,6 +902,7 @@ SkillsMenu:add_button("Max Current Skills", function()
     stats.set_int(MPX() .. "SCRIPT_INCREASE_STL", 100)
     gui.show_message("Skills", "Skills should've been maximized")
 end)
+
 SkillsMenu:add_button("Reset Skills", function()
     stats.set_int(MPX() .. "SCRIPT_INCREASE_STAM", 0)
     stats.set_int(MPX() .. "SCRIPT_INCREASE_STRN", 0)
@@ -797,15 +919,15 @@ OnlineServicesMenu = L7NEG:add_tab("Online Services Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CasinoServicesMenu = OnlineServicesMenu:add_tab("Casino Services Menu")
+CasinoServicesMenu = makeOnlineTab(OnlineServicesMenu:add_tab("Casino Services Menu"))
 
 ensureOnlineGuard(CasinoServicesMenu)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local cslots = "casino_slots"
-slots_random_results_table = 1372
-prize_wheel_win_state = 302
+slots_random_results_table = 1379
+prize_wheel_win_state = 309
 prize_wheel_prize = 14
 prize_wheel_prize_state = 45
 
@@ -919,7 +1041,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CollectiblesMenu = L7NEG:add_tab("Collectibles")
+CollectiblesMenu = makeOnlineTab(L7NEG:add_tab("Collectibles"))
 CollectiblesMenu:add_button("Collect All Action Figures", function() for i = 0, 99 do stats.set_bool(MPX() .. "PROP_FIGURE_" .. i, true) end end)
 CollectiblesMenu:add_button("Collect All Signal Jammers", function() for i = 0, 49 do stats.set_bool(MPX() .. "JAMMER_IDENTIFIED_" .. i, true) end end)
 CollectiblesMenu:add_button("Collect All Playing Cards", function() for i = 0, 53 do stats.set_bool(MPX() .. "CH_CARD_ID_" .. i, true) end end)
@@ -930,7 +1052,7 @@ CollectiblesMenu:add_button("Collect Ghost Exposed", function() for i = 0, 9 do 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-EventsMenu = L7NEG:add_tab("Events Menu")
+EventsMenu = makeOnlineTab(L7NEG:add_tab("Events Menu"))
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -971,7 +1093,7 @@ YetiHuntMenu = EventsMenu:add_tab("Yeti Hunt Menu")
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 YetiHuntMenu:add_button("Enable Yeti Hunt Event", function()
-	globals.set_int(FMg + 34951, 1) -- enable the event 1833904680
+	globals.set_int(FMg + 35041, 1) -- enable the event 1833904680
 	gui.show_message("Yeti Hunt Event", "Enabled")
 end)
 
@@ -1669,6 +1791,28 @@ end)
 
 DLCAUM = AUM:add_tab("DLC Awards Menu")
 
+DLCAUM:add_button("The Kortz Center Heist", function()
+	stats.set_bool(MPX() .. "AWD_SCOPING", true)
+	stats.set_int(MPX() .. "AWD_PREPPER", 20)
+	stats.set_bool(MPX() .. "AWD_ADAPTABLE", true)
+	stats.set_bool(MPX() .. "AWD_KORTZCENTERHEIST", true)
+	stats.set_bool(MPX() .. "AWD_FINDSAWAY", true)
+	stats.set_bool(MPX() .. "AWD_WHOSTHERE", true)
+	stats.set_bool(MPX() .. "AWD_ELITETHIEF", true)
+	stats.set_bool(MPX() .. "AWD_NOLIFER", true)
+	stats.set_bool(MPX() .. "AWD_SOLITUDE", true)
+	stats.set_bool(MPX() .. "AWD_COORDINATION", true)
+	stats.set_bool(MPX() .. "AWD_FLEXIBLETHIEF", true)
+	stats.set_int(MPX() .. "AWD_REPEATOFFENDER", 20)
+	stats.set_int(MPX() .. "AWD_FULLBAGS", 5000000)
+	stats.set_bool(MPX() .. "AWD_HIDDENINPLAINSIGHT", true)
+	stats.set_int(MPX() .. "AWD_CURATOR", 5)
+	stats.set_int(MPX() .. "AWD_LAPIDARY", 5)
+	stats.set_bool(MPX() .. "AWD_PACIFIST", true)
+	stats.set_bool(MPX() .. "AWD_PUTRIDPILFERING", true)
+	stats.set_bool(MPX() .. "AWD_METEORITICS", true)
+end)
+
 DLCAUM:add_button("A Safehouse In The Hills", function()
 	stats.set_bool(MPX() .. "AWD_NEGATIVEPRESS", true)
 	stats.set_bool(MPX() .. "AWD_USESELFDRIVINGVEH", true)
@@ -2225,8 +2369,11 @@ end)
 AcMenu = CSU:add_tab("Achievements")
 
 Acv0 = false
-AG = 4546910 + 1 --("CHEAT_ACHIEVE")
+AG = 4525223 + 1 --("CHEAT_ACHIEVE")
 
+
+AcMenu:add_imgui(function()
+	if isOffline() then return end
 	if ImGui.Button("Unlock All Achievements") then
 		script.run_in_fiber(function(script)
 			for i = 0, 77 do
@@ -2238,100 +2385,247 @@ AG = 4546910 + 1 --("CHEAT_ACHIEVE")
 			end
 		end)
 	end
+end)
 
-local achievements = {
-	{ "Welcome to Los Santos", 1 },
-	{ "A Friendship Resurrected", 2 },
-	{ "A Fair Day's Pay", 3 },
-	{ "The Moment of Truth", 4 },
-	{ "To Live or Die in Los Santos", 5 },
-	{ "Diamond Hard", 6 },
-	{ "Subversive", 7 },
-	{ "Blitzed", 8 },
-	{ "Small Town, Big Job", 9 },
-	{ "The Government Gimps", 10 },
-	{ "The Big One!", 11 },
-	{ "Solid Gold, Baby!", 12 },
-	{ "Career Criminal", 13 },
-	{ "San Andreas Sightseer", 14 },
-	{ "All's Fare in Love and War", 15 },
-	{ "TP Industries Arms Race", 16 },
-	{ "Multi-Disciplined", 17 },
-	{ "From Beyond the Stars", 18 },
-	{ "A Mystery, Solved", 19 },
-	{ "Waste Management", 20 },
-	{ "Red Mist", 21 },
-	{ "Show Off", 22 },
-	{ "Kifflom!", 23 },
-	{ "Three Man Army", 24 },
-	{ "Out of Your Depth", 25 },
-	{ "Altruist Acolyte", 26 },
-	{ "A Lot of Cheddar", 27 },
-	{ "Trading Pure Alpha", 28 },
-	{ "Pimp My Sidearm", 29 },
-	{ "Wanted:Alive Or Alive", 30 },
-	{ "Los Santos Customs", 31 },
-	{ "Close Shave", 32 },
-	{ "Off the Plane", 33 },
-	{ "Three-Bit Gangster", 34 },
-	{ "Making Moves", 35 },
-	{ "Above the Law", 36 },
-	{ "Numero Uno", 37 },
-	{ "The Midnight Club", 38 },
-	{ "Unnatural Selection", 39 },
-	{ "Backseat Driver", 40 },
-	{ "Run Like The Wind", 41 },
-	{ "Clean Sweep", 42 },
-	{ "Decorated", 43 },
-	{ "Stick Up Kid", 44 },
-	{ "Enjoy Your Stay", 45 },
-	{ "Crew Cut", 46 },
-	{ "Full Refund", 47 },
-	{ "Dialling Digits", 48 },
-	{ "American Dream", 49 },
-	{ "A New Perspective", 50 },
-	{ "Be Prepared", 51 },
-	{ "In the Name of Science", 52 },
-	{ "Dead Presidents", 53 },
-	{ "Parole Day", 54 },
-	{ "Shot Caller", 55 },
-	{ "Four Way", 56 },
-	{ "Live a Little", 57 },
-	{ "Can't Touch This", 58 },
-	{ "Mastermind", 59 },
-	{ "Vinewood Visionary", 60 },
-	{ "Majestic", 61 },
-	{ "Humans of Los Santos", 62 },
-	{ "First Time Director", 63 },
-	{ "Animal Lover", 64 },
-	{ "Ensemble Piece", 65 },
-	{ "Cult Movie", 66 },
-	{ "Location Scout", 67 },
-	{ "Method Actor", 68 },
-	{ "Cryptozoologist", 69 },
-	{ "Getting Started", 70 },
-	{ "The Data Breaches", 71 },
-	{ "The Bogdan Problem", 72 },
-	{ "The Doomsday Scenario", 73 },
-	{ "A World Worth Saving", 74 },
-	{ "Orbital Obliteration", 75 },
-	{ "Elitist", 76 },
-	{ "Masterminds", 77 }
-}
+AcMMenu = AcMenu:add_tab("One By One Menu")
 
-AcMMenu = AcMenu:add_tab("Unlock One By One Menu")
-
-	for _, ach in ipairs(achievements) do
-		if ImGui.Button(ach[1]) then
-			globals.set_int(AG, ach[2])
-		end
-	end
+AcMMenu:add_button("Welcome to Los Santos", function()
+	globals.set_int(AG, 1)
+end)
+AcMMenu:add_button("A Friendship Resurrected", function()
+	globals.set_int(AG, 2)
+end)
+AcMMenu:add_button("A Fair Day's Pay", function()
+	globals.set_int(AG, 3)
+end)
+AcMMenu:add_button("The Moment of Truth", function()
+	globals.set_int(AG, 4)
+end)
+AcMMenu:add_button("To Live or Die in Los Santos", function()
+	globals.set_int(AG, 5)
+end)
+AcMMenu:add_button("Diamond Hard", function()
+	globals.set_int(AG, 6)
+end)
+AcMMenu:add_button("Subversive", function()
+	globals.set_int(AG, 7)
+end)
+AcMMenu:add_button("Blitzed", function()
+	globals.set_int(AG, 8)
+end)
+AcMMenu:add_button("Small Town, Big Job", function()
+	globals.set_int(AG, 9)
+end)
+AcMMenu:add_button("The Government Gimps", function()
+	globals.set_int(AG, 10)
+end)
+AcMMenu:add_button("The Big One!", function()
+	globals.set_int(AG, 11)
+end)
+AcMMenu:add_button("Solid Gold, Baby!", function()
+	globals.set_int(AG, 12)
+end)
+AcMMenu:add_button("Career Criminal", function()
+	globals.set_int(AG, 13)
+end)
+AcMMenu:add_button("San Andreas Sightseer", function()
+	globals.set_int(AG, 14)
+end)
+AcMMenu:add_button("All's Fare in Love and War", function()
+	globals.set_int(AG, 15)
+end)
+AcMMenu:add_button("TP Industries Arms Race", function()
+	globals.set_int(AG, 16)
+end)
+AcMMenu:add_button("Multi-Disciplined", function()
+	globals.set_int(AG, 17)
+end)
+AcMMenu:add_button("From Beyond the Stars", function()
+	globals.set_int(AG, 18)
+end)
+AcMMenu:add_button("A Mystery, Solved", function()
+	globals.set_int(AG, 19)
+end)
+AcMMenu:add_button("Waste Management", function()
+	globals.set_int(AG, 20)
+end)
+AcMMenu:add_button("Red Mist", function()
+	globals.set_int(AG, 21)
+end)
+AcMMenu:add_button("Show Off", function()
+	globals.set_int(AG, 22)
+end)
+AcMMenu:add_button("Kifflom!", function()
+	globals.set_int(AG, 23)
+end)
+AcMMenu:add_button("Three Man Army", function()
+	globals.set_int(AG, 24)
+end)
+AcMMenu:add_button("Out of Your Depth", function()
+	globals.set_int(AG, 25)
+end)
+AcMMenu:add_button("Altruist Acolyte", function()
+	globals.set_int(AG, 26)
+end)
+AcMMenu:add_button("A Lot of Cheddar", function()
+	globals.set_int(AG, 27)
+end)
+AcMMenu:add_button("Trading Pure Alpha", function()
+	globals.set_int(AG, 28)
+end)
+AcMMenu:add_button("Pimp My Sidearm", function()
+	globals.set_int(AG, 29)
+end)
+AcMMenu:add_button("Wanted:Alive Or Alive", function()
+	globals.set_int(AG, 30)
+end)
+AcMMenu:add_button("Los Santos Customs", function()
+	globals.set_int(AG, 31)
+end)
+AcMMenu:add_button("Close Shave", function()
+	globals.set_int(AG, 32)
+end)
+AcMMenu:add_button("Off the Plane", function()
+	globals.set_int(AG, 33)
+end)
+AcMMenu:add_button("Three-Bit Gangster", function()
+	globals.set_int(AG, 34)
+end)
+AcMMenu:add_button("Making Moves", function()
+	globals.set_int(AG, 35)
+end)
+AcMMenu:add_button("Above the Law", function()
+	globals.set_int(AG, 36)
+end)
+AcMMenu:add_button("Numero Uno", function()
+	globals.set_int(AG, 37)
+end)
+AcMMenu:add_button("The Midnight Club", function()
+	globals.set_int(AG, 38)
+end)
+AcMMenu:add_button("Unnatural Selection", function()
+	globals.set_int(AG, 39)
+end)
+AcMMenu:add_button("Backseat Driver", function()
+	globals.set_int(AG, 40)
+end)
+AcMMenu:add_button("Run Like The Wind", function()
+	globals.set_int(AG, 41)
+end)
+AcMMenu:add_button("Clean Sweep", function()
+	globals.set_int(AG, 42)
+end)
+AcMMenu:add_button("Decorated", function()
+	globals.set_int(AG, 43)
+end)
+AcMMenu:add_button("Stick Up Kid", function()
+	globals.set_int(AG, 44)
+end)
+AcMMenu:add_button("Enjoy Your Stay", function()
+	globals.set_int(AG, 45)
+end)
+AcMMenu:add_button("Crew Cut", function()
+	globals.set_int(AG, 46)
+end)
+AcMMenu:add_button("Full Refund", function()
+	globals.set_int(AG, 47)
+end)
+AcMMenu:add_button("Dialling Digits", function()
+	globals.set_int(AG, 48)
+end)
+AcMMenu:add_button("American Dream", function()
+	globals.set_int(AG, 49)
+end)
+AcMMenu:add_button("A New Perspective", function()
+	globals.set_int(AG, 50)
+end)
+AcMMenu:add_button("Be Prepared", function()
+	globals.set_int(AG, 51)
+end)
+AcMMenu:add_button("In the Name of Science", function()
+	globals.set_int(AG, 52)
+end)
+AcMMenu:add_button("Dead Presidents", function()
+	globals.set_int(AG, 53)
+end)
+AcMMenu:add_button("Parole Day", function()
+	globals.set_int(AG, 54)
+end)
+AcMMenu:add_button("Shot Caller", function()
+	globals.set_int(AG, 55)
+end)
+AcMMenu:add_button("Four Way", function()
+	globals.set_int(AG, 56)
+end)
+AcMMenu:add_button("Live a Little", function()
+	globals.set_int(AG, 57)
+end)
+AcMMenu:add_button("Can't Touch This", function()
+	globals.set_int(AG, 58)
+end)
+AcMMenu:add_button("Mastermind", function()
+	globals.set_int(AG, 59)
+end)
+AcMMenu:add_button("Vinewood Visionary", function()
+	globals.set_int(AG, 60)
+end)
+AcMMenu:add_button("Majestic", function()
+	globals.set_int(AG, 61)
+end)
+AcMMenu:add_button("Humans of Los Santos", function()
+	globals.set_int(AG, 62)
+end)
+AcMMenu:add_button("First Time Director", function()
+	globals.set_int(AG, 63)
+end)
+AcMMenu:add_button("Animal Lover", function()
+	globals.set_int(AG, 64)
+end)
+AcMMenu:add_button("Ensemble Piece", function()
+	globals.set_int(AG, 65)
+end)
+AcMMenu:add_button("Cult Movie", function()
+	globals.set_int(AG, 66)
+end)
+AcMMenu:add_button("Location Scout", function()
+	globals.set_int(AG, 67)
+end)
+AcMMenu:add_button("Method Actor", function()
+	globals.set_int(AG, 68)
+end)
+AcMMenu:add_button("Cryptozoologist", function()
+	globals.set_int(AG, 69)
+end)
+AcMMenu:add_button("Getting Started", function()
+	globals.set_int(AG, 70)
+end)
+AcMMenu:add_button("The Data Breaches", function()
+	globals.set_int(AG, 71)
+end)
+AcMMenu:add_button("The Bogdan Problem", function()
+	globals.set_int(AG, 72)
+end)
+AcMMenu:add_button("The Doomsday Scenario", function()
+	globals.set_int(AG, 73)
+end)
+AcMMenu:add_button("A World Worth Saving", function()
+	globals.set_int(AG, 74)
+end)
+AcMMenu:add_button("Orbital Obliteration", function()
+	globals.set_int(AG, 75)
+end)
+AcMMenu:add_button("Elitist", function()
+	globals.set_int(AG, 76)
+end)
+AcMMenu:add_button("Masterminds", function()
+	globals.set_int(AG, 77)
+end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 local current_objectives_global = 2359296 --("am_challenges")
-local weekly_objectives_global = 2731933 --("am_challenges")
-local objectives_state_global = 1574745 --("am_challenges")
+local weekly_objectives_global = 2732111 --("am_challenges")
+local objectives_state_global = 1574746 --("am_challenges")
 
 FAUT:add_imgui(function()
 	if isOffline() then return end
@@ -2393,7 +2687,243 @@ LSCMNote:add_text("toggle 'Bypass Online Check' in the main tab.", function() en
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-local GVMENU = L7NEG:add_tab("Gun Van Menu ")
+L7NEG7 = makeOnlineTab(L7NEG:add_tab("Ultimate Money Methods Menu"))
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+BusinessesMenu = makeOnlineTab(L7NEG7:add_tab("Businesses Menu"))
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+AirCargoMenu = makeOnlineTab(BusinessesMenu:add_tab("Air Cargo Menu"))
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CARGO1 = FMg + 22581
+CARGO2 = FMg + 22582
+CARGO3 = FMg + 22583
+CARGO4 = FMg + 22584
+CARGO5 = FMg + 22585
+CARGO6 = FMg + 22586
+CARGO7 = FMg + 22587
+CARGO8 = FMg + 22588
+CARGO9 = FMg + 22589
+
+local hanvalue = AirCargoMenu:add_input_int("Crate Value")
+
+AirCargoMenu:add_button("Set Value", function()
+	local HangarCrateVlaue = hanvalue:get_value()
+	globals.set_int(CARGO1, HangarCrateVlaue)
+	globals.set_int(CARGO2, HangarCrateVlaue)
+	globals.set_int(CARGO3, HangarCrateVlaue)
+	globals.set_int(CARGO4, HangarCrateVlaue)
+	globals.set_int(CARGO5, HangarCrateVlaue)
+	globals.set_int(CARGO6, HangarCrateVlaue)
+	globals.set_int(CARGO7, HangarCrateVlaue)
+	globals.set_int(CARGO8, HangarCrateVlaue)
+	globals.set_int(CARGO9, HangarCrateVlaue)
+	gui.show_message("Crate Value Setter", "Your Crates Values was set to " .. HangarCrateVlaue .. ".")
+end)
+
+AirCargoMenu:add_separator()
+
+RCRT = AirCargoMenu:add_checkbox("Remove Ron's Cut")
+script.register_looped("RonCutRemover", function(script)
+	script:yield()
+	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
+	if RCRT:is_enabled() then
+		globals.set_float(FMg + 22564, 0)
+	else
+		globals.set_float(FMg + 22564, 0.025)
+	end
+end)
+
+AirCargoMenu:add_separator()
+
+PRPGD = AirCargoMenu:add_checkbox("Disable Player RP Gain")
+script.register_looped("PlayerRPGainDisabler", function(script)
+	script:yield()
+	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
+	if PRPGD:is_enabled() then
+		globals.set_float(FMg + 1, 0)
+	else
+		globals.set_float(FMg + 1, 1)
+	end
+end)
+
+AirCargoMenu:add_separator()
+
+AirCargoMenu:add_button("Open Hangar Screen", function()
+	SCRIPT.REQUEST_SCRIPT("apparcadebusinesshub")
+	SYSTEM.START_NEW_SCRIPT("apparcadebusinesshub", 8344)
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+AirCargoEditorMenu = makeOnlineTab(AirCargoMenu:add_tab("Air Cargo Data Editor"))
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+AirCargoEditorMenu:add_button("Reset Crate Sell Stats-0/0 Sales", function()
+	stats.set_int(MPX() .. "LFETIME_HANGAR_BUY_COMPLET", 0)
+	stats.set_int(MPX() .. "LFETIME_HANGAR_BUY_UNDERTAK", 0)
+	stats.set_int(MPX() .. "LFETIME_HANGAR_SEL_COMPLET", 0)
+	stats.set_int(MPX() .. "LFETIME_HANGAR_SEL_UNDERTAK", 0)
+	stats.set_int(MPX() .. "LFETIME_HANGAR_EARNINGS", 0)
+	stats.set_int(MPX() .. "HANGAR_CONTRABAND_TOTAL", 0)
+	stats.set_int(MPX() .. "LFETIME_HANGAR_EARN_BONUS", 0)
+	stats.set_int(MPX() .. "RIVAL_HANGAR_CRATES_STOLEN", 0)
+	globals.set_int(CSg1, 11)
+	globals.set_int(CSg2, 1)
+	globals.set_int(CSg2, 0)
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+UseAtYourOwnRiskMenu = makeOnlineTab(L7NEG7:add_tab("Use At Your Own Risk Menu"))
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CeoManagerMenu = makeOnlineTab(UseAtYourOwnRiskMenu:add_tab("Ceo Manager Menu"))
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CEO1 = FMg + 15821 --("EXEC_CONTRABAND_SALE_VALUE_THRESHOLD1")
+CEO2 = FMg + 15588 --("EXEC_BUY_COOLDOWN")
+CEO3 = FMg + 15589 --("EXEC_SELL_COOLDOWN")
+SMC1 = 574 + 1 --("gb_contraband_sell")
+SMC2 = 574 + 7 --("gb_contraband_sell")
+SMC3 = 574 + 584 --("gb_contraband_sell")
+SMC4 = 574 + 55 --("gb_contraband_sell")
+SMC5 = 574 + 595 --("gb_contraband_sell")
+SMC6 = 590 --("GTAO_Exec_SecuroServ_Computer_Sounds") in ("appsecuroserv")
+SMC7 = 770 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
+SMC8 = 771 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
+SMC9 = 632 + 5 --("SPEECH_PARAMS_SHOUTED_CRITICAL") in ("gb_contraband_buy")
+SMC10 = 632 + 1 --func_91() in ("gb_contraband_buy")
+SMC11 = 632 + 191 --("gb_contraband_buy")
+SMC12 = 632 + 192 --("gb_contraband_buy")
+
+local cs = "appsecuroserv"
+
+local ci = "gb_contraband_sell"
+
+local cb = "gb_contraband_buy"
+
+local am = "am_mp_warehouse"
+
+local am2 = "am_mp_peds"
+
+cratevalue = 0
+CeoManagerMenu:add_imgui(function()
+	if checkOnline() then return end
+	cratevalue, used = ImGui.DragInt("Crate Value", cratevalue, 10000, 0, 6000000)
+	if used then
+		globals.set_int(CEO1, cratevalue)
+	end
+end)
+
+checkbox = CeoManagerMenu:add_checkbox("Start Ceo Manager")
+
+PRPGD = CeoManagerMenu:add_checkbox("Disable Player RP Gain")
+script.register_looped("PlayerRPGainDisabler", function(script)
+	script:yield()
+	if PRPGD:is_enabled() then
+		globals.set_float(FMg + 1, 0)
+	else
+		globals.set_float(FMg + 1, 1)
+	end
+end)
+
+CeoManagerMenu:add_button("Open Warehouse Screen", function()
+	SCRIPT.REQUEST_SCRIPT("apparcadebusinesshub")
+	SYSTEM.START_NEW_SCRIPT("apparcadebusinesshub", 8344)
+end)
+
+script.register_looped("yimceoloop", function(script)
+	script:yield()
+	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
+	-- removed useless call
+	globals.set_int(CEO2, 0)
+	globals.set_int(CEO3, 0)
+
+	if checkbox:is_enabled() == true then
+		if locals.get_int(ci, 2) == 1 then
+			locals.set_int(ci, SMC5, 1)
+			locals.set_int(ci, SMC4, 0)
+			locals.set_int(ci, SMC3, 0)
+			locals.set_int(ci, SMC2, 7)
+			script:sleep(500)
+			locals.set_int(ci, SMC1, 99999)
+		end
+		if locals.get_int(cs, 2) == 1 then
+			script:sleep(500)
+			locals.set_int(cs, SMC8, 1)
+			script:sleep(200)
+			locals.set_int(cs, SMC7, 1)
+			script:sleep(200)
+			locals.set_int(cs, SMC6, 3012)
+			script:sleep(1000)
+		end
+		if locals.get_int(cb, 2) == 1 then
+			locals.set_int(cb, SMC9, 1)
+			locals.set_int(cb, SMC10, 111)
+			locals.set_int(cb, SMC11, 6)
+			locals.set_int(cb, SMC12, 4)
+			gui.show_message("Your Warehouse is now full! 111/111 Crates")
+		end
+		if locals.get_int(ci, 2) ~= 1 then
+			script:sleep(500)
+			if locals.get_int(am, 2) == 1 then
+				SCRIPT.REQUEST_SCRIPT("appsecuroserv")
+				SYSTEM.START_NEW_SCRIPT("appsecuroserv", 8344)
+				SCRIPT.SET_SCRIPT_AS_NO_LONGER_NEEDED("appsecuroserv")
+			end
+		end
+	end
+	script:sleep(500)
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+NightClubSafeMenu = makeOnlineTab(UseAtYourOwnRiskMenu:add_tab("NightClub Safe Loop Menu"))
+
+SafeAmount = 300000
+SafeCapacity = 23769 --NIGHTCLUBMAXSAFEVALUE
+IncomeStart = 23746 --NIGHTCLUBINCOMEUPTOPOP5
+IncomeEnd = 23765 --NIGHTCLUBINCOMEUPTOPOP100
+
+NCRSCB = NightClubSafeMenu:add_checkbox("Enable Nitghtclub $300k/5s (Safe Remote AFK)")
+script.register_looped("nightclubremotelooptest", function(script)
+	script:yield()
+	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
+	if NCRSCB:is_enabled() == true then
+		SafeValue = 1845298 + self.get_id() + 260 + 364 + 5 --("am_mp_nightclub") or we can just use TUNEABLE: NIGHTCLUBMAXSAFEVALUE
+		for i = IncomeStart, IncomeEnd do
+			globals.set_int(FMg + i, SafeAmount)
+		end
+		globals.set_int(FMg + SafeCapacity, SafeAmount)
+		stats.set_int(MPX() .. "CLUB_PAY_TIME_LEFT", -1)
+		script:sleep(2500)
+		if globals.get_int(SafeValue) ~= 0 then
+		end
+		locals.set_int("am_mp_nightclub", NLCl, 1)
+		globals.set_int(4516981, 0)
+		globals.set_int(4516982, 0)
+		globals.set_int(4516983, 0)
+		script:sleep(2500)
+	end
+end)
+
+NightClubSafeMenu:add_separator()
+
+NightClubSafeMenu:add_button("Open Nightclub Screen", function()
+	SYSTEM.START_NEW_SCRIPT("appBusinessHub", 1424)
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+local GVMENU = makeOnlineTab(L7NEG:add_tab("Gun Van Menu "))
 
 local gunvan_locations = {
 	vec3:new(-29.532, 6435.136, 31.162),
@@ -2640,7 +3170,7 @@ end
 
 script.register_looped("Gun Van", function()
 	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
-	gun_van_loc = globals.get_int(2652579 + 2706)
+	gun_van_loc = globals.get_int(2652581 + 2706)
 
 	if is_typing then
 		PAD.DISABLE_ALL_CONTROL_ACTIONS(0)
@@ -2651,10 +3181,10 @@ script.register_looped("Gun Van", function()
 	end
 
 	if livery_lock then
-		local value = locals.get_int("gunclub_shop", 199 + 747)
+		local value = locals.get_int("gunclub_shop", 206 + 747)
 		if value ~= nil then
 			value = value | (1 << 8)
-			locals.set_int("gunclub_shop", 199 + 747, value)
+			locals.set_int("gunclub_shop", 206 + 747, value)
 		end
 	end
 
@@ -2681,7 +3211,7 @@ GVMENU:add_imgui(function()
 	ImGui.SameLine()
 
 	if ImGui.Button("Set New Gun Van Location") then
-		globals.set_int(2652579 + 2706, selected_loc)
+		globals.set_int(2652581 + 2706, selected_loc)
 	end
 
 	ImGui.SameLine()
@@ -2709,10 +3239,10 @@ GVMENU:add_imgui(function()
 
 	if on_tick then
 		if not livery_lock then
-			local value = locals.get_int("gunclub_shop", 142 + 747)
+			local value = locals.get_int("gunclub_shop", 206 + 747)
 			if value ~= nil then
 				value = value & ~(1 << 8)
-				locals.set_int("gunclub_shop", 142 + 747, value)
+				locals.set_int("gunclub_shop", 206 + 747, value)
 			end
 		end
 	end
@@ -3247,7 +3777,7 @@ end
 -- ============================================================================
 -- UTILITY FUNCTIONS
 -- ============================================================================
-local TAGET_BUILD = "3788"
+local TAGET_BUILD = "3889"
 
 function GetBuildNumber()
 	local ptr = memory.scan_pattern("8B C3 33 D2 C6 44 24 20")
@@ -3386,7 +3916,7 @@ end
 	}
 
 	local CFG = YimConfig(DEFAULT_CONFIG)
-	log.info(string.format("Ultimate_Menu_V2.8_1.72_Legacy.lua: YimConfig v%s successfully loaded\n%s", CFG._version, CFG._credits))
+	log.info(string.format("Ultimate_Menu_V3_1.73_Legacy.lua: YimConfig v%s successfully loaded\n%s", CFG._version, CFG._credits))
 
 	yim_resupplier = L7NEG:add_tab("YimResupplier")
 	
@@ -4344,254 +4874,6 @@ end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG7 = makeOnlineTab(L7NEG:add_tab("Ultimate Money Methods Menu"))
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-BusinessesMenu = L7NEG7:add_tab("Businesses Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-AirCargoMenu = BusinessesMenu:add_tab("Air Cargo Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-CARGO1 = FMg + 22581
-CARGO2 = FMg + 22582
-CARGO3 = FMg + 22583
-CARGO4 = FMg + 22584
-CARGO5 = FMg + 22585
-CARGO6 = FMg + 22586
-CARGO7 = FMg + 22587
-CARGO8 = FMg + 22588
-CARGO9 = FMg + 22589
-
-local hanvalue = AirCargoMenu:add_input_int("Crate Value")
-
-AirCargoMenu:add_button("Set Value", function()
-	local HangarCrateVlaue = hanvalue:get_value()
-	globals.set_int(CARGO1, HangarCrateVlaue)
-	globals.set_int(CARGO2, HangarCrateVlaue)
-	globals.set_int(CARGO3, HangarCrateVlaue)
-	globals.set_int(CARGO4, HangarCrateVlaue)
-	globals.set_int(CARGO5, HangarCrateVlaue)
-	globals.set_int(CARGO6, HangarCrateVlaue)
-	globals.set_int(CARGO7, HangarCrateVlaue)
-	globals.set_int(CARGO8, HangarCrateVlaue)
-	globals.set_int(CARGO9, HangarCrateVlaue)
-	gui.show_message("Crate Value Setter", "Your Crates Values was set to " .. HangarCrateVlaue .. ".")
-end)
-
-AirCargoMenu:add_separator()
-
-RCRT = AirCargoMenu:add_checkbox("Remove Ron's Cut")
-script.register_looped("RonCutRemover", function(script)
-	script:yield()
-	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
-	if RCRT:is_enabled() then
-		globals.set_float(FMg + 22564, 0)
-	else
-		globals.set_float(FMg + 22564, 0.025)
-	end
-end)
-
-AirCargoMenu:add_separator()
-
-PRPGD = AirCargoMenu:add_checkbox("Disable Player RP Gain")
-script.register_looped("PlayerRPGainDisabler", function(script)
-	script:yield()
-	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
-	if PRPGD:is_enabled() then
-		globals.set_float(FMg + 1, 0)
-	else
-		globals.set_float(FMg + 1, 1)
-	end
-end)
-
-AirCargoMenu:add_separator()
-
-AirCargoMenu:add_button("Open Hangar Screen", function()
-	SCRIPT.REQUEST_SCRIPT("apparcadebusinesshub")
-	SYSTEM.START_NEW_SCRIPT("apparcadebusinesshub", 8344)
-end)
-
-AirCargoEditorMenu = AirCargoMenu:add_tab("Air Cargo Data Editor")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-AirCargoEditorMenu:add_button("Reset Crate Sell Stats-0/0 Sales", function()
-	stats.set_int(MPX() .. "LFETIME_HANGAR_BUY_COMPLET", 0)
-	stats.set_int(MPX() .. "LFETIME_HANGAR_BUY_UNDERTAK", 0)
-	stats.set_int(MPX() .. "LFETIME_HANGAR_SEL_COMPLET", 0)
-	stats.set_int(MPX() .. "LFETIME_HANGAR_SEL_UNDERTAK", 0)
-	stats.set_int(MPX() .. "LFETIME_HANGAR_EARNINGS", 0)
-	stats.set_int(MPX() .. "HANGAR_CONTRABAND_TOTAL", 0)
-	stats.set_int(MPX() .. "LFETIME_HANGAR_EARN_BONUS", 0)
-	stats.set_int(MPX() .. "RIVAL_HANGAR_CRATES_STOLEN", 0)
-	globals.set_int(CSg1, 11)
-	globals.set_int(CSg2, 1)
-	globals.set_int(CSg2, 0)
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-UseAtYourOwnRiskMenu = L7NEG7:add_tab("Use At Your Own Risk Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-CeoManagerMenu = UseAtYourOwnRiskMenu:add_tab("Ceo Manager Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-CEO1 = FMg + 15821 --("EXEC_CONTRABAND_SALE_VALUE_THRESHOLD1")
-CEO2 = FMg + 15588 --("EXEC_BUY_COOLDOWN")
-CEO3 = FMg + 15589 --("EXEC_SELL_COOLDOWN")
-SMC1 = 567 + 1 --("gb_contraband_sell")
-SMC2 = 567 + 7 --("gb_contraband_sell")
-SMC3 = 567 + 584 --("gb_contraband_sell")
-SMC4 = 567 + 55 --("gb_contraband_sell")
-SMC5 = 567 + 595 --("gb_contraband_sell")
-SMC6 = 583 --("GTAO_Exec_SecuroServ_Computer_Sounds") in ("appsecuroserv")
-SMC7 = 763 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
-SMC8 = 764 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
-SMC9 = 625 + 5 --("SPEECH_PARAMS_SHOUTED_CRITICAL") in ("gb_contraband_buy")
-SMC10 = 625 + 1 --func_91() in ("gb_contraband_buy")
-SMC11 = 625 + 191 --("gb_contraband_buy")
-SMC12 = 625 + 192 --("gb_contraband_buy")
-
-local cs = "appsecuroserv"
-
-local ci = "gb_contraband_sell"
-
-local cb = "gb_contraband_buy"
-
-local am = "am_mp_warehouse"
-
-local am2 = "am_mp_peds"
-
-cratevalue = 0
-CeoManagerMenu:add_imgui(function()
-	if checkOnline() then return end
-	cratevalue, used = ImGui.DragInt("Crate Value", cratevalue, 10000, 0, 6000000)
-	if used then
-		globals.set_int(CEO1, cratevalue)
-	end
-end)
-
-checkbox = CeoManagerMenu:add_checkbox("Start Ceo Manager")
-
-PRPGD = CeoManagerMenu:add_checkbox("Disable Player RP Gain")
-script.register_looped("PlayerRPGainDisabler", function(script)
-	script:yield()
-	if PRPGD:is_enabled() then
-		globals.set_float(FMg + 1, 0)
-	else
-		globals.set_float(FMg + 1, 1)
-	end
-end)
-
-CeoManagerMenu:add_button("Open Warehouse Screen", function()
-	SCRIPT.REQUEST_SCRIPT("apparcadebusinesshub")
-	SYSTEM.START_NEW_SCRIPT("apparcadebusinesshub", 8344)
-end)
-
-script.register_looped("yimceoloop", function(script)
-	script:yield()
-	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
-	-- removed useless call
-	globals.set_int(CEO2, 0)
-	globals.set_int(CEO3, 0)
-
-	if checkbox:is_enabled() == true then
-		if locals.get_int(ci, 2) == 1 then
-			locals.set_int(ci, SMC5, 1)
-			locals.set_int(ci, SMC4, 0)
-			locals.set_int(ci, SMC3, 0)
-			locals.set_int(ci, SMC2, 7)
-			script:sleep(500)
-			locals.set_int(ci, SMC1, 99999)
-		end
-		if locals.get_int(cs, 2) == 1 then
-			script:sleep(500)
-			locals.set_int(cs, SMC8, 1)
-			script:sleep(200)
-			locals.set_int(cs, SMC7, 1)
-			script:sleep(200)
-			locals.set_int(cs, SMC6, 3012)
-			script:sleep(1000)
-		end
-		if locals.get_int(cb, 2) == 1 then
-			locals.set_int(cb, SMC9, 1)
-			locals.set_int(cb, SMC10, 111)
-			locals.set_int(cb, SMC11, 6)
-			locals.set_int(cb, SMC12, 4)
-			gui.show_message("Your Warehouse is now full! 111/111 Crates")
-		end
-		if locals.get_int(ci, 2) ~= 1 then
-			script:sleep(500)
-			if locals.get_int(am, 2) == 1 then
-				SCRIPT.REQUEST_SCRIPT("appsecuroserv")
-				SYSTEM.START_NEW_SCRIPT("appsecuroserv", 8344)
-				SCRIPT.SET_SCRIPT_AS_NO_LONGER_NEEDED("appsecuroserv")
-			end
-		end
-	end
-	script:sleep(500)
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-NightClubSafeMenu = UseAtYourOwnRiskMenu:add_tab("NightClub Safe Loop Menu")
-
-SafeAmount = 300000
-SafeCapacity = 23769 --NIGHTCLUBMAXSAFEVALUE
-IncomeStart = 23746 --NIGHTCLUBINCOMEUPTOPOP5
-IncomeEnd = 23765 --NIGHTCLUBINCOMEUPTOPOP100
-
-NCRSCB = NightClubSafeMenu:add_checkbox("Enable Nitghtclub $300k/5s (Safe Remote AFK)")
-script.register_looped("nightclubremotelooptest", function(script)
-	script:yield()
-	if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
-	if NCRSCB:is_enabled() == true then
-		SafeValue = 1845250 + self.get_id() + 260 + 364 + 5 --("am_mp_nightclub")
-		for i = IncomeStart, IncomeEnd do
-			globals.set_int(FMg + i, SafeAmount)
-		end
-		globals.set_int(FMg + SafeCapacity, SafeAmount)
-		stats.set_int(MPX() .. "CLUB_PAY_TIME_LEFT", -1)
-		script:sleep(2500)
-		if globals.get_int(SafeValue) ~= 0 then
-		end
-		locals.set_int("am_mp_nightclub", NLCl, 1)
-		globals.set_int(4516902, 0)
-		globals.set_int(4516903, 0)
-		globals.set_int(4516904, 0)
-		script:sleep(2500)
-	end
-end)
-
-NightClubSafeMenu:add_separator()
-
-NightClubSafeMenu:add_button("Open Nightclub Screen", function()
-	SYSTEM.START_NEW_SCRIPT("appBusinessHub", 1424)
-end)
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-MoneyRemoverMenu = L7NEG:add_tab("Money Remover Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-moneyremovervalue = globals.get_int(BV)
-MoneyRemoverMenu:add_imgui(function()
-	if checkOnline() then return end
-	moneyremovervalue, used = ImGui.DragInt("Set Ballastic Value", moneyremovervalue, 1000000, 1000000, 2147483647)
-	if used then
-		globals.set_int(BV, moneyremovervalue)
-	end
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 ReportsMenu = L7NEG:add_tab("Reports Menu")
 ReportsMenu:add_imgui(function()
 	if checkOnline() then return end
@@ -4616,11 +4898,11 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-WareHouseDataEditorMenu = CeoManagerMenu:add_tab("WareHouse Data Editor")
+WareHouseDataEditorMenu = makeOnlineTab(L7NEG7:add_tab("WareHouse Data Editor"))
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-WareHouseDataEditorMenu:add_button("Reset Crate Sell Stats-0/0 Sales", function()
+WareHouseDataEditorMenu:add_button("Auto-Reset stats-0/0Sales", function()
 	stats.set_int(MPX() .. "LIFETIME_BUY_COMPLETE", 0)
 	stats.set_int(MPX() .. "LIFETIME_BUY_UNDERTAKEN", 0)
 	stats.set_int(MPX() .. "LIFETIME_SELL_COMPLETE", 0)
@@ -4628,10 +4910,22 @@ WareHouseDataEditorMenu:add_button("Reset Crate Sell Stats-0/0 Sales", function(
 	stats.set_int(MPX() .. "LIFETIME_CONTRA_EARNINGS", 0)
 	globals.set_int(CSg1, 11)
 	globals.set_int(CSg2, 1)
+	script:sleep(300)
 	globals.set_int(CSg2, 0)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+L7NEG7N = makeOnlineTab(L7NEG7:add_tab("Tutorial ReadMe"))
+
+L7NEG7N:add_text("     Ceo Crates Method       ", function() end)
+L7NEG7N:add_text("   First Enter Your Warehouse   ", function() end)
+L7NEG7N:add_text(
+	"   Then Stand In Front Of Your Warehouse Computer And Then Active The Enable Ceo Manager    ",
+	function() end
+)
+L7NEG7N:add_text("", function() end)
+L7NEG7N:add_text("https://l7neg.is-a.dev/discord", function() end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4646,10 +4940,6 @@ ApartmentDataEditorMenu:add_button("Complete Preps", function()
     gui.show_message("Apartment Heist", "Preps should've been completed")
 end)
 ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Redraw Board", function()
-    globals.set_int(AHRg, 22)
-    gui.show_message("Apartment Heist", "Board should've been redrawn")
-end)
 ApartmentDataEditorMenu:add_text("")
 ApartmentDataEditorMenu:add_text("For Fleeca:")
 ApartmentDataEditorMenu:add_text("Pay for the preparation, start the first mission and as soon as you are sent to scout\nchange the session, come back to planning room, press \"Complete Preps\" near white board and press \"E\"")
@@ -4816,7 +5106,7 @@ function()
 		if locals.get_int("fmmc_launcher", HGGs1) ~= 0 then
 			if locals.get_int("fmmc_launcher", HGGs1) > 1 then
 					locals.set_int("fmmc_launcher", HGGs2, 1)
-                    globals.set_int(794954 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
+                    globals.set_int(794989 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
 			end
 			globals.set_int(HGLs1, 1)
             globals.set_int(HGLs2, 1)
@@ -4890,8 +5180,8 @@ script.register_looped("agencyloop", function(script)
     script:yield()
     if agencySafe:is_enabled() == true then
         gui.show_message("Business Manager", "Supplying Agency Safe with money")
-        STATS.STAT_SET_INT(joaat(MPX() .. "FIXER_COUNT"), 500, true)
-        STATS.STAT_SET_INT(joaat(MPX() .. "FIXER_PASSIVE_PAY_TIME_LEFT"), -1, true)
+        stats.set_int(MPX() .. "FIXER_COUNT", 500)
+        stats.set_int(MPX() .. "FIXER_PASSIVE_PAY_TIME_LEFT", -1)
         script:sleep(500)
     end
 end)
@@ -5480,7 +5770,7 @@ function()
 		if locals.get_int("fmmc_launcher", HGGs1) ~= 0 then
 			if locals.get_int("fmmc_launcher", HGGs1) > 1 then
 					locals.set_int("fmmc_launcher", HGGs2, 1)
-                    globals.set_int(794954 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
+                    globals.set_int(794989 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
 			end
 			globals.set_int(HGLs1, 1)
             globals.set_int(HGLs2, 1)
@@ -6040,7 +6330,7 @@ CasinoHeistEditorMenu:add_button("Solo Launch", function()
 	if locals.get_int("fmmc_launcher", HGGs1) ~= nil and locals.get_int("fmmc_launcher", HGGs1) ~= 0 then
 		if locals.get_int("fmmc_launcher", HGGs1) > 1 then
 			locals.set_int("fmmc_launcher", HGGs2, 1)
-			globals.set_int(794954 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
+			globals.set_int(794989 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
 		end
 		globals.set_int(HGLs1, 1); globals.set_int(HGLs2, 1); globals.set_int(HGLs3, 1); globals.set_int(HGLs4, 0)
 	end
@@ -6099,450 +6389,969 @@ CasinoHeistExtra:add_sameline()
 CasinoHeistExtra:add_button("Skip Cutscene", SkipCutscene)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Cayo Heist --
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Cayo Perico --
-local CayoHeistDifficulties = {
-    { name = "Normal", index = 0 },
-    { name = "Hard", index = 1 }
-}
-
-local cayoApproachList = {
-    { name = "Submarine: Kosatka", index = 0 },
-    { name = "Plane: Alkonost", index = 1 },
-    { name = "Plane: Velum", index = 2 },
-    { name = "Helicopter: Stealth Annihilator", index = 3 },
-    { name = "Boat: Patrol Boat", index = 4 },
-    { name = "Boat: Longfin", index = 5 }
-}
-
-local cayoLoadoutList = {
-    { name = "Aggressor", index = 1 },
-    { name = "Conspirator", index = 2 },
-    { name = "Crackshot", index = 3 },
-    { name = "Saboteur", index = 4 },
-    { name = "Marksman", index = 5 }
-}
-
-local cayoPrimaryList = {
-    { name = "Sinsimito Tequila", index = 0 },
-    { name = "Ruby Necklace", index = 1 },
-    { name = "Bearer Bonds", index = 2 },
-    { name = "Pink Diamond", index = 3 },
-    { name = "Madrazo Files", index = 4 },
-    { name = "Panther Statue", index = 5 }
-}
-
-local cayoSecondaryTargetList = {
-    { name = "None", index = 0      },
-    { name = "Cash", index = "CASH" },
-    { name = "Weed", index = "WEED" },
-    { name = "Coke", index = "COKE" },
-    { name = "Gold", index = "GOLD" }
-}
-
-local cayoCompoundAmountList = {
-    { name = "Empty", index = 0   },
-    { name = "Full",  index = 255 },
-    { name = "1",     index = 128 },
-    { name = "2",     index = 64  },
-    { name = "3",     index = 196 },
-    { name = "4",     index = 204 },
-    { name = "5",     index = 220 },
-    { name = "6",     index = 252 },
-    { name = "7",     index = 253 }
-}
-
-local cayoIslandAmountList = {
-    { name = "Empty", index = 0        },
-    { name = "Full",  index = 16777215 },
-    { name = "1",     index = 8388608  },
-    { name = "2",     index = 12582912 },
-    { name = "3",     index = 12845056 },
-    { name = "4",     index = 12976128 },
-    { name = "5",     index = 13500416 },
-    { name = "6",     index = 14548992 },
-    { name = "7",     index = 16646144 },
-    { name = "8",     index = 16711680 },
-    { name = "9",     index = 16744448 },
-    { name = "10",    index = 16760832 },
-    { name = "11",    index = 16769024 },
-    { name = "12",    index = 16769536 },
-    { name = "13",    index = 16770560 },
-    { name = "14",    index = 16770816 },
-    { name = "15",    index = 16770880 },
-    { name = "16",    index = 16771008 },
-    { name = "17",    index = 16773056 },
-    { name = "18",    index = 16777152 },
-    { name = "19",    index = 16777184 },
-    { name = "20",    index = 16777200 },
-    { name = "21",    index = 16777202 },
-    { name = "22",    index = 16777203 },
-    { name = "23",    index = 16777211 }
-}
-
-local cayoArtsAmountList = {
-    { name = "Empty", index = 0 },
-    { name = "Full", index = 127 },
-    { name = "1", index = 64 },
-    { name = "2", index = 96 },
-    { name = "3", index = 112 },
-    { name = "4", index = 120 },
-    { name = "5", index = 122 },
-    { name = "6", index = 126 }
-}
-
+-- Cayo Heist --
 local CayoPericoCrewCut = {
     { tunable = "IH_DEDUCTION_PAVEL_CUT", default = -0.02 },
     { tunable = "IH_DEDUCTION_FENCING_FEE", default = -0.1 }
 }
 
-local CayoHeistEditorMenu = HeistsDataEditorMenu:add_tab("Cayo Perico Heist")
+local cayoPrimaryTargets = {
+    {name="Panther Statue", id = 5},
+    {name="Medrazo Files", id = 4},
+    {name="Diamond", id = 3},
+    {name="Bonds", id = 2},
+    {name="Necklace", id = 1},
+    {name="Tequila", id = 0}
+}
 
-CayoHeistEditorMenu:add_text("Presets:")
-CayoHeistEditorMenu:add_button("Panther/Gold (Hard)", function()
-	stats.set_int(MPX() .. "H4CNF_BS_GEN", 131071); stats.set_int(MPX() .. "H4CNF_BS_ENTR", 63)
-	stats.set_int(MPX() .. "H4CNF_BS_ABIL", 63); stats.set_int(MPX() .. "H4CNF_WEAPONS", 5)
-	stats.set_int(MPX() .. "H4CNF_WEP_DISRP", 3); stats.set_int(MPX() .. "H4CNF_ARM_DISRP", 3)
-	stats.set_int(MPX() .. "H4CNF_HEL_DISRP", 3); stats.set_int(MPX() .. "H4CNF_TARGET", 5)
-	stats.set_int(MPX() .. "H4CNF_TROJAN", 2); stats.set_int(MPX() .. "H4CNF_APPROACH", -1)
-	stats.set_int(MPX() .. "H4LOOT_GOLD_C", -1); stats.set_int(MPX() .. "H4_PROGRESS", 131055)
-	stats.set_int(MPX() .. "H4LOOT_GOLD_C_SCOPED", -1); stats.set_int(MPX() .. "H4LOOT_GOLD_V", 1191817)
-	stats.set_int(MPX() .. "H4_MISSIONS", 65535); stats.set_int(MPX() .. "H4_PLAYTHROUGH_STATUS", 32)
-	gui.show_message("Cayo Heist", "Panther Hard Mode has been set up!")
-end)
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Diamond/Gold (Hard)", function()
-	stats.set_int(MPX() .. "H4CNF_BS_GEN", 131071); stats.set_int(MPX() .. "H4CNF_BS_ENTR", 63)
-	stats.set_int(MPX() .. "H4CNF_BS_ABIL", 63); stats.set_int(MPX() .. "H4CNF_WEAPONS", 5)
-	stats.set_int(MPX() .. "H4CNF_WEP_DISRP", 3); stats.set_int(MPX() .. "H4CNF_ARM_DISRP", 3)
-	stats.set_int(MPX() .. "H4CNF_HEL_DISRP", 3); stats.set_int(MPX() .. "H4CNF_TARGET", 3)
-	stats.set_int(MPX() .. "H4CNF_TROJAN", 2); stats.set_int(MPX() .. "H4CNF_APPROACH", -1)
-	stats.set_int(MPX() .. "H4LOOT_GOLD_C", -1); stats.set_int(MPX() .. "H4_PROGRESS", 131055)
-	stats.set_int(MPX() .. "H4LOOT_GOLD_C_SCOPED", -1); stats.set_int(MPX() .. "H4LOOT_GOLD_V", 1191817)
-	stats.set_int(MPX() .. "H4_MISSIONS", 65535); stats.set_int(MPX() .. "H4_PLAYTHROUGH_STATUS", 32)
-	gui.show_message("Cayo Heist", "Diamond Hard Mode has been set up!")
-end)
+local function CayoCompletePreps()
+    stats.set_int(MPX() .. "H4CNF_UNIFORM", -1)
+    stats.set_int(MPX() .. "H4CNF_GRAPPEL", -1)
+    stats.set_int(MPX() .. "H4CNF_TROJAN", 5)
+    stats.set_int(MPX() .. "H4CNF_WEP_DISRP", 3)
+    stats.set_int(MPX() .. "H4CNF_ARM_DISRP", 3)
+    stats.set_int(MPX() .. "H4CNF_HEL_DISRP", 3)
+    stats.set_int(MPX() .. "H4_PLAYTHROUGH_STATUS", 10)
+    stats.set_int(MPX() .. "H4CNF_BS_GEN", -1)
+    stats.set_int(MPX() .. "H4CNF_BS_ENTR", 63)
+    stats.set_int(MPX() .. "H4CNF_BS_ABIL", 63)
+    stats.set_int(MPX() .. "H4CNF_APPROACH", -1)
+end
 
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_text("Cayo Bag Size Editor")
-local cayobag = CayoHeistEditorMenu:add_input_int("Bag Size")
-CayoHeistEditorMenu:add_button("Set Bag Size", function()
-	globals.set_int(CPBg, cayobag:get_value())
-end)
+local function CayoTargetsSetter(cash, weed, coke, gold, where, target, value)
+    stats.set_int(MPX() .. "H4LOOT_CASH_" .. where, cash)
+    stats.set_int(MPX() .. "H4LOOT_CASH_" .. where .. "_SCOPED", cash)
+    stats.set_int(MPX() .. "H4LOOT_WEED_" .. where, weed)
+    stats.set_int(MPX() .. "H4LOOT_WEED_" .. where .. "_SCOPED", weed)
+    stats.set_int(MPX() .. "H4LOOT_COKE_" .. where, coke)
+    stats.set_int(MPX() .. "H4LOOT_COKE_" .. where .. "_SCOPED", coke)
+    stats.set_int(MPX() .. "H4LOOT_GOLD_" .. where, gold)
+    stats.set_int(MPX() .. "H4LOOT_GOLD_" .. where .. "_SCOPED", gold)
+    if target ~= "NONE" then
+        stats.set_int(MPX() .. "H4LOOT_" .. target .. "_V", value)
+    end
+end
 
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_text("Preps:")
-local cayoDifficultyNames = {}
-for _, item in ipairs(CayoHeistDifficulties) do table.insert(cayoDifficultyNames, item.name) end
-local cayoDifficultyIndex = 0
+local function CayoPaintingsToggler(Enabled)
+    if Enabled then
+        stats.set_int(MPX() .. "H4LOOT_PAINT", 127)
+        stats.set_int(MPX() .. "H4LOOT_PAINT_SCOPED", 127)
+        stats.set_int(MPX() .. "H4LOOT_PAINT_V", 189500)
+    else
+        stats.set_int(MPX() .. "H4LOOT_PAINT", 0)
+        stats.set_int(MPX() .. "H4LOOT_PAINT_SCOPED", 0)
+    end
+end
+
+local function CutsPresetter(global_start, global_finish, cut)
+    globals.set_int(GCg, cut)
+    for i = global_start, global_finish do
+        globals.set_int(i, cut)
+    end
+end
+
+local cayoSecondaryTargets = {
+    { name = "None", caps = "NONE", amount = {
+        compound = { cash = 0, weed = 0, coke = 0, gold = 0 },
+        island = { cash = 0, weed = 0, coke = 0, gold = 0 }
+    }, value = 0 },
+    { name = "Gold", caps = "GOLD", amount = {
+        compound = { cash = 0, weed = 0, coke = 0, gold = 255 },
+        island = { cash = 0, weed = 0, coke = 0, gold = 16777215 }
+    }, value = 333333 },
+    { name = "Cocaine", caps = "COKE", amount = {
+        compound = { cash = 0, weed = 0, coke = 255, gold = 0 },
+        island = { cash = 0, weed = 0, coke = 16777215, gold = 0 }
+    }, value = 202500 },
+    { name = "Weed", caps = "WEED", amount = {
+        compound = { cash = 0, weed = 255, coke = 0, gold = 0 },
+        island = { cash = 0, weed = 16777215, coke = 0, gold = 0 }
+    }, value = 135000 },
+    { name = "Cash", caps = "CASH", amount = {
+        compound = { cash = 255, weed = 0, coke = 0, gold = 0 },
+        island = { cash = 16777215, weed = 0, coke = 0, gold = 0 }
+    }, value = 83250 }
+}
+
+local cayoLocations = {
+    {name="Front Gate", x=4990.0386, y=-5717.6895, z=19.876024},
+    {name="El Rubio's Office", x=5010.12, y=-5750.1353, z=28.844675},
+    {name="Primary Target", x=5006.7, y=-5756.2, z=15.483983},
+    {name="Secondary Target", x=4999.764160, y=-5749.863770, z=14.840000},
+    {name="Safe Zone", x=4771.479, y=-6165.737, z=-39.079613},
+    {name="Entrance Drinage Pipe", x=5043.74, y=-5815.3193, z=-10.574497},
+    {name="Enter Cayo Perico", x=5053.8516, y=-5772.852, z=-4.1588774},
+    {name="Elevator", x=5012.1533, y=-5749.0107, z=28.945145},
+}
+
+local cayoApproachVehicles = {
+    {name="Longfin", id = 65345},
+    {name="Patrol Boat", id = 65313},
+    {name="Stealth Annihilator", id = 65425},
+    {name="Velum", id = 65289},
+    {name="Alkonost", id = 65413},
+    {name="Kosatka", id = 65283},
+    {name="All Ways", id = 65535},
+}
+
+local cayoWeapons = {
+    {name="Aggressor", id = 1},
+    {name="Conspirator", id = 2},
+    {name="Crackshot", id = 3},
+    {name="Saboteur", id = 4},
+    {name="Marksman", id = 5},
+}
+
+-- Move these variables outside to maintain state
+local sPrimary = 0
+local compoundI = 0
+local islandI = 0
+local sApproach = 0
+local sWeapon = 0
+local bagValue = 0
+local addPaintings = false
+local cayocut1 = 0
+local cayocut2 = 0
+local cayocut3 = 0
+local cayocut4 = 0
+local cayoCrewCuts = false
+
+local CayoHeistEditorMenu = HeistsDataEditorMenu:add_tab("Cayo Perico Heist ")
+
+-- Put EVERYTHING inside add_imgui
 CayoHeistEditorMenu:add_imgui(function()
-    if isOffline() then return end
-
-	ImGui.SetNextItemWidth(170)
-    local nIndex, changed = ImGui.Combo("Difficulty", cayoDifficultyIndex, cayoDifficultyNames, #cayoDifficultyNames)
-    if changed then cayoDifficultyIndex = nIndex end
-
-	ImGui.SetNextItemWidth(170)
-    nIndex, changed = ImGui.Combo("Approach", cayoApproachIndex, cayoApproachNames, #cayoApproachNames)
-    if changed then cayoApproachIndex = nIndex end
-
-	ImGui.SetNextItemWidth(170)
-    nIndex, changed = ImGui.Combo("Loadout", cayoLoadoutIndex, cayoLoadoutNames, #cayoLoadoutNames)
-    if changed then cayoLoadoutIndex = nIndex end
-
-	ImGui.SetNextItemWidth(170)
-    nIndex, changed = ImGui.Combo("Target", cayoPrimaryIndex, cayoPrimaryNames, #cayoPrimaryNames)
-    if changed then cayoPrimaryIndex = nIndex end
-
-    ImGui.SetNextItemWidth(170)
-    nIndex, changed = ImGui.Combo("Com. Target", cayoCompoundIndex, cayoCompoundNames, #cayoCompoundNames)
-    if changed then cayoCompoundIndex = nIndex end
-
-    ImGui.SetNextItemWidth(170)
-    nIndex, changed = ImGui.Combo("Com. Amount", cayoCompoundAmountIndex, cayoCompoundAmountNames, #cayoCompoundAmountNames)
-    if changed then cayoCompoundAmountIndex = nIndex end
-
-    ImGui.SetNextItemWidth(170)
-    nIndex, changed = ImGui.Combo("Arts Amount", cayoArtsAmountIndex, cayoArtsAmountNames, #cayoArtsAmountNames)
-    if changed then cayoArtsAmountIndex = nIndex end
-
-    ImGui.SetNextItemWidth(170)
-    nIndex, changed = ImGui.Combo("Isl. Target", cayoIslandIndex, cayoCompoundNames, #cayoCompoundNames)
-    if changed then cayoIslandIndex = nIndex end
-
-    ImGui.SetNextItemWidth(170)
-    nIndex, changed = ImGui.Combo("Isl. Amount", cayoIslandAmountIndex, cayoIslandAmountNames, #cayoIslandAmountNames)
-    if changed then cayoIslandAmountIndex = nIndex end
-end)
-
-CayoHeistEditorMenu:add_button("Apply & Complete Preps", function()
-    local difficulty = CayoHeistDifficulties[cayoDifficultyIndex + 1].index
-    local approach = cayoApproachList[cayoApproachIndex + 1].index
-    local loadout = cayoLoadoutList[cayoLoadoutIndex + 1].index
-    local primary = cayoPrimaryList[cayoPrimaryIndex + 1].index
-    local secondary = cayoSecondaryTargetList[cayoCompoundIndex + 1].index
-    local cAmount = cayoCompoundAmountList[cayoCompoundAmountIndex + 1].index
-    local aAmount = cayoArtsAmountList[cayoArtsAmountIndex + 1].index
-    local iSecondary = cayoSecondaryTargetList[cayoIslandIndex + 1].index
-    local iAmount = cayoIslandAmountList[cayoIslandAmountIndex + 1].index
-
-    stats.set_int(MPX() .. "H4_PROGRESS", 131071); stats.set_int(MPX() .. "H4_GEN_BS_P2", -1)
-    stats.set_int(MPX() .. "H4_ISLAND_SEL", -1); stats.set_int(MPX() .. "H4_MISSIONS", -1)
-    stats.set_int(MPX() .. "H4_LO_BS_P2", -1); stats.set_int(MPX() .. "H4_APPROACH", approach)
-    stats.set_int(MPX() .. "H4_EQUIP_BS_P2", -1); stats.set_int(MPX() .. "H4_DISTRACTIONS", -1)
-    stats.set_int(MPX() .. "H4_VEHICLES", -1); stats.set_int(MPX() .. "H4_WEAPONS", loadout)
-    stats.set_int(MPX() .. "H4_TARGET", primary); stats.set_int(MPX() .. "H4_COMPLETEDPOSIX", (difficulty == 0) and 0 or -1)
+    if checkOnline() then return end
     
-    if secondary ~= 0 then
-        for i = 0, 5 do
-            stats.set_int(MPX() .. "H4LO_CH_LP_" .. secondary .. "_" .. i, cAmount)
-            stats.set_int(MPX() .. "H4LO_CH_RP_" .. secondary .. "_" .. i, cAmount)
+    -- Cayo Bag Size Editor
+    ImGui.Text("Cayo Bag Size Editor")
+    bagValue, _ = ImGui.InputInt("Bag Size", bagValue)
+    if ImGui.Button("Set Bag Size") then
+        globals.set_int(CPBg, bagValue)
+        gui.show_message("Cayo Perico", "Bag size set to " .. bagValue)
+    end
+    
+    ImGui.Separator()
+    
+    -- Primary Target
+    ImGui.Text("Primary Target:")
+    local primaryNames = {}
+    for _, target in ipairs(cayoPrimaryTargets) do
+        table.insert(primaryNames, target.name)
+    end
+    local nIndex, changed = ImGui.Combo("##CayoPrimary", sPrimary, primaryNames, #primaryNames)
+    if changed then
+        sPrimary = nIndex
+        local selected = cayoPrimaryTargets[sPrimary + 1]
+        stats.set_int(MPX() .. "H4CNF_TARGET", selected.id)
+        gui.show_message("Cayo Perico", "Primary target set to: " .. selected.name)
+    end
+    
+    ImGui.Separator()
+    
+    -- Secondary Targets
+    local targetNames = {}
+    for i, target in ipairs(cayoSecondaryTargets) do
+        table.insert(targetNames, target.name)
+    end
+    
+    ImGui.Text("Compound Target:")
+    local nCompoundI, clickedCompound = ImGui.Combo("##Compound", compoundI, targetNames, #targetNames)
+    if clickedCompound then
+        compoundI = nCompoundI
+        local selected = cayoSecondaryTargets[compoundI + 1]
+        CayoTargetsSetter(
+            selected.amount.compound.cash,
+            selected.amount.compound.weed,
+            selected.amount.compound.coke,
+            selected.amount.compound.gold,
+            "C",
+            selected.caps,
+            selected.value
+        )
+        gui.show_message("Cayo Perico", "Compound target set to: " .. selected.name)
+    end
+    
+    ImGui.Text("Island Target:")
+    local nIslandI, clickedIsland = ImGui.Combo("##Island", islandI, targetNames, #targetNames)
+    if clickedIsland then
+        islandI = nIslandI
+        local selected = cayoSecondaryTargets[islandI + 1]
+        CayoTargetsSetter(
+            selected.amount.island.cash,
+            selected.amount.island.weed,
+            selected.amount.island.coke,
+            selected.amount.island.gold,
+            "I",
+            selected.caps,
+            selected.value
+        )
+        gui.show_message("Cayo Perico", "Island target set to: " .. selected.name)
+    end
+    
+    ImGui.Text("")
+    addPaintings, _ = ImGui.Checkbox("Paintings", addPaintings)
+    
+    ImGui.Separator()
+    
+    -- Difficulty
+    ImGui.Text("Difficulty:")
+    if ImGui.Button("Hard") then
+        stats.set_int(MPX() .. "H4_PROGRESS", 131055)
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Normal") then
+        stats.set_int(MPX() .. "H4_PROGRESS", 126823)
+    end
+    
+    ImGui.Separator()
+    
+    -- Approach
+    local approachNames = {}
+    for _, veh in ipairs(cayoApproachVehicles) do
+        table.insert(approachNames, veh.name)
+    end
+    ImGui.Text("Approach:")
+    local nIndex2, changed2 = ImGui.Combo("##CayoApproach", sApproach, approachNames, #approachNames)
+    if changed2 then
+        sApproach = nIndex2
+        local selected = cayoApproachVehicles[sApproach + 1]
+        stats.set_int(MPX() .. "H4_MISSIONS", selected.id)
+        gui.show_message("Cayo Perico", "Approach set to: " .. selected.name)
+    end
+    
+    ImGui.Separator()
+    
+    -- Weapons
+    local weaponNames = {}
+    for _, wep in ipairs(cayoWeapons) do
+        table.insert(weaponNames, wep.name)
+    end
+    ImGui.Text("Weapons:")
+    local nIndex3, changed3 = ImGui.Combo("##CayoWeapon", sWeapon, weaponNames, #weaponNames)
+    if changed3 then
+        sWeapon = nIndex3
+        local selected = cayoWeapons[sWeapon + 1]
+        stats.set_int(MPX() .. "H4CNF_WEAPONS", selected.id)
+        gui.show_message("Cayo Perico", "Weapon loadout set to: " .. selected.name)
+    end
+    
+    ImGui.Separator()
+    
+    -- Preps
+    if ImGui.Button("Complete Preps") then
+        CayoPaintingsToggler(addPaintings)
+        CayoCompletePreps()
+        locals.set_int("heist_island_planning", CPRSl, 2)
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Reset Preps") then
+        stats.set_int(MPX() .. "H4_PROGRESS", 0)
+        stats.set_int(MPX() .. "H4_MISSIONS", 0)
+        stats.set_int(MPX() .. "H4CNF_APPROACH", 0)
+        stats.set_int(MPX() .. "H4CNF_TARGET", -1)
+        stats.set_int(MPX() .. "H4CNF_BS_GEN", 0)
+        stats.set_int(MPX() .. "H4CNF_BS_ENTR", 0)
+        stats.set_int(MPX() .. "H4CNF_BS_ABIL", 0)
+        stats.set_int(MPX() .. "H4_PLAYTHROUGH_STATUS", 0)
+        locals.set_int("heist_island_planning", CPRSl, 2)
+    end
+    
+    ImGui.Separator()
+    
+    -- Crew Cuts
+    ImGui.Text("Removes fencing fee and Pavel's cut")
+    cayoCrewCuts, _ = ImGui.Checkbox("Remove Crew Cuts", cayoCrewCuts)
+    -- Note: script.register_looped for this should be handled separately
+    
+    ImGui.Separator()
+    
+    -- Cuts
+    ImGui.Text("Cuts to All")
+    if ImGui.Button("100") then
+        CutsPresetter(CPCg1, CPCg4, 100)
+    end
+    
+    ImGui.Text("")
+    ImGui.Text("Custom Cut")
+    cayocut1, _ = ImGui.InputInt("Cut 1", cayocut1)
+    cayocut2, _ = ImGui.InputInt("Cut 2", cayocut2)
+    cayocut3, _ = ImGui.InputInt("Cut 3", cayocut3)
+    cayocut4, _ = ImGui.InputInt("Cut 4", cayocut4)
+    if ImGui.Button("Set") then
+        globals.set_int(CPCg1, cayocut1)
+        globals.set_int(CPCg2, cayocut2)
+        globals.set_int(CPCg3, cayocut3)
+        globals.set_int(CPCg4, cayocut4)
+    end
+    
+    ImGui.Separator()
+    
+    -- Reload Planning Screen
+    ImGui.Text("Reload Planning Screen")
+    if ImGui.Button("Reload Planning Screen") then
+        locals.set_int("heist_island_planning", CPRSl, 2)
+        gui.show_message("Cayo Perico Heist", "Screen should've been reloaded")
+    end
+    
+    ImGui.Separator()
+    
+    -- Extras
+    ImGui.Text("Extras")
+    if ImGui.Button("Bypass Drainage Cut") then
+        locals.set_int("fm_mission_controller_2020", CPSTCl, 6)
+        gui.show_message("Cayo Perico Heist", "Cutting process should've been skipped")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Bypass Fingerprint Scanner") then
+        locals.set_int("fm_mission_controller_2020", CPFHl, 5)
+        gui.show_message("Cayo Perico Heist", "Hacking process should've been skipped")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Bypass Plasma Cutter") then
+        locals.set_float("fm_mission_controller_2020", CPPCCl, 100.0)
+        gui.show_message("Cayo Perico Heist", "Cutting process should've been skipped")
+    end
+    
+    if ImGui.Button("Remove All CCTV's") then
+        for _, ent in pairs(entities.get_all_objects_as_handles()) do
+            for __, cam in pairs(CamList) do
+                if ENTITY.GET_ENTITY_MODEL(ent) == cam then
+                    ENTITY.SET_ENTITY_AS_MISSION_ENTITY(ent, true, true)
+                    ENTITY.DELETE_ENTITY(ent)
+                end
+            end
         end
     end
-    stats.set_int(MPX() .. "H4LO_CH_LP_PAINT", aAmount); stats.set_int(MPX() .. "H4LO_CH_RP_PAINT", aAmount)
-    if iSecondary ~= 0 then
-        for i = 0, 5 do stats.set_int(MPX() .. "H4LO_TH_" .. iSecondary .. "_" .. i, iAmount) end
+    
+    if ImGui.Button("Instant Finish") then
+        locals.set_int("fm_mission_controller_2020", CPXf1, 9)
+        locals.set_int("fm_mission_controller_2020", CPXf2, 50)
+        gui.show_message("Cayo Perico Heist", "Heist should've been finished")
     end
-    gui.show_message("Cayo Perico Heist", "Preps should've been completed")
+    ImGui.SameLine()
+    if ImGui.Button("Skip Cutscene") then
+        SkipCutscene()
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Force Ready") then
+        script.run_in_fiber(function(script)
+            network.force_script_host("fm_mission_controller_2020")
+            script:sleep(1000)
+            for i = 1, 4 do
+                globals.set_int(1979868 + 1 + ((i - 1) * 27) + 7 + i, 1)
+            end
+            gui.show_message("Cayo Perico Heist", "Everyone should've been forced ready")
+        end)
+    end
+    
+    if ImGui.Button("Kill Cooldown (after solo)") then
+        stats.set_int(MPX() .. "H4_TARGET_POSIX", 1659643454)
+        stats.set_int(MPX() .. "H4_COOLDOWN", 0)
+        stats.set_int(MPX() .. "H4_COOLDOWN_HARD", 0)
+        gui.show_message("Cayo Perico Heist", "Cooldown should've been killed")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Kill Cooldown (after team)") then
+        stats.set_int(MPX() .. "H4_TARGET_POSIX", 1659429119)
+        stats.set_int(MPX() .. "H4_COOLDOWN", 0)
+        stats.set_int(MPX() .. "H4_COOLDOWN_HARD", 0)
+        gui.show_message("Cayo Perico Heist", "Cooldown should've been killed")
+    end
+    
+    ImGui.Text("After clicking the Kill Cooldown button, go offline and then come back online")
+    
+    ImGui.Separator()
+    
+    -- Teleports
+    ImGui.Text("Teleports")
+    
+    for i, location in ipairs(cayoLocations) do
+        if ImGui.Button(location.name) then
+            local ped = PLAYER.PLAYER_PED_ID()
+            PED.SET_PED_COORDS_KEEP_VEHICLE(ped, location.x, location.y, location.z)
+        end
+        
+        if i < 6 or i == 7 then
+            ImGui.SameLine()
+        end
+    end
 end)
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Reset Preps", function()
-    stats.set_int(MPX() .. "H4_PROGRESS", 0); stats.set_int(MPX() .. "H4_TARGET", -1)
-    stats.set_int(MPX() .. "H4_LO_BS_P1", 0); gui.show_message("Cayo Perico Heist", "Preps should've been reset")
-end)
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_text("Cuts:")
-cayoCrewCuts = CayoHeistEditorMenu:add_checkbox("Remove Crew Cuts")
-script.register_looped("CayoPerico_Crew", function()
+
+-- Handle the Crew Cuts loop separately
+script.register_looped("SN_CayoPerico_Crew", function(script)
+    script:yield()
     if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
-    local remove = cayoCrewCuts:is_enabled()
     for _, cut in ipairs(CayoPericoCrewCut) do
-        tunables.set_float(cut.tunable, remove and 0.0 or cut.default)
+        if cayoCrewCuts then
+            tunables.set_float(cut.tunable, 0)
+        else
+            tunables.set_float(cut.tunable, cut.default)
+        end
     end
 end)
 
-cayoPc1 = CayoHeistEditorMenu:add_input_int("Player Cut 1")
-cayoPc2 = CayoHeistEditorMenu:add_input_int("Player Cut 2")
-cayoPc3 = CayoHeistEditorMenu:add_input_int("Player Cut 3")
-cayoPc4 = CayoHeistEditorMenu:add_input_int("Player Cut 4")
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CayoPresets = {
-    { name = "All - 0%", index = 0 },
-    { name = "All - 85%", index = 85 },
-    { name = "All - 100%", index = 100 },
-    { name = "2.85mil Payout", index = -1 }
+-- Kortz Center Heist --
+local KortzCenterHeistMenu = HeistsDataEditorMenu:add_tab("Kortz Center Heist")
+
+-- State variables
+local k26_general_bs = 0
+local k26_robbery_prog = 0
+local k26_heist_target = 0
+local k26_scoping_bs = -1
+local k26_poi_bs = -1
+
+-- Bag size & multiplier variables
+local bagSizeValue = 100
+local weeklyMultiplierValue = 4.0
+
+-- Primary Target Names
+local k26Targets = {
+    {name = "La Dernière Débauche", id = 0, payout = 481250},
+    {name = "Hare Oneself Think", id = 1, payout = 304500},
+    {name = "The Downfall of Rome", id = 2, payout = 305000},
+    {name = "Brother Brother", id = 3, payout = 305500},
+    {name = "A Cast of Characters", id = 4, payout = 306000},
+    {name = "Gone To Seed", id = 5, payout = 306500},
+    {name = "True Love", id = 6, payout = 307000},
+    {name = "Breathless", id = 7, payout = 307500},
+    {name = "Consumato", id = 8, payout = 308000},
+    {name = "I Hear Voices", id = 9, payout = 308500},
+    {name = "Winter, Nowhere in Particular", id = 10, payout = 309000},
+    {name = "The Girl With the Pearl Necklace", id = 11, payout = 309500},
+    {name = "Chat on Fruit", id = 12, payout = 310000},
+    {name = "Pumpkin", id = 13, payout = 310500},
+    {name = "Twindifference", id = 14, payout = 311000},
+    {name = "Stacks Study V", id = 15, payout = 311500},
+    {name = "I, Fruit", id = 16, payout = 312000},
+    {name = "To Beat About the Bush", id = 17, payout = 312500},
+    {name = "In Excess of Success", id = 18, payout = 313000},
+    {name = "Juiced", id = 19, payout = 313500},
+    {name = "A Winding Road Home", id = 20, payout = 314000},
+    {name = "Teckels", id = 21, payout = 314500},
+    {name = "Trust", id = 22, payout = 315000},
+    {name = "Until Death", id = 23, payout = 315500},
+    {name = "What Are Melons?", id = 24, payout = 316000},
+    {name = "The Outcome of Endeavour", id = 25, payout = 365000},
+    {name = "Mi O Melee", id = 26, payout = 317000}
 }
-cayoPresetNames = {}
-for _, preset in ipairs(CayoPresets) do table.insert(cayoPresetNames, preset.name) end
-cayoPresetIndex = 0
 
-CayoHeistEditorMenu:add_imgui(function()
-    if isOffline() then return end
-    ImGui.Text("Presets:")
-	ImGui.SetNextItemWidth(170)
-    local nIndex, changed = ImGui.Combo("##CayoPreset", cayoPresetIndex, cayoPresetNames, #cayoPresetNames)
+local targetNames = {}
+for _, target in ipairs(k26Targets) do
+    table.insert(targetNames, target.name)
+end
+
+-- Helper function to set bits
+local function setK26Bit(stat, bit, name)
+    local current = stats.get_int(MPX() .. stat)
+    stats.set_int(MPX() .. stat, current | bit)
+    gui.show_message("Kortz Center Heist", name .. " enabled")
+end
+
+-- Helper function to check if Kortz Heist is active
+local function isKortzHeistActive()
+    return SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("fm_mission_controller_v3")) > 0
+end
+
+-- Kortz Center Cracker Functions using YimMenu API
+local function KortzSkipDataCrack()
+    if isKortzHeistActive() then
+        for b = 0, 7 do
+            locals.set_int("fm_mission_controller_v3", 1386 + (b * 4), 1)
+        end
+        gui.show_message("Kortz Center Cracker", "Data crack skipped")
+    else
+        gui.show_message("Kortz Center Cracker", "Heist not active!")
+    end
+end
+
+local function KortzSkipFingerprint()
+    if isKortzHeistActive() then
+        locals.set_int("fm_mission_controller_v3", 26464, 5)
+        gui.show_message("Kortz Center Cracker", "Fingerprint hack skipped")
+    else
+        gui.show_message("Kortz Center Cracker", "Heist not active!")
+    end
+end
+
+local function KortzAutoAccessCode()
+    if isKortzHeistActive() then
+        for i = 0, 2 do
+            locals.set_int("fm_mission_controller_v3", 32416 + 1 + (i * 2) + 1, 0)
+            locals.set_float("fm_mission_controller_v3", 32416 + 1 + (i * 2), 0.0)
+            PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 237, 1.0)
+        end
+        gui.show_message("Kortz Center Cracker", "Access code entered")
+    else
+        gui.show_message("Kortz Center Cracker", "Heist not active!")
+    end
+end
+
+local function KortzDisableLasers()
+    if isKortzHeistActive() then
+        locals.set_int("fm_mission_controller_v3", 70416, 4294784)
+        globals.set_int(1935234, 1)
+        gui.show_message("Kortz Center Cracker", "Lasers disabled")
+    else
+        gui.show_message("Kortz Center Cracker", "Heist not active!")
+    end
+end
+
+local function KortzSkipVaultDoor()
+    if isKortzHeistActive() then
+        locals.set_int("fm_mission_controller_v3", 27512, 5)
+        gui.show_message("Kortz Center Cracker", "Vault door hack skipped")
+    else
+        gui.show_message("Kortz Center Cracker", "Heist not active!")
+    end
+end
+
+local function KortzCutGlass()
+    if isKortzHeistActive() then
+        locals.set_float("fm_mission_controller_v3", 32453 + (4 * 13) + 3, 100.0)
+        gui.show_message("Kortz Center Cracker", "Glass cut instantly")
+    else
+        gui.show_message("Kortz Center Cracker", "Heist not active!")
+    end
+end
+
+local function KortzTakePrimary()
+    if isKortzHeistActive() then
+        locals.set_int("fm_mission_controller_v3", 28953 + 11, 15)
+        locals.set_int("fm_mission_controller_v3", 28953 + 11, 17)
+        PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 237, 1.0)
+        gui.show_message("Kortz Center Cracker", "Primary target taken! Don't forget to hammer the clip once")
+    else
+        gui.show_message("Kortz Center Cracker", "Heist not active!")
+    end
+end
+
+local function KortzTakeSecondary()
+    if isKortzHeistActive() then
+        locals.set_int("fm_mission_controller_v3", 28953 + 11, 3)
+        PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 219, 1.0)
+        gui.show_message("Kortz Center Cracker", "Secondary target taken! Don't forget to cut down once")
+    else
+        gui.show_message("Kortz Center Cracker", "Heist not active!")
+    end
+end
+
+-- Skip cooldown function
+local function KortzSkipCooldown()
+    globals.set_int(FMg + 37503, 0)   -- Normal cooldown
+    globals.set_int(FMg + 37504, 0)   -- Hard mode cooldown
+    gui.show_message("Kortz Center Heist", "Cooldowns skipped! You can start again")
+end
+
+-- Auto-hack state variable
+local autoAllHacks = false
+
+-- Auto-hack loop
+script.register_looped("KortzCenterAutoHack", function(script)
+    script:yield()
+    if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then 
+        return 
+    end
+    
+    if autoAllHacks and isKortzHeistActive() then
+        for b = 0, 7 do
+            locals.set_int("fm_mission_controller_v3", 1386 + (b * 4), 1)
+        end
+        locals.set_int("fm_mission_controller_v3", 27512, 5)
+        for i = 0, 2 do
+            locals.set_int("fm_mission_controller_v3", 32416 + 1 + (i * 2) + 1, 0)
+            locals.set_float("fm_mission_controller_v3", 32416 + 1 + (i * 2), 0.0)
+            PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 237, 1.0)
+        end
+        locals.set_int("fm_mission_controller_v3", 70416, 4294784)
+        globals.set_int(1935234, 1)
+        locals.set_int("fm_mission_controller_v3", 26464, 5)
+        locals.set_float("fm_mission_controller_v3", 32453 + (4 * 13) + 3, 100.0)
+        locals.set_int("fm_mission_controller_v3", 28953 + 11, 15)
+        locals.set_int("fm_mission_controller_v3", 28953 + 11, 17)
+        PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 237, 1.0)
+        gui.show_message("Kortz Center Cracker", "Primary target taken! Don't forget to hammer the clip once")
+        locals.set_int("fm_mission_controller_v3", 28953 + 11, 3)
+        PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 219, 1.0)
+        gui.show_message("Kortz Center Cracker", "Secondary target taken! Don't forget to cut down once")
+    end
+    
+    script:sleep(500)
+end)
+
+-- Main Kortz Center Heist Tab
+KortzCenterHeistMenu:add_imgui(function()
+    if checkOnline() then return end
+    
+    -- General Settings
+    ImGui.Text("General Settings")
+    ImGui.Separator()
+    
+    -- Primary Target
+    ImGui.Text("Primary Target:")
+    local nIndex, changed = ImGui.Combo("##K26Target", k26_heist_target, targetNames, #targetNames)
     if changed then
-        cayoPresetIndex = nIndex
-        local selected = CayoPresets[cayoPresetIndex + 1]
-        local cut = (selected.index == -1) and 100 or selected.index
-        if cayoPc1 then cayoPc1:set_value(cut) end
-        if cayoPc2 then cayoPc2:set_value(cut) end
-        if cayoPc3 then cayoPc3:set_value(cut) end
-        if cayoPc4 then cayoPc4:set_value(cut) end
+        k26_heist_target = nIndex
+        stats.set_int(MPX() .. "K26_HEIST_TARGET", k26_heist_target)
+        gui.show_message("Kortz Center Heist", "Primary target set to: " .. targetNames[k26_heist_target + 1])
+    end
+    
+    ImGui.Separator()
+    
+    -- Cooldown Skip
+    ImGui.Text("Cooldowns:")
+    if ImGui.Button("Skip Cooldown") then
+        KortzSkipCooldown()
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Sets both normal and hard mode cooldowns to 0 so you can start again")
+    end
+    
+    ImGui.Separator()
+    
+    -- Bag Capacity Editor
+    ImGui.Text("Bag Capacity:")
+    bagSizeValue, _ = ImGui.InputInt("##BagSize", bagSizeValue)
+    if ImGui.Button("Set Bag Size") then
+        if bagSizeValue < 1 then
+            gui.show_message("Kortz Center Heist", "Bag size must be at least 1!")
+        else
+            globals.set_int(FMg + 38037, bagSizeValue)
+            gui.show_message("Kortz Center Heist", "Bag capacity set to " .. bagSizeValue)
+        end
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Default is 100. How much you can carry in the heist")
+    end
+    
+    ImGui.Separator()
+    
+    -- Weekly Multiplier Editor
+    ImGui.Text("Weekly Bonus Multiplier:")
+    weeklyMultiplierValue, _ = ImGui.InputFloat("##WeeklyMultiplier", weeklyMultiplierValue)
+    if ImGui.Button("Set Weekly Multiplier") then
+        if weeklyMultiplierValue < 1.0 then
+            gui.show_message("Kortz Center Heist", "Multiplier must be at least 1.0!")
+        else
+            globals.set_float(FMg + 38199, weeklyMultiplierValue)
+            gui.show_message("Kortz Center Heist", "Weekly multiplier set to " .. weeklyMultiplierValue .. "x")
+        end
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Default is 4.0x. First sale of the week bonus multiplier")
+    end
+    
+    ImGui.Separator()
+    
+    -- Difficulty
+    ImGui.Text("Difficulty:")
+    if ImGui.Button("Hard Mode") then
+        stats.set_int(MPX() .. "K26_GENERAL_BS", 1784442458)
+        gui.show_message("Kortz Center Heist", "Hard Mode enabled")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Normal Mode") then
+        local current = stats.get_int(MPX() .. "K26_GENERAL_BS")
+        stats.set_int(MPX() .. "K26_GENERAL_BS", current & ~1784442458)
+        gui.show_message("Kortz Center Heist", "Normal Mode enabled")
+    end
+    
+    ImGui.Separator()
+    
+    -- Prep Work
+    ImGui.Text("Prep Work")
+    ImGui.Separator()
+    
+    -- Scope Out
+    if ImGui.Button("Scope Out Kortz Center") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 1)
+        gui.show_message("Kortz Center Heist", "Kortz Center scoped out")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Unscope Out") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") & ~1)
+        gui.show_message("Kortz Center Heist", "Kortz Center unscoped")
+    end
+    
+    -- Disguises
+    if ImGui.Button("Alpha Mail Disguise") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 2)
+        gui.show_message("Kortz Center Heist", "Alpha Mail Disguise acquired")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Hazmat Suit") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 4)
+        gui.show_message("Kortz Center Heist", "Hazmat Suit acquired")
+    end
+    
+    -- Equipment
+    if ImGui.Button("Staff Key Card") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 8)
+        gui.show_message("Kortz Center Heist", "Staff Key Card acquired")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Tactical Equipment") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 16)
+        gui.show_message("Kortz Center Heist", "Tactical Equipment acquired")
+    end
+    
+    if ImGui.Button("Hacking Device") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 32)
+        gui.show_message("Kortz Center Heist", "Hacking Device acquired")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Access Code") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 64)
+        gui.show_message("Kortz Center Heist", "Access Code acquired")
+    end
+    
+    -- Vehicles
+    ImGui.Text("Vehicles:")
+    if ImGui.Button("Armored Caracara") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 256)
+        gui.show_message("Kortz Center Heist", "Armored Caracara unlocked")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Annihilator Stealth") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 512)
+        gui.show_message("Kortz Center Heist", "Annihilator Stealth unlocked")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Manchez (Any Color)") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 1024)
+        gui.show_message("Kortz Center Heist", "Manchez unlocked")
+    end
+    
+    ImGui.Separator()
+    
+    -- Optional Prep Work
+    ImGui.Text("Optional Prep Work (Requires POI)")
+    ImGui.Separator()
+    
+    if ImGui.Button("Scope Points of Interest") then
+        stats.set_int(MPX() .. "K26_POI_BS", -1)
+        gui.show_message("Kortz Center Heist", "Points of Interest scoped")
+    end
+    
+    ImGui.Text("General Upgrades:")
+    
+    if ImGui.Button("Guard Routes") then
+        setK26Bit("K26_GENERAL_BS", 32, "Guard Routes")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Glass Cutter") then
+        setK26Bit("K26_GENERAL_BS", 64, "Glass Cutter")
+    end
+    
+    if ImGui.Button("Power Drills") then
+        setK26Bit("K26_GENERAL_BS", 128, "Power Drills")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("EMP Charges") then
+        setK26Bit("K26_GENERAL_BS", 256, "EMP Charges")
+    end
+    
+    ImGui.Text("Loadouts:")
+    if ImGui.Button("Street Loadout") then
+        setK26Bit("K26_GENERAL_BS", 512, "Street Loadout")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Security Loadout") then
+        setK26Bit("K26_GENERAL_BS", 1024, "Security Loadout")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Military Loadout") then
+        setK26Bit("K26_GENERAL_BS", 2048, "Military Loadout")
+    end
+    
+    ImGui.Text("Manchez Colors:")
+    if ImGui.Button("Red Manchez") then
+        setK26Bit("K26_GENERAL_BS", 131072, "Red Manchez")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Blue Manchez") then
+        setK26Bit("K26_GENERAL_BS", 262144, "Blue Manchez")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Green Manchez") then
+        setK26Bit("K26_GENERAL_BS", 524288, "Green Manchez")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Yellow Manchez") then
+        setK26Bit("K26_GENERAL_BS", 1048576, "Yellow Manchez")
+    end
+    
+    if ImGui.Button("Manhole Key") then
+        setK26Bit("K26_GENERAL_BS", 134217728, "Manhole Key")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Weak Guards") then
+        setK26Bit("K26_GENERAL_BS", -2147483648, "Weak Guards")
+    end
+    
+    ImGui.Separator()
+    
+    -- Secondary Targets
+    ImGui.Text("Secondary Targets")
+    if ImGui.Button("Scope All Secondary Targets") then
+        stats.set_int(MPX() .. "K26_SCOPING_BS", -1)
+        gui.show_message("Kortz Center Heist", "All secondary targets scoped")
+    end
+    
+    ImGui.Separator()
+    
+    -- Quick Actions
+    ImGui.Text("Quick Actions")
+    if ImGui.Button("Complete All Preps") then
+        stats.set_int(MPX() .. "K26_GENERAL_BS", -1)
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", 65535)
+        stats.set_int(MPX() .. "K26_SCOPING_BS", -1)
+        stats.set_int(MPX() .. "K26_POI_BS", -1)
+        gui.show_message("Kortz Center Heist", "All preps completed")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Reset All Preps") then
+        stats.set_int(MPX() .. "K26_GENERAL_BS", 0)
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", 0)
+        stats.set_int(MPX() .. "K26_SCOPING_BS", 0)
+        stats.set_int(MPX() .. "K26_POI_BS", 0)
+        gui.show_message("Kortz Center Heist", "All preps reset")
+    end
+    
+    if ImGui.Button("Reload Planning Board") then
+        stats.set_int(MPX() .. "K26_GENERAL_BS2", stats.get_int(MPX() .. "K26_GENERAL_BS2") + 1)
+        gui.show_message("Kortz Center Heist", "Planning board reloaded")
+    end
+    
+    ImGui.Separator()
+    
+    -- Extras
+    ImGui.Text("Extras")
+    if ImGui.Button("Skip Cutscene") then
+        SkipCutscene()
+        gui.show_message("Kortz Center Heist", "Cutscene skipped")
     end
 end)
 
-CayoHeistEditorMenu:add_button("Apply Cuts", function()
-    globals.set_int(CPCg1, cayoPc1:get_value()); globals.set_int(CPCg2, cayoPc2:get_value())
-    globals.set_int(CPCg3, cayoPc3:get_value()); globals.set_int(CPCg4, cayoPc4:get_value())
-    gui.show_message("Cayo Perico Heist", "Cuts should've been applied")
-end)
+-- Kortz Center Cracker (Sub-tab inside Kortz Center Heist)
+local KortzCenterCrackerMenu = KortzCenterHeistMenu:add_tab("Mission Cracker")
 
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_button("Solo Launch", function()
-	if locals.get_int("fmmc_launcher", HGGs1) ~= nil and locals.get_int("fmmc_launcher", HGGs1) ~= 0 then
-		if locals.get_int("fmmc_launcher", HGGs1) > 1 then
-			locals.set_int("fmmc_launcher", HGGs2, 1)
-			globals.set_int(794954 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
-		end
-		globals.set_int(HGLs1, 1); globals.set_int(HGLs2, 1); globals.set_int(HGLs3, 1); globals.set_int(HGLs4, 0)
-	end
-end)
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Force Ready", function()
-    script.run_in_fiber(function(script)
-        network.force_script_host(FMC); script:sleep(1000)
-        for i = 1, 4 do globals.set_int(1882572 + 1 + ((i - 1) * 315) + 43 + 11 + i, 1) end
-    end)
-end)
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Skip Cutscene", SkipCutscene)
-
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_text("Reset Presets Completely")
-CayoHeistEditorMenu:add_button("Reset Heist Completely", function()
-	stats.set_int(MPX() .. "H4_MISSIONS", 0)
-	stats.set_int(MPX() .. "H4_PROGRESS", 0)
-	stats.set_int(MPX() .. "H4_PLAYTHROUGH_STATUS", 0)
-	stats.set_int(MPX() .. "H4CNF_APPROACH", 0)
-	stats.set_int(MPX() .. "H4CNF_BS_ENTR", 0)
-	stats.set_int(MPX() .. "H4CNF_BS_GEN", 0)
-end)
-
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_text(
-	"Press this after clicking one of the above presets or after the reset heist Completely Option"
-)
-CayoHeistEditorMenu:add_button("Reset Kosatka Board", function()
-	locals.set_int(HIP, CPRSl, 2)
-	gui.show_message("Cayo Heist", "Planning board has been reset!")
-end)
-
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_text("During Heist")
-CayoHeistEditorMenu:add_button("Skip Drainage Cut", function()
-	locals.set_int(FMC2020, CPSTCl, 6)
-	gui.show_message("Cayo Heist", "Bypassed Drainage Cut")
-end)
-
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Skip Fingerprint Scanner", function()
-	locals.set_int(FMC2020, CPFHl, 5)
-	gui.show_message("Cayo Heist", "Bypassed Fingerprint Scanner")
-end)
-
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Skip Glass Cut", function()
-	locals.set_float(FMC2020, CPPCCl, 100.0)
-	gui.show_message("Cayo Heist", "Bypassed Plasma Cutter")
-end)
-
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Remove All CCTV's", function()
-	for _, ent in pairs(entities.get_all_objects_as_handles()) do
-		for __, cam in pairs(CamList) do
-			if ENTITY.GET_ENTITY_MODEL(ent) == cam then
-				ENTITY.SET_ENTITY_AS_MISSION_ENTITY(ent, true, true)
-				ENTITY.DELETE_ENTITY(ent)
-			end
-		end
-	end
-end)
-CamList = {
-	joaat("prop_cctv_cam_01a"),
-	joaat("prop_cctv_cam_01b"),
-	joaat("prop_cctv_cam_02a"),
-	joaat("prop_cctv_cam_03a"),
-	joaat("prop_cctv_cam_04a"),
-	joaat("prop_cctv_cam_04c"),
-	joaat("prop_cctv_cam_05a"),
-	joaat("prop_cctv_cam_06a"),
-	joaat("prop_cctv_cam_07a"),
-	joaat("prop_cs_cctv"),
-	joaat("p_cctv_s"),
-	joaat("hei_prop_bank_cctv_01"),
-	joaat("hei_prop_bank_cctv_02"),
-	joaat("ch_prop_ch_cctv_cam_02a"),
-	joaat("xm_prop_x17_server_farm_cctv_01"),
-}
-
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Delete Mission NPC's", function() -- Thanks to RazorGamerX for the help on this
-	for index, ped in ipairs(entities.get_all_peds_as_handles()) do
-		local model = ENTITY.GET_ENTITY_MODEL(ped)
-		if model == 0x7ED5AD78 or model == 0x6C8C08E5 or model == 0x995B3F9F or model == 0xB881AEE then
-			ENTITY.SET_ENTITY_AS_MISSION_ENTITY(ped, true, true)
-			PED.DELETE_PED(ped)
-		end
-	end
-end)
-
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_text("Teleports")
-CayoHeistEditorMenu:add_button("Compound Entrance", function() ENTITY.SET_ENTITY_COORDS_NO_OFFSET(PLAYER.PLAYER_PED_ID(), 5044.757, -5815.772, -11.213, false, false, false) end)
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Primary Target", function() ENTITY.SET_ENTITY_COORDS_NO_OFFSET(PLAYER.PLAYER_PED_ID(), 5006.721, -5756.02, 14.483, false, false, false) end)
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Office", function() ENTITY.SET_ENTITY_COORDS_NO_OFFSET(PLAYER.PLAYER_PED_ID(), 5010.12, -5750.13, 27.84, false, false, false) end)
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Drainage Pipe", function() ENTITY.SET_ENTITY_COORDS_NO_OFFSET(PLAYER.PLAYER_PED_ID(), 5043.46, -5821.57, -11.19, false, false, false) end)
-CayoHeistEditorMenu:add_sameline()
-CayoHeistEditorMenu:add_button("Island Exit", function() ENTITY.SET_ENTITY_COORDS_NO_OFFSET(PLAYER.PLAYER_PED_ID(), 4771.79, -6166.0, -39.0, false, false, false) end)
-
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_text("After Heist")
-CayoHeistEditorMenu:add_button("Skip Cooldown", function()
-	-- Solo Skip
-	stats.set_int("MP0_H4_TARGET_POSIX", 1659643454)
-	stats.set_int("MP0_H4_COOLDOWN", 0)
-	stats.set_int("MP0_H4_COOLDOWN_HARD", 0)
-	-- Multiplayer Skip
-	stats.set_int("MP0_H4_TARGET_POSIX", 1659429119)
-	stats.set_int("MP0_H4_COOLDOWN", 0)
-	stats.set_int("MP0_H4_COOLDOWN_HARD", 0)
-	-- Solo Skip (Second Character)
-	stats.set_int("MP1_H4_TARGET_POSIX", 1659643454)
-	stats.set_int("MP1_H4_COOLDOWN", 0)
-	stats.set_int("MP1_H4_COOLDOWN_HARD", 0)
-	-- Multiplayer Skip (Second Character)
-	stats.set_int("MP1_H4_TARGET_POSIX", 1659429119)
-	stats.set_int("MP1_H4_COOLDOWN", 0)
-	stats.set_int("MP1_H4_COOLDOWN_HARD", 0)
-
-	gui.show_message("Cayo Heist", "Skipped Cayo Perico Cooldown for all characters")
-	gui.show_message("Cayo Heist", "Go to story mode and come back to apply the reset")
-end)
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_text("How to Set Up or Bypass Cooldown:")
-CayoHeistEditorMenu:add_text(
-	"Make sure you have completed the heist and you are standing in front of the planning screen"
-)
-CayoHeistEditorMenu:add_text("Click Skip Cooldown, then click on your Preset and click Reset Kosatka Board")
-
-CayoHeistEditorMenu:add_separator()
-CayoHeistEditorMenu:add_text("Instant Heist Passed")
-CayoHeistEditorMenu:add_button("Instant Finish $$", function()
-	locals.set_int(FMC2020, IHPB, 9)
-	locals.set_int(FMC2020, IHPL, 50)
-	gui.show_message("Instant Heist Passed", "Activated")
-end)
-
--- Cayo Bag Size & Value Editor
-local cayoSizeEditor = CayoHeistEditorMenu:add_tab("Loot Value Editor")
-cayoSizeEditor:add_button("Reset Kosatka Board", function()
-	locals.set_int(HIP, 1566, 2); gui.show_message("Cayo Heist", "Planning board has been reset!")
-end)
-cayoSizeEditor:add_separator()
-cayoSizeEditor:add_text("Primary Target Values:")
-local cayoBagSize = 1800
-local cayoPanther = 1900000
-local cayoDiamond = 1300000
-local cayoBonds = 770000
-local cayoNecklace = 700000
-local cayoTequila = 630000
-
-cayoSizeEditor:add_imgui(function()
-    if isOffline() then return end
-    cayoBagSize, used = ImGui.SliderInt("Bag Size", cayoBagSize, 1800, 7200)
-    if used then globals.set_int(BAS1, cayoBagSize) end
-    cayoPanther, used = ImGui.SliderInt("Panther Value", cayoPanther, 1900000, 3800000)
-    if used then globals.set_int(PSV, cayoPanther) end
-    cayoDiamond, used = ImGui.SliderInt("Diamond Value", cayoDiamond, 1300000, 2600000)
-    if used then globals.set_int(PDIAMOND, cayoDiamond) end
-    cayoBonds, used = ImGui.SliderInt("Bonds Value", cayoBonds, 770000, 1540000)
-    if used then globals.set_int(BB, cayoBonds) end
-    cayoNecklace, used = ImGui.SliderInt("Necklace Value", cayoNecklace, 700000, 1400000)
-    if used then globals.set_int(RN, cayoNecklace) end
-    cayoTequila, used = ImGui.SliderInt("Tequila Value", cayoTequila, 630000, 1400000)
-    if used then globals.set_int(TEQUILA, cayoTequila) end
+KortzCenterCrackerMenu:add_imgui(function()
+    if checkOnline() then return end
+    
+    local isHeistActive = isKortzHeistActive()
+    
+    if not isHeistActive then
+        ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Please start The Kortz Center Heist first.")
+        ImGui.TextColored(0.6, 0.6, 0.6, 1.0, " ")
+        return
+    end
+    
+    ImGui.Text("The Kortz Center Heist - Hacks")
+    ImGui.Separator()
+    
+    -- Master Auto-Hack Checkbox
+    local changed
+    autoAllHacks, changed = ImGui.Checkbox("Enable All Auto-Hacks", autoAllHacks)
+    if changed then
+        if autoAllHacks then
+            gui.show_message("Kortz Center Cracker", "All auto-hacks enabled")
+        else
+            gui.show_message("Kortz Center Cracker", "All auto-hacks disabled")
+        end
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Automatically performs all hacks when needed")
+    end
+    
+    ImGui.Separator()
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Manual Hacks (Press when needed)")
+    ImGui.Separator()
+    
+    -- Row 1
+    if ImGui.Button("Skip Data Crack") then
+        KortzSkipDataCrack()
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Press when doing the data crack minigame")
+    end
+    
+    ImGui.SameLine()
+    
+    if ImGui.Button("Skip Fingerprint Hack") then
+        KortzSkipFingerprint()
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Press when doing the fingerprint hacking")
+    end
+    
+    -- Row 2
+    if ImGui.Button("Auto-Enter Access Code") then
+        script.run_in_fiber(function(script)
+            KortzAutoAccessCode()
+            script:sleep(100)
+        end)
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Press when entering the PC access code")
+    end
+    
+    ImGui.SameLine()
+    
+    if ImGui.Button("Disable Lasers") then
+        KortzDisableLasers()
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Press to disable the laser grid")
+    end
+    
+    -- Row 3
+    if ImGui.Button("Skip Vault Door Hack") then
+        KortzSkipVaultDoor()
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Press to skip signal nodes hacking")
+    end
+    
+    ImGui.SameLine()
+    
+    if ImGui.Button("Cut Glass") then
+        KortzCutGlass()
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Press to cut display cases instantly")
+    end
+    
+    -- Row 4
+    if ImGui.Button("Take Primary Target") then
+        script.run_in_fiber(function(script)
+            KortzTakePrimary()
+            script:sleep(1000)
+        end)
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Press to take the primary target instantly - Don't forget to hammer the clip once")
+    end
+    
+    ImGui.SameLine()
+    
+    if ImGui.Button("Take Secondary Target") then
+        KortzTakeSecondary()
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Press to take a secondary target instantly - Don't forget to cut down once")
+    end
+    
+    ImGui.Separator()
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Toggle the checkbox above for full automation")
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-MissionsSelectorAndCooldownMenu = L7NEG:add_tab("Missions Selector And cooldown Menu")
+MissionsSelectorAndCooldownMenu = makeOnlineTab(L7NEG:add_tab("Missions Selector And cooldown Menu"))
 
 MissionsSelectorAndCooldownMenu:add_button("Remove Dax Fooligan missions CoolDown ", function()
 	stats.set_int(MPX() .. "XM22JUGGALOWORKCDTIMER", -1)
@@ -6572,10 +7381,17 @@ Yimura:add_text("https://github.com/YimMenu/YimMenuV2")
 SILENTSALO = CreditsMenu:add_tab("Silent")
 SILENTSALO:add_text("Source:")
 SILENTSALO:add_text("https://github.com/SilentSal0/Silent-Night")
+SILENTSALO:add_text("Maintained by nightli:")
+SILENTSALO:add_text("https://github.com/xnightli06x/Silent-Night")
 
 XESDDOOG = CreditsMenu:add_tab("SAMURAI aka xesdoog")
 XESDDOOG:add_text("Source:")
 XESDDOOG:add_text("https://github.com/YimMenu-Lua/YimResupplier")
+
+IMAGINENOTHING = CreditsMenu:add_tab("ImagineNothing")
+IMAGINENOTHING:add_text("For Kortz Center Heist stats and Locals/globals:")
+IMAGINENOTHING:add_text("https://www.unknowncheats.me/forum/4742522-post603.html")
+IMAGINENOTHING:add_text("https://www.unknowncheats.me/forum/4746347-post762.html")
 
 SLON = CreditsMenu:add_tab("SLON")
 SLON:add_text("Source:")

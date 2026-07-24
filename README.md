@@ -20,11 +20,11 @@
 <h2 align="center">📸 Preview (Legacy)</h2>
 
 <p align="center">
-  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/10.png" alt="Ultimate Menu Preview">
-  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/11.png" alt="Ultimate Menu Preview">
-  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/12.png" alt="Ultimate Menu Preview">
-  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/13.png" alt="Ultimate Menu Preview">
-  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/14.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/15.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/16.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/17.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/18.png" alt="Ultimate Menu Preview">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/19.png" alt="Ultimate Menu Preview">
 </p>
 
 ---
@@ -47,7 +47,7 @@
 ## 📅 Update Info
 
 - **Ultimate Menu for ModestMenu**: Last updated on **Dec 12, 2024** *(Final Update)*  
-- **Ultimate Menu for YimMenu Legacy**: Last updated on **May 26, 2026**
+- **Ultimate Menu for YimMenu Legacy**: Last updated on **Jul 24, 2026**
 - **Ultimate Menu for YimMenu Enhanced**: **Might Not Coming Soon (WIP Waiting for completion of YimMenuV2 Lua API)**
 
 ---
@@ -120,4 +120,4 @@ If you'd like to support this project or say thanks you can use one of the below
 
 ---
 
-**Thanks for using Ultimate Menu Made With ❤️ By L7NEG**
+**Thanks for using Ultimate Menu Made With ❤️ By L7NEG & Contributors/Helpers**
