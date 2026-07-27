@@ -5858,7 +5858,6 @@ CasinoHeistEditorMenu:add_button("Casino Aggressive (Diamonds)", function()
 end)
 
 CasinoHeistEditorMenu:add_separator()
-CasinoHeistEditorMenu:add_text("Preps:")
 
 DiamondCasinoDifficulties = {
     { name = "Normal", index = 0 },
@@ -6006,260 +6005,215 @@ DiamondCasinoCrewCut = {
     { tunable = "HEIST3_HACKERS_PAIGE_CUT", default = 9 }
 }
 
+-- Build name lists for all combos
 diamondDifficultyNames = {}
-for _, item in ipairs(DiamondCasinoDifficulties) do
-    table.insert(diamondDifficultyNames, item.name)
-end
+for _, item in ipairs(DiamondCasinoDifficulties) do table.insert(diamondDifficultyNames, item.name) end
 diamondDifficultyIndex = 0
-CasinoHeistEditorMenu:add_imgui(function()
-    local nIndex, changed = ImGui.Combo("Difficulty", diamondDifficultyIndex, diamondDifficultyNames, #diamondDifficultyNames)
-    if changed then
-        diamondDifficultyIndex = nIndex
-    end
-end)
 
 diamondApproachNames = {}
-for _, item in ipairs(diamondApproachList) do
-    table.insert(diamondApproachNames, item.name)
-end
+for _, item in ipairs(diamondApproachList) do table.insert(diamondApproachNames, item.name) end
 diamondApproachIndex = 0
-CasinoHeistEditorMenu:add_imgui(function()
-    local nIndex, changed = ImGui.Combo("Approach", diamondApproachIndex, diamondApproachNames, #diamondApproachNames)
-    if changed then
-        diamondApproachIndex = nIndex
-    end
-end)
 
 diamondGunmanNames = {}
-for _, item in ipairs(diamondGunmanList) do
-    table.insert(diamondGunmanNames, item.name)
-end
+for _, item in ipairs(diamondGunmanList) do table.insert(diamondGunmanNames, item.name) end
 diamondGunmanIndex = 0
+
+local diamondLoadoutIndex = 0
+
+local diamondDriverNames = {}
+for _, item in ipairs(diamondDriverList) do table.insert(diamondDriverNames, item.name) end
+local diamondDriverIndex = 0
+
+local diamondVehiclesIndex = 0
+
+local diamondHackerNames = {}
+for _, item in ipairs(diamondHackerList) do table.insert(diamondHackerNames, item.name) end
+local diamondHackerIndex = 0
+
+local diamondMasksNames = {}
+for _, item in ipairs(diamondMasksList) do table.insert(diamondMasksNames, item.name) end
+local diamondMasksIndex = 0
+
+local diamondGuardsNames = {}
+for _, item in ipairs(diamondGuardsList) do table.insert(diamondGuardsNames, item.name) end
+local diamondGuardsIndex = 0
+
+local diamondKeycardsNames = {}
+for _, item in ipairs(diamondKeycardsList) do table.insert(diamondKeycardsNames, item.name) end
+local diamondKeycardsIndex = 0
+
+local diamondTargetNames = {}
+for _, item in ipairs(diamondTargetList) do table.insert(diamondTargetNames, item.name) end
+local diamondTargetIndex = 0
+
+-- All prep dropdowns in a single add_imgui block so they render in the correct position
 CasinoHeistEditorMenu:add_imgui(function()
-    local nIndex, changed = ImGui.Combo("Gunman", diamondGunmanIndex, diamondGunmanNames, #diamondGunmanNames)
+    if isOffline() then return end
+
+    ImGui.Text("Preps:")
+    ImGui.Separator()
+
+    -- Difficulty
+    local nIndex, changed = ImGui.Combo("Difficulty", diamondDifficultyIndex, diamondDifficultyNames, #diamondDifficultyNames)
+    if changed then diamondDifficultyIndex = nIndex end
+
+    -- Approach
+    nIndex, changed = ImGui.Combo("Approach", diamondApproachIndex, diamondApproachNames, #diamondApproachNames)
+    if changed then diamondApproachIndex = nIndex end
+
+    -- Gunman
+    nIndex, changed = ImGui.Combo("Gunman", diamondGunmanIndex, diamondGunmanNames, #diamondGunmanNames)
     if changed then
         diamondGunmanIndex = nIndex
         diamondLoadoutIndex = 0
     end
-end)
 
-local diamondLoadoutIndex = 0
-CasinoHeistEditorMenu:add_imgui(function()
-    local gIndex = diamondGunmanList[diamondGunmanIndex + 1].index
-    local filnames = {}
-    local count = 0
-    for _, item in ipairs(diamondLoadoutList) do
-        if item.index == gIndex then
-            count = count + 1
-            table.insert(filnames, item.name)
+    -- Loadout (filtered by gunman)
+    do
+        local gIndex = diamondGunmanList[diamondGunmanIndex + 1].index
+        local filnames = {}
+        for _, item in ipairs(diamondLoadoutList) do
+            if item.index == gIndex then table.insert(filnames, item.name) end
         end
+        nIndex, changed = ImGui.Combo("Loadout", diamondLoadoutIndex, filnames, #filnames)
+        if changed then diamondLoadoutIndex = nIndex end
     end
-    local nIndex, changed = ImGui.Combo("Loadout", diamondLoadoutIndex, filnames, count)
-    if changed then
-        diamondLoadoutIndex = nIndex
-    end
-end)
 
-local diamondDriverNames = {}
-for _, item in ipairs(diamondDriverList) do
-    table.insert(diamondDriverNames, item.name)
-end
-local diamondDriverIndex = 0
-CasinoHeistEditorMenu:add_imgui(function()
-    local nIndex, changed = ImGui.Combo("Driver", diamondDriverIndex, diamondDriverNames, #diamondDriverNames)
+    -- Driver
+    nIndex, changed = ImGui.Combo("Driver", diamondDriverIndex, diamondDriverNames, #diamondDriverNames)
     if changed then
         diamondDriverIndex = nIndex
         diamondVehiclesIndex = 0
     end
-end)
 
-local diamondVehiclesIndex = 0
-CasinoHeistEditorMenu:add_imgui(function()
-    local dIndex = diamondDriverList[diamondDriverIndex + 1].index
-    local filnames = {}
-    local count = 0
-    for _, item in ipairs(diamondVehiclesList) do
-        if item.index == dIndex then
-            count = count + 1
-            table.insert(filnames, item.name)
+    -- Vehicles (filtered by driver)
+    do
+        local dIndex = diamondDriverList[diamondDriverIndex + 1].index
+        local filnames = {}
+        for _, item in ipairs(diamondVehiclesList) do
+            if item.index == dIndex then table.insert(filnames, item.name) end
         end
+        nIndex, changed = ImGui.Combo("Vehicles", diamondVehiclesIndex, filnames, #filnames)
+        if changed then diamondVehiclesIndex = nIndex end
     end
-    local nIndex, changed = ImGui.Combo("Vehicles", diamondVehiclesIndex, filnames, count)
-    if changed then
-        diamondVehiclesIndex = nIndex
+
+    -- Hacker
+    nIndex, changed = ImGui.Combo("Hacker", diamondHackerIndex, diamondHackerNames, #diamondHackerNames)
+    if changed then diamondHackerIndex = nIndex end
+
+    -- Masks
+    nIndex, changed = ImGui.Combo("Masks", diamondMasksIndex, diamondMasksNames, #diamondMasksNames)
+    if changed then diamondMasksIndex = nIndex end
+
+    -- Guards
+    nIndex, changed = ImGui.Combo("Guards", diamondGuardsIndex, diamondGuardsNames, #diamondGuardsNames)
+    if changed then diamondGuardsIndex = nIndex end
+
+    -- Keycards
+    nIndex, changed = ImGui.Combo("Keycards", diamondKeycardsIndex, diamondKeycardsNames, #diamondKeycardsNames)
+    if changed then diamondKeycardsIndex = nIndex end
+
+    -- Target
+    nIndex, changed = ImGui.Combo("Target", diamondTargetIndex, diamondTargetNames, #diamondTargetNames)
+    if changed then diamondTargetIndex = nIndex end
+
+    ImGui.Separator()
+
+    -- Apply & Complete Preps button (inline so it appears right after the dropdowns)
+    if ImGui.Button("Apply & Complete Preps") then
+        local approach = diamondApproachList[diamondApproachIndex + 1].index
+        local gunman = diamondGunmanList[diamondGunmanIndex + 1].index
+        local loadout = diamondLoadoutIndex
+        local driver = diamondDriverList[diamondDriverIndex + 1].index
+        local vehicles = diamondVehiclesIndex
+        local hacker = diamondHackerList[diamondHackerIndex + 1].index
+        local masks = diamondMasksList[diamondMasksIndex + 1].index
+        local guards = diamondGuardsList[diamondGuardsIndex + 1].index
+        local keycards = diamondKeycardsList[diamondKeycardsIndex + 1].index
+        local target = diamondTargetList[diamondTargetIndex + 1].index
+        local difficulty = DiamondCasinoDifficulties[diamondDifficultyIndex + 1].index
+        stats.set_int(MPX() .. "H3OPT_POI", -1)
+        stats.set_int(MPX() .. "H3OPT_ACCESSPOINTS", -1)
+        stats.set_int(MPX() .. "CAS_HEIST_NOTS", -1)
+        stats.set_int(MPX() .. "CAS_HEIST_FLOW", -1)
+        stats.set_int(MPX() .. "H3_LAST_APPROACH", 0)
+        stats.set_int(MPX() .. "H3_HARD_APPROACH", (difficulty == 0) and 0 or approach)
+        stats.set_int(MPX() .. "H3OPT_APPROACH", approach)
+        stats.set_int(MPX() .. "H3OPT_CREWWEAP", gunman)
+        stats.set_int(MPX() .. "H3OPT_WEAPS", loadout)
+        stats.set_int(MPX() .. "H3OPT_CREWDRIVER", driver)
+        stats.set_int(MPX() .. "H3OPT_VEHS", vehicles)
+        stats.set_int(MPX() .. "H3OPT_CREWHACKER", hacker)
+        stats.set_int(MPX() .. "H3OPT_TARGET", target)
+        stats.set_int(MPX() .. "H3OPT_MASKS", masks)
+        stats.set_int(MPX() .. "H3OPT_DISRUPTSHIP", guards)
+        stats.set_int(MPX() .. "H3OPT_KEYLEVELS", keycards)
+        stats.set_int(MPX() .. "H3OPT_BODYARMORLVL", -1)
+        stats.set_int(MPX() .. "H3OPT_BITSET0", -1)
+        stats.set_int(MPX() .. "H3OPT_BITSET1", -1)
+        stats.set_int(MPX() .. "H3OPT_COMPLETEDPOSIX", -1)
+        locals.set_int("gb_casino_heist_planning", DCRBl, 2)
+        gui.show_message("Diamond Casino Heist", "Preps should've been completed")
     end
-end)
 
-local diamondHackerNames = {}
-for _, item in ipairs(diamondHackerList) do
-    table.insert(diamondHackerNames, item.name)
-end
-local diamondHackerIndex = 0
-CasinoHeistEditorMenu:add_imgui(function()
-    local nIndex, changed = ImGui.Combo("Hacker", diamondHackerIndex, diamondHackerNames, #diamondHackerNames)
-    if changed then
-        diamondHackerIndex = nIndex
+    ImGui.SameLine()
+
+    if ImGui.Button("Reset Preps##diamond") then
+        stats.set_int(MPX() .. "H3_LAST_APPROACH", 0)
+        stats.set_int(MPX() .. "H3_HARD_APPROACH", 0)
+        stats.set_int(MPX() .. "H3_APPROACH", 0)
+        stats.set_int(MPX() .. "H3OPT_APPROACH", 0)
+        stats.set_int(MPX() .. "H3OPT_CREWWEAP", 0)
+        stats.set_int(MPX() .. "H3OPT_WEAPS", 0)
+        stats.set_int(MPX() .. "H3OPT_CREWDRIVER", 0)
+        stats.set_int(MPX() .. "H3OPT_VEHS", 0)
+        stats.set_int(MPX() .. "H3OPT_CREWHACKER", 0)
+        stats.set_int(MPX() .. "H3OPT_MASKS", 0)
+        stats.set_int(MPX() .. "H3OPT_TARGET", 0)
+        stats.set_int(MPX() .. "H3OPT_DISRUPTSHIP", 0)
+        stats.set_int(MPX() .. "H3OPT_BODYARMORLVL", 1)
+        stats.set_int(MPX() .. "H3OPT_KEYLEVELS", 0)
+        stats.set_int(MPX() .. "H3OPT_BITSET0", 0)
+        stats.set_int(MPX() .. "H3OPT_BITSET1", 0)
+        stats.set_int(MPX() .. "H3_BOARD_DIALOGUE0", 0)
+        stats.set_int(MPX() .. "H3_BOARD_DIALOGUE1", 0)
+        stats.set_int(MPX() .. "H3_BOARD_DIALOGUE2", 0)
+        stats.set_int("MPPLY_H3_COOLDOWN", 0)
+        stats.set_int(MPX() .. "H3OPT_COMPLETEDPOSIX", 0)
+        locals.set_int("gb_casino_heist_planning", DCRBl, 2)
+        gui.show_message("Diamond Casino Heist", "Preps should've been reset")
     end
+
 end)
 
-local diamondMasksNames = {}
-for _, item in ipairs(diamondMasksList) do
-    table.insert(diamondMasksNames, item.name)
-end
-local diamondMasksIndex = 0
-CasinoHeistEditorMenu:add_imgui(function()
-    local nIndex, changed = ImGui.Combo("Masks", diamondMasksIndex, diamondMasksNames, #diamondMasksNames)
-    if changed then
-        diamondMasksIndex = nIndex
-    end
-end)
-
-local diamondGuardsNames = {}
-for _, item in ipairs(diamondGuardsList) do
-    table.insert(diamondGuardsNames, item.name)
-end
-local diamondGuardsIndex = 0
-CasinoHeistEditorMenu:add_imgui(function()
-    local nIndex, changed = ImGui.Combo("Guards", diamondGuardsIndex, diamondGuardsNames, #diamondGuardsNames)
-    if changed then
-        diamondGuardsIndex = nIndex
-    end
-end)
-
-local diamondKeycardsNames = {}
-for _, item in ipairs(diamondKeycardsList) do
-    table.insert(diamondKeycardsNames, item.name)
-end
-local diamondKeycardsIndex = 0
-CasinoHeistEditorMenu:add_imgui(function()
-    local nIndex, changed = ImGui.Combo("Keycards", diamondKeycardsIndex, diamondKeycardsNames, #diamondKeycardsNames)
-    if changed then
-        diamondKeycardsIndex = nIndex
-    end
-end)
-
-local diamondTargetNames = {}
-for _, item in ipairs(diamondTargetList) do
-    table.insert(diamondTargetNames, item.name)
-end
-local diamondTargetIndex = 0
-CasinoHeistEditorMenu:add_imgui(function()
-    local nIndex, changed = ImGui.Combo("Target", diamondTargetIndex, diamondTargetNames, #diamondTargetNames)
-    if changed then
-        diamondTargetIndex = nIndex
-    end
-end)
-
-local function payoutSelected()
-    -- Placeholder for payout logic if needed
-end
-
-CasinoHeistEditorMenu:add_separator()
-CasinoHeistEditorMenu:add_button("Apply & Complete Preps", function()
-    local approach = diamondApproachList[diamondApproachIndex + 1].index
-    local gunman = diamondGunmanList[diamondGunmanIndex + 1].index
-    local loadout = diamondLoadoutIndex
-    local driver = diamondDriverList[diamondDriverIndex + 1].index
-    local vehicles = diamondVehiclesIndex
-    local hacker = diamondHackerList[diamondHackerIndex + 1].index
-    local masks = diamondMasksList[diamondMasksIndex + 1].index
-    local guards = diamondGuardsList[diamondGuardsIndex + 1].index
-    local keycards = diamondKeycardsList[diamondKeycardsIndex + 1].index
-    local target = diamondTargetList[diamondTargetIndex + 1].index
-    local difficulty = DiamondCasinoDifficulties[diamondDifficultyIndex + 1].index
-
-    stats.set_int(MPX() .. "H3OPT_POI", -1)
-    stats.set_int(MPX() .. "H3OPT_ACCESSPOINTS", -1)
-    stats.set_int(MPX() .. "CAS_HEIST_NOTS", -1)
-    stats.set_int(MPX() .. "CAS_HEIST_FLOW", -1)
-    stats.set_int(MPX() .. "H3_LAST_APPROACH", 0)
-    stats.set_int(MPX() .. "H3_HARD_APPROACH", (difficulty == 0) and 0 or approach)
-    stats.set_int(MPX() .. "H3OPT_APPROACH", approach)
-    stats.set_int(MPX() .. "H3OPT_CREWWEAP", gunman)
-    stats.set_int(MPX() .. "H3OPT_WEAPS", loadout)
-    stats.set_int(MPX() .. "H3OPT_CREWDRIVER", driver)
-    stats.set_int(MPX() .. "H3OPT_VEHS", vehicles)
-    stats.set_int(MPX() .. "H3OPT_CREWHACKER", hacker)
-    stats.set_int(MPX() .. "H3OPT_TARGET", target)
-    stats.set_int(MPX() .. "H3OPT_MASKS", masks)
-    stats.set_int(MPX() .. "H3OPT_DISRUPTSHIP", guards)
-    stats.set_int(MPX() .. "H3OPT_KEYLEVELS", keycards)
-    stats.set_int(MPX() .. "H3OPT_BODYARMORLVL", -1)
-    stats.set_int(MPX() .. "H3OPT_BITSET0", -1)
-    stats.set_int(MPX() .. "H3OPT_BITSET1", -1)
-    stats.set_int(MPX() .. "H3OPT_COMPLETEDPOSIX", -1)
-    locals.set_int("gb_casino_heist_planning", DCRBl, 2)
-    gui.show_message("Diamond Casino Heist", "Preps should've been completed")
-end)
-CasinoHeistEditorMenu:add_sameline()
-CasinoHeistEditorMenu:add_button("Reset Preps", function()
-    stats.set_int(MPX() .. "H3_LAST_APPROACH", 0)
-    stats.set_int(MPX() .. "H3_HARD_APPROACH", 0)
-    stats.set_int(MPX() .. "H3_APPROACH", 0)
-    stats.set_int(MPX() .. "H3OPT_APPROACH", 0)
-    stats.set_int(MPX() .. "H3OPT_CREWWEAP", 0)
-    stats.set_int(MPX() .. "H3OPT_WEAPS", 0)
-    stats.set_int(MPX() .. "H3OPT_CREWDRIVER", 0)
-    stats.set_int(MPX() .. "H3OPT_VEHS", 0)
-    stats.set_int(MPX() .. "H3OPT_CREWHACKER", 0)
-    stats.set_int(MPX() .. "H3OPT_MASKS", 0)
-    stats.set_int(MPX() .. "H3OPT_TARGET", 0)
-    stats.set_int(MPX() .. "H3OPT_DISRUPTSHIP", 0)
-    stats.set_int(MPX() .. "H3OPT_BODYARMORLVL", 1)
-    stats.set_int(MPX() .. "H3OPT_KEYLEVELS", 0)
-    stats.set_int(MPX() .. "H3OPT_BITSET0", 0)
-    stats.set_int(MPX() .. "H3OPT_BITSET1", 0)
-    stats.set_int(MPX() .. "H3_BOARD_DIALOGUE0", 0)
-    stats.set_int(MPX() .. "H3_BOARD_DIALOGUE1", 0)
-    stats.set_int(MPX() .. "H3_BOARD_DIALOGUE2", 0)
-    stats.set_int("MPPLY_H3_COOLDOWN", 0)
-    stats.set_int(MPX() .. "H3OPT_COMPLETEDPOSIX", 0)
-    locals.set_int("gb_casino_heist_planning", DCRBl, 2)
-    gui.show_message("Diamond Casino Heist", "Preps should've been reset")
-end)
-
-CasinoHeistEditorMenu:add_separator()
-CasinoHeistEditorMenu:add_text("Cuts:")
-local casinoCrewCuts = CasinoHeistEditorMenu:add_checkbox("Remove Crew Cuts")
-script.register_looped("DiamondCasino_Crew", function()
-    if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
-    local remove = casinoCrewCuts:is_enabled()
-    for _, cut in ipairs(DiamondCasinoCrewCut) do
-        if remove then
-            tunables.set_int(cut.tunable, 0)
-        else
-            tunables.set_int(cut.tunable, cut.default)
-        end
-    end
-end)
+local casinoCrewCuts_enabled = false
+local casinoPc1_val = 0
+local casinoPc2_val = 0
+local casinoPc3_val = 0
+local casinoPc4_val = 0
 
 local function SetDiamondMaxPayout()
     local approach = stats.get_int(MPX() .. "H3OPT_APPROACH")
     local hardApproach = stats.get_int(MPX() .. "H3_HARD_APPROACH")
     local target = stats.get_int(MPX() .. "H3OPT_TARGET")
     local difficulty = (approach == hardApproach) and 2 or 1
-    
     local payouts = {
         [0] = { 2115000, 2326500 },
         [2] = { 2350000, 2585000 },
         [1] = { 2585000, 2843500 },
         [3] = { 3290000, 3619000 }
     }
-    
     if payouts[target] == nil then return 100, 100 end
     local payout = payouts[target][difficulty] + 819000
     local maxPayout = 3619000
-    
     local gunman = stats.get_int(MPX() .. "H3OPT_CREWWEAP")
     local driver = stats.get_int(MPX() .. "H3OPT_CREWDRIVER")
     local hacker = stats.get_int(MPX() .. "H3OPT_CREWHACKER")
     local buyerFee = 0.1
     local lesterCut = 0.05
-    
     local gunmanCuts = { [1] = 0.05, [3] = 0.07, [5] = 0.08, [2] = 0.09, [4] = 0.1 }
     local driverCuts = { [1] = 0.05, [4] = 0.06, [2] = 0.07, [3] = 0.09, [5] = 0.1 }
     local hackerCuts = { [1] = 0.03, [3] = 0.05, [2] = 0.07, [5] = 0.09, [4] = 0.1 }
-    
     local feePayout = payout - (payout * buyerFee)
     local lesterPayout = feePayout * lesterCut
     local gunmanPayout = feePayout * (gunmanCuts[gunman] or 0)
@@ -6268,78 +6222,99 @@ local function SetDiamondMaxPayout()
     local crewPayout = lesterPayout + gunmanPayout + driverPayout + hackerPayout
     local hostCut = math.floor(maxPayout / ((feePayout - crewPayout) / 100))
     local otherCut = math.floor(maxPayout / (payout / 100))
-    
     return hostCut, otherCut
 end
 
-local casinoPc1 = CasinoHeistEditorMenu:add_input_int("Player Cut 1")
-local casinoPc2 = CasinoHeistEditorMenu:add_input_int("Player Cut 2")
-local casinoPc3 = CasinoHeistEditorMenu:add_input_int("Player Cut 3")
-local casinoPc4 = CasinoHeistEditorMenu:add_input_int("Player Cut 4")
-
-local Presets = {
+local casinoCutPresets = {
     { name = "All - 0%", index = 0 },
     { name = "All - 85%", index = 85 },
     { name = "All - 100%", index = 100 },
     { name = "3.6mil Payout", index = -1 }
 }
-
-local presetNames = {}
-for _, preset in ipairs(Presets) do
-    table.insert(presetNames, preset.name)
+local casinoCutPresetNames = {}
+for _, preset in ipairs(casinoCutPresets) do
+    table.insert(casinoCutPresetNames, preset.name)
 end
 local sPresetIndex = 0
 
 CasinoHeistEditorMenu:add_imgui(function()
     if isOffline() then return end
+
+    ImGui.Separator()
+    ImGui.Text("Cuts:")
+
+    -- Remove Crew Cuts checkbox
+    casinoCrewCuts_enabled, _ = ImGui.Checkbox("Remove Crew Cuts", casinoCrewCuts_enabled)
+
+    -- Player cut inputs
+    casinoPc1_val, _ = ImGui.InputInt("Player Cut 1", casinoPc1_val)
+    casinoPc2_val, _ = ImGui.InputInt("Player Cut 2", casinoPc2_val)
+    casinoPc3_val, _ = ImGui.InputInt("Player Cut 3", casinoPc3_val)
+    casinoPc4_val, _ = ImGui.InputInt("Player Cut 4", casinoPc4_val)
+
+    -- Presets
     ImGui.Text("Presets:")
-	ImGui.SetNextItemWidth(170)
-    local nIndex, changed = ImGui.Combo("##DiamondPreset", sPresetIndex, presetNames, #presetNames)
+    ImGui.SetNextItemWidth(170)
+    local nIndex, changed = ImGui.Combo("##DiamondPreset", sPresetIndex, casinoCutPresetNames, #casinoCutPresetNames)
     if changed then
         sPresetIndex = nIndex
-        local selected = Presets[sPresetIndex + 1]
+        local selected = casinoCutPresets[sPresetIndex + 1]
         local hostCut = selected.index
         local otherCut = selected.index
         if selected.index == -1 then
             hostCut, otherCut = SetDiamondMaxPayout()
-            casinoCrewCuts:set_enabled(true)
+            casinoCrewCuts_enabled = true
         else
-            casinoCrewCuts:set_enabled(false)
+            casinoCrewCuts_enabled = false
         end
-        if casinoPc1 then casinoPc1:set_value(hostCut) end
-        if casinoPc2 then casinoPc2:set_value(otherCut) end
-        if casinoPc3 then casinoPc3:set_value(otherCut) end
-        if casinoPc4 then casinoPc4:set_value(otherCut) end
+        casinoPc1_val = hostCut
+        casinoPc2_val = otherCut
+        casinoPc3_val = otherCut
+        casinoPc4_val = otherCut
+    end
+
+    if ImGui.Button("Apply Cuts") then
+        globals.set_int(DCCg1, casinoPc1_val)
+        globals.set_int(DCCg2, casinoPc2_val)
+        globals.set_int(DCCg3, casinoPc3_val)
+        globals.set_int(DCCg4, casinoPc4_val)
+        gui.show_message("Casino Heist", "Cuts should've been applied")
     end
 end)
 
-CasinoHeistEditorMenu:add_button("Apply Cuts", function()
-    globals.set_int(DCCg1, casinoPc1:get_value())
-    globals.set_int(DCCg2, casinoPc2:get_value())
-    globals.set_int(DCCg3, casinoPc3:get_value())
-    globals.set_int(DCCg4, casinoPc4:get_value())
-    gui.show_message("Casino Heist", "Cuts should've been applied")
+script.register_looped("DiamondCasino_Crew", function()
+    if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then return end
+    for _, cut in ipairs(DiamondCasinoCrewCut) do
+        if casinoCrewCuts_enabled then
+            tunables.set_int(cut.tunable, 0)
+        else
+            tunables.set_int(cut.tunable, cut.default)
+        end
+    end
 end)
 
-CasinoHeistEditorMenu:add_separator()
-CasinoHeistEditorMenu:add_button("Reload Screen", function()
-	locals.set_int("gb_casino_heist_planning", DCRBl, 2)
-end)
-CasinoHeistEditorMenu:add_sameline()
-CasinoHeistEditorMenu:add_button("Solo Launch", function()
-	if locals.get_int("fmmc_launcher", HGGs1) ~= nil and locals.get_int("fmmc_launcher", HGGs1) ~= 0 then
-		if locals.get_int("fmmc_launcher", HGGs1) > 1 then
-			locals.set_int("fmmc_launcher", HGGs2, 1)
-			globals.set_int(794989 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
-		end
-		globals.set_int(HGLs1, 1); globals.set_int(HGLs2, 1); globals.set_int(HGLs3, 1); globals.set_int(HGLs4, 0)
-	end
-end)
-CasinoHeistEditorMenu:add_sameline()
-CasinoHeistEditorMenu:add_button("Kill Cooldown", function()
-    stats.set_int(MPX() .. "H3_COMPLETEDPOSIX", -1)
-    stats.set_int("MPPLY_H3_COOLDOWN", -1)
-    gui.show_message("Diamond Casino Heist", "Cooldown should've been killed")
+CasinoHeistEditorMenu:add_imgui(function()
+    if isOffline() then return end
+    ImGui.Separator()
+    if ImGui.Button("Reload boards") then
+        locals.set_int("gb_casino_heist_planning", DCRBl, 2)
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Solo Launch") then
+        if locals.get_int("fmmc_launcher", HGGs1) ~= nil and locals.get_int("fmmc_launcher", HGGs1) ~= 0 then
+            if locals.get_int("fmmc_launcher", HGGs1) > 1 then
+                locals.set_int("fmmc_launcher", HGGs2, 1)
+                globals.set_int(794989 + 4 + 1 + (locals.get_int("fmmc_launcher", HGGs1) * 95) + 75, 1)
+            end
+            globals.set_int(HGLs1, 1); globals.set_int(HGLs2, 1); globals.set_int(HGLs3, 1); globals.set_int(HGLs4, 0)
+        end
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Kill Cooldown") then
+        stats.set_int(MPX() .. "H3_COMPLETEDPOSIX", -1)
+        stats.set_int("MPPLY_H3_COOLDOWN", -1)
+        gui.show_message("Diamond Casino Heist", "Cooldown should've been killed")
+    end
 end)
 
 local CasinoHeistExtra = CasinoHeistEditorMenu:add_tab("Extras")
@@ -6389,8 +6364,6 @@ CasinoHeistExtra:add_sameline()
 CasinoHeistExtra:add_button("Skip Cutscene", SkipCutscene)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
--- Cayo Heist --
-
 -- Cayo Heist --
 local CayoPericoCrewCut = {
     { tunable = "IH_DEDUCTION_PAVEL_CUT", default = -0.02 },
