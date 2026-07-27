@@ -29,6 +29,7 @@ AFDl = 10125 + 11 -- apartment fleeca drill local
 AFPl = 9831 -- apartment pacific hack local
 AHSo = 19808 + 2  -- Apartment heist skip checkpoint
 ACDg = 2686119 -- apartment cooldown global
+AHDg = 4718592 + 3771 -- search in tuneables_processing.c for joaat("HEIST_DIFFICULTY_EASY") then search the global you find in fmmc_launcher.c then take the global in switch state above it done
 
 -- Diamond Casino Heist
 DCRBl = 217 -- diamond casino reload board local
@@ -114,7 +115,7 @@ CCBL1 = FMg + 26624
 
 --BAS=Bag Size------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-BAS1 = FMg + 29300
+CPBg = FMg + 29300
 
 --PSV=Panther Statue-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
