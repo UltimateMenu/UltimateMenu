@@ -6993,7 +6993,7 @@ KortzCenterHeistMenu:add_imgui(function()
         if bagSizeValue < 1 then
             gui.show_message("Kortz Center Heist", "Bag size must be at least 1!")
         else
-            globals.set_int(FMg + 38037, bagSizeValue)
+            globals.set_int(FMg + 37438, bagSizeValue)
             gui.show_message("Kortz Center Heist", "Bag capacity set to " .. bagSizeValue)
         end
     end
