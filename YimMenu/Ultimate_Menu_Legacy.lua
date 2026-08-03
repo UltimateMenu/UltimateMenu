@@ -80,8 +80,7 @@ DDIF5 = 31981 + 97 -- doomsday instant finish local 5
 DDLIVESL = 26234 + 1325 + 1 -- Doomsday team lives local found below if (eventData == -1248635465) in ("fm_mission_controller")
 
 -- Kortz Center Heist
-
--- Local Variables
+KCBRL = 597 -- kortz center reload board local -- ("kortz_planning") -- above 2nd ("(NETWORK::NETWORK_IS_ACTIVITY_SESSION()")
 KCDCL = 1386 -- Data crack local (1386 + 1 + (i * 4) for i = 0-7) [+1 skips array size]
 KCFHL = 26464 -- Fingerprint hack local
 KCAC_BASE = 32416 + 1 -- Access code base (32416 + 1 + (i * 2) for i = 0-2)
@@ -101,6 +100,7 @@ KCCDG = FMg + 38102 -- Cooldown normal global
 KCCD2G = FMg + 38103 -- Cooldown hard mode global
 KCLDG = 1935234 -- Lasers disable global
 KCSECONDARY_BASE = 4980736 + 1 + 29174 -- Secondary targets base (4980736 + 1 + 29174 + (i * 333) + 68/143) [+1 skips array size]
+KCPAYOUT_BASE = FMg + 37405 -- Primary target payout base
 
 -- Lives
 KCLIVESL = 63515 + 1109 + 1 -- Team lives local
@@ -174,7 +174,7 @@ TEQUILA = FMg + 29547
 
 --Required Stats----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-local function MPX()
+function MPX()
 	local PI = stats.get_int("MPPLY_LAST_MP_CHAR")
 	if PI == 1 then
 		return "MP1_"
@@ -182,7 +182,7 @@ local function MPX()
 	return "MP0_"
 end
 
-local function SkipCutscene()
+function SkipCutscene()
     script.run_in_fiber(function(script)
         if CUTSCENE.IS_CUTSCENE_PLAYING() then
             CUTSCENE.STOP_CUTSCENE_IMMEDIATELY()
@@ -192,7 +192,7 @@ local function SkipCutscene()
     end)
 end
 
-local function SPX()
+function SPX()
 	local player_ped = PLAYER.PLAYER_PED_ID()
 	if player_ped == 0 then return "SP0_" end
 	local PI = ENTITY.GET_ENTITY_MODEL(player_ped)
@@ -206,7 +206,7 @@ end
 
 local bypassOnlineCheckbox = nil
 
-local function checkOnline()
+function checkOnline()
 	if bypassOnlineCheckbox and bypassOnlineCheckbox:is_enabled() then
 		return false
 	end
@@ -221,7 +221,7 @@ local function checkOnline()
 	return false
 end
 
-local function checkStoryMode()
+function checkStoryMode()
 	if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 or not ENTITY.DOES_ENTITY_EXIST(PLAYER.PLAYER_PED_ID()) then
 		ImGui.Text("Waiting for game...")
 		return true
@@ -234,7 +234,7 @@ local function checkStoryMode()
 end
 
 -- Silent offline check: returns true if offline, but shows NO text
-local function isOffline()
+function isOffline()
 	if bypassOnlineCheckbox and bypassOnlineCheckbox:is_enabled() then
 		return false
 	end
@@ -249,7 +249,7 @@ end
 
 -- Shared guard: ensures exactly ONE warning callback per tab
 local online_guards = {}
-local function ensureOnlineGuard(tab)
+function ensureOnlineGuard(tab)
 	if not online_guards[tab] then
 		online_guards[tab] = true
 		tab:add_imgui(function()
@@ -262,7 +262,7 @@ end
 local story_widgets = {}
 local story_initialized = {}
 
-local function initStoryTab(tab)
+function initStoryTab(tab)
     if not story_initialized[tab] then
         story_initialized[tab] = true
         story_widgets[tab] = {}
@@ -291,27 +291,27 @@ local function initStoryTab(tab)
     end
 end
 
-local function addStoryButton(tab, label, callback)
+function addStoryButton(tab, label, callback)
     initStoryTab(tab)
     table.insert(story_widgets[tab], { type = "button", label = label, callback = callback })
 end
 
-local function addStorySameline(tab)
+function addStorySameline(tab)
     initStoryTab(tab)
     table.insert(story_widgets[tab], { type = "sameline" })
 end
 
-local function addStorySeparator(tab)
+function addStorySeparator(tab)
     initStoryTab(tab)
     table.insert(story_widgets[tab], { type = "separator" })
 end
 
-local function addStoryText(tab, label)
+function addStoryText(tab, label)
     initStoryTab(tab)
     table.insert(story_widgets[tab], { type = "text", label = label })
 end
 
-local function addStoryCheckbox(tab, label, default_value)
+function addStoryCheckbox(tab, label, default_value)
     initStoryTab(tab)
     local checkbox_obj = {
         type = "checkbox",
@@ -328,7 +328,7 @@ local function addStoryCheckbox(tab, label, default_value)
     return checkbox_obj
 end
 
-local function addStoryInputInt(tab, label, default_value)
+function addStoryInputInt(tab, label, default_value)
     initStoryTab(tab)
     local input_obj = {
         type = "input_int",
@@ -345,7 +345,7 @@ local function addStoryInputInt(tab, label, default_value)
     return input_obj
 end
 
-local function makeStoryTab(tab)
+function makeStoryTab(tab)
     local wrapped = {}
     
     function wrapped:add_tab(name)
@@ -388,7 +388,7 @@ end
 
 local online_widgets = {}
 
-local function initOnlineTab(tab)
+function initOnlineTab(tab)
 	if not online_widgets[tab] then
 		online_widgets[tab] = {}
 		ensureOnlineGuard(tab) -- shared guard shows the warning
@@ -416,27 +416,27 @@ local function initOnlineTab(tab)
 	end
 end
 
-local function addOnlineButton(tab, label, callback)
+function addOnlineButton(tab, label, callback)
 	initOnlineTab(tab)
 	table.insert(online_widgets[tab], { type = "button", label = label, callback = callback })
 end
 
-local function addOnlineSameline(tab)
+function addOnlineSameline(tab)
 	initOnlineTab(tab)
 	table.insert(online_widgets[tab], { type = "sameline" })
 end
 
-local function addOnlineSeparator(tab)
+function addOnlineSeparator(tab)
 	initOnlineTab(tab)
 	table.insert(online_widgets[tab], { type = "separator" })
 end
 
-local function addOnlineText(tab, label)
+function addOnlineText(tab, label)
 	initOnlineTab(tab)
 	table.insert(online_widgets[tab], { type = "text", label = label })
 end
 
-local function addOnlineCheckbox(tab, label, default_value)
+function addOnlineCheckbox(tab, label, default_value)
 	initOnlineTab(tab)
 	local checkbox_obj = {
 		type = "checkbox",
@@ -453,7 +453,7 @@ local function addOnlineCheckbox(tab, label, default_value)
 	return checkbox_obj
 end
 
-local function addOnlineInputInt(tab, label, default_value)
+function addOnlineInputInt(tab, label, default_value)
 	initOnlineTab(tab)
 	local input_obj = {
 		type = "input_int",
@@ -470,7 +470,7 @@ local function addOnlineInputInt(tab, label, default_value)
 	return input_obj
 end
 
-local function makeOnlineTab(tab)
+function makeOnlineTab(tab)
 	local wrapped = {}
 	
 	function wrapped:add_tab(name)
@@ -512,14 +512,14 @@ local function makeOnlineTab(tab)
 	return wrapped
 end
 
-local function CutsPresetter(global_start, global_finish, cut)
+function CutsPresetter(global_start, global_finish, cut)
     globals.set_int(GCg, cut)
     for i = global_start, global_finish do
         globals.set_int(i, cut)        
     end
 end
 
-local function changeSession(session)
+function changeSession(session)
     script.run_in_fiber(function(script)
         globals.set_int(CSg1, session)
         if session == -1 then
@@ -535,7 +535,7 @@ end
 local currentlevel = 0
 local currentcrewlevel = 0
 
-local function null() end
+function null() end
 
 --Required Scripts--
 
@@ -564,7 +564,7 @@ script.register_looped("UnlockGenderChange", function(script)
 	if AGCT:is_enabled() then
 		stats.set_int(MPX() .. "ALLOW_GENDER_CHANGE", 52)
 	else
-		stats.set_int(MPX() .. "ALLOW_GENDER_CHANGE", 52)
+		stats.set_int(MPX() .. "ALLOW_GENDER_CHANGE", 0)
 	end
 end)
 
@@ -643,7 +643,7 @@ Self:add_imgui(function()
 	BadSportCombo = ImGui.Combo("##BadSport", BadSportCombo, { "Remove", "Add" }, 2)
 end)
 
-local function BadSport(State, Overall, Bool)
+function BadSport(State, Overall, Bool)
 	script.run_in_fiber(function(script)
 		gui.show_message("Bad Sport!", "Awaiting Session Change")
 		script:sleep(1000)
@@ -818,7 +818,7 @@ local rp = {
 	1527300,
 }
 
-local function getRP(level)
+function getRP(level)
 	if level < #rp then
 		return rp[level]
 	else
@@ -3128,7 +3128,7 @@ weapon_name = ""
 
 gun_van_loc = 0
 
-local function help_marker(text)
+function help_marker(text)
 	ImGui.SameLine()
 	ImGui.TextDisabled("(?)")
 	if ImGui.IsItemHovered() then
@@ -3140,7 +3140,7 @@ local function help_marker(text)
 	end
 end
 
-local function render_weapon_editor()
+function render_weapon_editor()
 	ImGui.SetNextWindowSize(700, 420)
 	ImGui.OpenPopup("Weapon Editor")
 
@@ -3371,7 +3371,7 @@ local TAGET_BUILD <const> = "3788.0"
 -- ============================================================================
 -- JSON LIBRARY (rxi's json.lua)
 -- ============================================================================
-local function JSON()
+function JSON()
 	local json = { _version = "0.1.2" }
 	local encode
 	local escape_char_map = {
@@ -3389,15 +3389,15 @@ local function JSON()
 		escape_char_map_inv[v] = k
 	end
 
-	local function escape_char(c)
+	function escape_char(c)
 		return "\\" .. (escape_char_map[c] or string.format("u%04x", c:byte()))
 	end
 
-	local function encode_nil(val)
+	function encode_nil(val)
 		return "null"
 	end
 
-	local function encode_table(val, stack)
+	function encode_table(val, stack)
 		local res = {}
 		stack = stack or {}
 		if stack[val] then
@@ -3434,11 +3434,11 @@ local function JSON()
 		end
 	end
 
-	local function encode_string(val)
+	function encode_string(val)
 		return '"' .. val:gsub('[%z\1-\31\\"]', escape_char) .. '"'
 	end
 
-	local function encode_number(val)
+	function encode_number(val)
 		if val ~= val or val <= -math.huge or val >= math.huge then
 			error("unexpected number value '" .. tostring(val) .. "'")
 		end
@@ -3468,7 +3468,7 @@ local function JSON()
 
 	local parse
 
-	local function create_set(...)
+	function create_set(...)
 		local res = {}
 		for i = 1, select("#", ...) do
 			res[select(i, ...)] = true
@@ -3487,7 +3487,7 @@ local function JSON()
 		["null"] = nil,
 	}
 
-	local function next_char(str, idx, set, negate)
+	function next_char(str, idx, set, negate)
 		for i = idx, #str do
 			if set[str:sub(i, i)] ~= negate then
 				return i
@@ -3496,7 +3496,7 @@ local function JSON()
 		return #str + 1
 	end
 
-	local function decode_error(str, idx, msg)
+	function decode_error(str, idx, msg)
 		local line_count = 1
 		local col_count = 1
 		for i = 1, idx - 1 do
@@ -3509,7 +3509,7 @@ local function JSON()
 		error(string.format("%s at line %d col %d", msg, line_count, col_count))
 	end
 
-	local function codepoint_to_utf8(n)
+	function codepoint_to_utf8(n)
 		local f = math.floor
 		if n <= 0x7f then
 			return string.char(n)
@@ -3523,7 +3523,7 @@ local function JSON()
 		error(string.format("invalid unicode codepoint '%x'", n))
 	end
 
-	local function parse_unicode_escape(s)
+	function parse_unicode_escape(s)
 		local n1 = tonumber(s:sub(1, 4), 16)
 		local n2 = tonumber(s:sub(7, 10), 16)
 		if n2 then
@@ -3533,7 +3533,7 @@ local function JSON()
 		end
 	end
 
-	local function parse_string(str, i)
+	function parse_string(str, i)
 		local res = ""
 		local j = i + 1
 		local k = j
@@ -3568,7 +3568,7 @@ local function JSON()
 		decode_error(str, i, "expected closing quote for string")
 	end
 
-	local function parse_number(str, i)
+	function parse_number(str, i)
 		local x = next_char(str, i, delim_chars)
 		local s = str:sub(i, x - 1)
 		local n = tonumber(s)
@@ -3578,7 +3578,7 @@ local function JSON()
 		return n, x
 	end
 
-	local function parse_literal(str, i)
+	function parse_literal(str, i)
 		local x = next_char(str, i, delim_chars)
 		local word = str:sub(i, x - 1)
 		if not literals[word] then
@@ -3587,7 +3587,7 @@ local function JSON()
 		return literal_map[word], x
 	end
 
-	local function parse_array(str, i)
+	function parse_array(str, i)
 		local res = {}
 		local n = 1
 		i = i + 1
@@ -3614,7 +3614,7 @@ local function JSON()
 		return res, i
 	end
 
-	local function parse_object(str, i)
+	function parse_object(str, i)
 		local res = {}
 		i = i + 1
 		while 1 do
@@ -3695,7 +3695,7 @@ end
 -- ============================================================================
 -- YIMCONFIG SYSTEM
 -- ============================================================================
-local function YimConfig(DEFAULT_CONFIG)
+function YimConfig(DEFAULT_CONFIG)
 	local json = JSON()
 	local script_json = string.format("%s.json", SCRIPT_NAME)
 	local yc = {
@@ -3712,7 +3712,7 @@ local function YimConfig(DEFAULT_CONFIG)
         ]],
 	}
 
-	local function file_exists(name)
+	function file_exists(name)
 		local f = io.open(name, "r")
 		if f ~= nil then
 			f:close()
@@ -5714,7 +5714,7 @@ end)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Doomsday --
 
-local function DoomsdayActSetter(progress, status)
+function DoomsdayActSetter(progress, status)
 	stats.set_int(MPX() .. "GANGOPS_FLOW_MISSION_PROG", progress)
 	stats.set_int(MPX() .. "GANGOPS_HEIST_STATUS", status)
 	stats.set_int(MPX() .. "GANGOPS_FLOW_NOTIFICATIONS", 1557)
@@ -5743,7 +5743,7 @@ local DoomsdayHeists = {
     [16368] = {1800000, 2250000}
 }
 
-local function SetDoomsdayMaxPayout()
+function SetDoomsdayMaxPayout()
     local heist = stats.get_int(MPX() .. "GANGOPS_FLOW_MISSION_PROG")
     local difficulty = globals.get_int(AHDg)
     if difficulty == 0 then difficulty = 1 end
@@ -6297,7 +6297,7 @@ local casinoPc2_val = 0
 local casinoPc3_val = 0
 local casinoPc4_val = 0
 
-local function SetDiamondMaxPayout()
+function SetDiamondMaxPayout()
     local approach = stats.get_int(MPX() .. "H3OPT_APPROACH")
     local hardApproach = stats.get_int(MPX() .. "H3_HARD_APPROACH")
     local target = stats.get_int(MPX() .. "H3OPT_TARGET")
@@ -6484,7 +6484,7 @@ local cayoPrimaryTargets = {
     {name="Tequila", id = 0}
 }
 
-local function CayoCompletePreps()
+function CayoCompletePreps()
     stats.set_int(MPX() .. "H4CNF_UNIFORM", -1)
     stats.set_int(MPX() .. "H4CNF_GRAPPEL", -1)
     stats.set_int(MPX() .. "H4CNF_TROJAN", 5)
@@ -6498,7 +6498,7 @@ local function CayoCompletePreps()
     stats.set_int(MPX() .. "H4CNF_APPROACH", -1)
 end
 
-local function CayoTargetsSetter(cash, weed, coke, gold, where, target, value)
+function CayoTargetsSetter(cash, weed, coke, gold, where, target, value)
     stats.set_int(MPX() .. "H4LOOT_CASH_" .. where, cash)
     stats.set_int(MPX() .. "H4LOOT_CASH_" .. where .. "_SCOPED", cash)
     stats.set_int(MPX() .. "H4LOOT_WEED_" .. where, weed)
@@ -6512,7 +6512,7 @@ local function CayoTargetsSetter(cash, weed, coke, gold, where, target, value)
     end
 end
 
-local function CayoPaintingsToggler(Enabled)
+function CayoPaintingsToggler(Enabled)
     if Enabled then
         stats.set_int(MPX() .. "H4LOOT_PAINT", 127)
         stats.set_int(MPX() .. "H4LOOT_PAINT_SCOPED", 127)
@@ -6523,7 +6523,7 @@ local function CayoPaintingsToggler(Enabled)
     end
 end
 
-local function CutsPresetter(global_start, global_finish, cut)
+function CutsPresetter(global_start, global_finish, cut)
     globals.set_int(GCg, cut)
     for i = global_start, global_finish do
         globals.set_int(i, cut)
@@ -6916,8 +6916,9 @@ glassCaseTypes = {
 -- Create menu
 KortzCenterHeistMenu = HeistsDataEditorMenu:add_tab("Kortz Center Heist")
 
--- State variables (global)
+-- State variables
 k26_heist_target = 0
+selectedPayoutTarget = 0
 autoHacks = false
 
 -- Track auto-hack triggers (reset when heist ends)
@@ -6926,48 +6927,65 @@ fingerprintTriggered = false
 vaultDoorTriggered = false
 heistWasActive = false
 
--- UI values (global)
+-- UI values
 bagSizeValue = 100
 weeklyMultiplierValue = 4.0
 livesValue = 3
 
--- ============================================
--- PRIMARY TARGET NAMES
--- ============================================
-
-k26Targets = {
-    {name = "La Dernière Débauche", id = 0, payout = 481250},
-    {name = "Hare Oneself Think", id = 1, payout = 304500},
-    {name = "The Downfall of Rome", id = 2, payout = 305000},
-    {name = "Brother Brother", id = 3, payout = 305500},
-    {name = "A Cast of Characters", id = 4, payout = 306000},
-    {name = "Gone To Seed", id = 5, payout = 306500},
-    {name = "True Love", id = 6, payout = 307000},
-    {name = "Breathless", id = 7, payout = 307500},
-    {name = "Consumato", id = 8, payout = 308000},
-    {name = "I Hear Voices", id = 9, payout = 308500},
-    {name = "Winter, Nowhere in Particular", id = 10, payout = 309000},
-    {name = "The Girl With the Pearl Necklace", id = 11, payout = 309500},
-    {name = "Chat on Fruit", id = 12, payout = 310000},
-    {name = "Pumpkin", id = 13, payout = 310500},
-    {name = "Twindifference", id = 14, payout = 311000},
-    {name = "Stacks Study V", id = 15, payout = 311500},
-    {name = "I, Fruit", id = 16, payout = 312000},
-    {name = "To Beat About the Bush", id = 17, payout = 312500},
-    {name = "In Excess of Success", id = 18, payout = 313000},
-    {name = "Juiced", id = 19, payout = 313500},
-    {name = "A Winding Road Home", id = 20, payout = 314000},
-    {name = "Teckels", id = 21, payout = 314500},
-    {name = "Trust", id = 22, payout = 315000},
-    {name = "Until Death", id = 23, payout = 315500},
-    {name = "What Are Melons?", id = 24, payout = 316000},
-    {name = "The Outcome of Endeavour", id = 25, payout = 365000},
-    {name = "Mi O Melee", id = 26, payout = 317000}
+-- Target data
+local targetShortNames = {
+    "La Dernière Débauche",
+    "Hare Oneself Think",
+    "The Downfall of Rome",
+    "Brother Brother",
+    "A Cast of Characters",
+    "Gone To Seed",
+    "True Love",
+    "Breathless",
+    "Consumato",
+    "I Hear Voices",
+    "Winter, Nowhere",
+    "Pearl Necklace",
+    "Chat on Fruit",
+    "Pumpkin",
+    "Twindifference",
+    "Stacks Study V",
+    "I, Fruit",
+    "To Beat About Bush",
+    "In Excess Success",
+    "Juiced",
+    "Winding Road Home",
+    "Teckels",
+    "Trust",
+    "Until Death",
+    "What Are Melons?",
+    "Outcome Endeavour",
+    "Mi O Melee"
 }
+
+local targetBasePayouts = {
+    481250, 304500, 305000, 305500, 306000, 306500, 307000,
+    307500, 308000, 308500, 309000, 309500, 310000, 310500,
+    311000, 311500, 312000, 312500, 313000, 313500, 314000,
+    314500, 315000, 315500, 316000, 365000, 317000
+}
+
+k26Targets = {}
+for i = 1, 27 do
+    k26Targets[i] = {name = targetShortNames[i], id = i - 1, payout = targetBasePayouts[i], index = i}
+end
 
 targetNames = {}
 for _, target in ipairs(k26Targets) do
     table.insert(targetNames, target.name)
+end
+
+-- Payout values
+local payoutModifiers = {}
+local payoutCustomValues = {}
+for i = 1, 27 do
+    payoutModifiers[i] = 1.0
+    payoutCustomValues[i] = 0
 end
 
 -- ============================================
@@ -6996,13 +7014,20 @@ function getCurrentLives()
     return locals.get_int("fm_mission_controller_v3", KCLIVESL)
 end
 
+function getCurrentPayout(index)
+    return globals.get_int(KCPAYOUT_BASE + index)
+end
+
+function setPayout(index, value)
+    globals.set_int(KCPAYOUT_BASE + index, value)
+end
+
 -- ============================================
--- SOLO SECONDARY TARGETS (MANUAL ONLY)
+-- SOLO SECONDARY TARGETS
 -- ============================================
 
 function EnableSoloSecondaryTargets()
     local target_indices = {0, 1, 5, 6, 7, 20, 21}
-    
     for _, i in ipairs(target_indices) do
         local base = KCSECONDARY_BASE + (i * 333)
         globals.set_int(base + 68, 0)
@@ -7012,22 +7037,25 @@ function EnableSoloSecondaryTargets()
 end
 
 -- ============================================
--- AUTO HACK FUNCTIONS (Door Hacks)
+-- AUTO HACK FUNCTIONS (Manual)
 -- ============================================
 
--- Data Crack
+-- Data Crack - FIXED
 local function KortzSkipDataCrack()
     if isKortzHeistActive() then
+        -- Bypass all rods
         for b = 0, 7 do
             locals.set_int("fm_mission_controller_v3", KCDCL + 1 + (b * 4), 1)
         end
+        -- Set data crack state to completed
+        locals.set_int("fm_mission_controller_v3", KCDCL, 1)
         gui.show_message("Kortz Center Cracker", "Data crack bypassed!")
     else
         gui.show_message("Kortz Center Cracker", "Heist not active!")
     end
 end
 
--- Fingerprint Hack
+-- Fingerprint Hack - FIXED
 local function KortzSkipFingerprint()
     if isKortzHeistActive() then
         locals.set_int("fm_mission_controller_v3", KCFHL, 5)
@@ -7037,7 +7065,7 @@ local function KortzSkipFingerprint()
     end
 end
 
--- Skip Vault Door
+-- Skip Vault Door - FIXED
 local function KortzSkipVaultDoor()
     if isKortzHeistActive() then
         locals.set_int("fm_mission_controller_v3", KCVLL, 5)
@@ -7054,14 +7082,10 @@ end
 -- Access Code - 00-00-00
 local function KortzAutoAccessCode()
     if isKortzHeistActive() then
-        local code = 0
-        
-        locals.set_int("fm_mission_controller_v3", KCAC_BASE + (0 * 2), code)
-        locals.set_int("fm_mission_controller_v3", KCAC_BASE + (1 * 2), code)
-        locals.set_int("fm_mission_controller_v3", KCAC_BASE + (2 * 2), code)
-        
+        locals.set_int("fm_mission_controller_v3", KCAC_BASE + (0 * 2), 0)
+        locals.set_int("fm_mission_controller_v3", KCAC_BASE + (1 * 2), 0)
+        locals.set_int("fm_mission_controller_v3", KCAC_BASE + (2 * 2), 0)
         PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 237, 1.0)
-        
         gui.show_message("Kortz Center Cracker", "Access code entered: 00-00-00")
     else
         gui.show_message("Kortz Center Cracker", "Heist not active!")
@@ -7080,7 +7104,7 @@ local function KortzDisableLasers()
 end
 
 -- ============================================
--- GLASS CUTTING FUNCTIONS (Manual)
+-- GLASS CUTTING FUNCTIONS
 -- ============================================
 
 local function CutVenus()
@@ -7142,7 +7166,7 @@ local function KortzCutAllGlass()
 end
 
 -- ============================================
--- TARGET FUNCTIONS (Manual)
+-- TARGET FUNCTIONS
 -- ============================================
 
 -- Take primary target
@@ -7179,8 +7203,14 @@ local function KortzSkipCooldown()
     gui.show_message("Kortz Center Heist", "Cooldowns reset!")
 end
 
+-- Reload Planning Board
+local function KortzReloadBoard()
+    locals.set_int("kortz_planning", KCBRL, 2)
+    gui.show_message("Kortz Center Heist", "Planning board reloaded!")
+end
+
 -- ============================================
--- AUTO HACKS LOOP - ONLY Data Crack, Fingerprint, Vault Door
+-- AUTO HACKS LOOP - FIXED DETECTION
 -- ============================================
 
 script.register_looped("KortzCenterAutoHack", function(s)
@@ -7205,9 +7235,12 @@ script.register_looped("KortzCenterAutoHack", function(s)
         return
     end
     
-    -- DATA CRACK
+    -- ============================================
+    -- DATA CRACK DETECTION - FIXED
+    -- ============================================
     if not dataCrackTriggered then
         local isDataCrackActive = false
+        -- Check ALL rods (0-7) for any that are NOT completed (value 0 means active)
         for b = 0, 7 do
             local value = locals.get_int("fm_mission_controller_v3", KCDCL + 1 + (b * 4))
             if value == 0 then
@@ -7216,49 +7249,86 @@ script.register_looped("KortzCenterAutoHack", function(s)
             end
         end
         
+        -- Also check if data crack is active by checking the first rod specifically
+        if not isDataCrackActive then
+            local firstRod = locals.get_int("fm_mission_controller_v3", KCDCL + 1)
+            if firstRod == 0 then
+                isDataCrackActive = true
+            end
+        end
+        
         if isDataCrackActive then
+            -- Bypass all rods
             for b = 0, 7 do
                 locals.set_int("fm_mission_controller_v3", KCDCL + 1 + (b * 4), 1)
             end
+            -- Also set the data crack state to completed
+            locals.set_int("fm_mission_controller_v3", KCDCL, 1)
             dataCrackTriggered = true
             gui.show_message("Kortz Center Cracker", "Auto: Data crack bypassed!")
-            s:sleep(500)
+            s:sleep(1000)
             return
         end
     else
-        local allCracked = true
+        -- Check if all rods are still completed, reset trigger if they become uncompleted
+        local allCompleted = true
         for b = 0, 7 do
             local value = locals.get_int("fm_mission_controller_v3", KCDCL + 1 + (b * 4))
             if value ~= 1 then
-                allCracked = false
+                allCompleted = false
                 break
             end
         end
-        if allCracked then
+        if not allCompleted then
+            -- Some rods reset, trigger again
             dataCrackTriggered = false
-        end
-    end
-    
-    -- FINGERPRINT
-    if not fingerprintTriggered then
-        local checkValue = locals.get_int("fm_mission_controller_v3", KCFHL)
-        if checkValue ~= nil and checkValue ~= 5 and checkValue ~= 0 then
-            locals.set_int("fm_mission_controller_v3", KCFHL, 5)
-            fingerprintTriggered = true
-            gui.show_message("Kortz Center Cracker", "Auto: Fingerprint scanner bypassed!")
-            s:sleep(500)
+            s:sleep(100)
             return
         end
     end
     
-    -- VAULT DOOR
+    -- ============================================
+    -- FINGERPRINT DETECTION - FIXED
+    -- ============================================
+    if not fingerprintTriggered then
+        local checkValue = locals.get_int("fm_mission_controller_v3", KCFHL)
+        -- Check if fingerprint hack is active (value between 0-4 means active, 5 means completed)
+        if checkValue ~= nil and checkValue >= 0 and checkValue <= 4 then
+            locals.set_int("fm_mission_controller_v3", KCFHL, 5)
+            fingerprintTriggered = true
+            gui.show_message("Kortz Center Cracker", "Auto: Fingerprint scanner bypassed!")
+            s:sleep(1000)
+            return
+        end
+    else
+        -- Check if fingerprint hack reset
+        local checkValue = locals.get_int("fm_mission_controller_v3", KCFHL)
+        if checkValue ~= nil and checkValue >= 0 and checkValue <= 4 then
+            fingerprintTriggered = false
+            s:sleep(100)
+            return
+        end
+    end
+    
+    -- ============================================
+    -- VAULT DOOR DETECTION - FIXED
+    -- ============================================
     if not vaultDoorTriggered then
         local checkValue = locals.get_int("fm_mission_controller_v3", KCVLL)
-        if checkValue ~= nil and checkValue ~= 5 then
+        -- Check if vault door hack is active (value between 0-4 means active, 5 means completed)
+        if checkValue ~= nil and checkValue >= 0 and checkValue <= 4 then
             locals.set_int("fm_mission_controller_v3", KCVLL, 5)
             vaultDoorTriggered = true
             gui.show_message("Kortz Center Cracker", "Auto: Vault door bypassed!")
-            s:sleep(500)
+            s:sleep(1000)
+            return
+        end
+    else
+        -- Check if vault door hack reset
+        local checkValue = locals.get_int("fm_mission_controller_v3", KCVLL)
+        if checkValue ~= nil and checkValue >= 0 and checkValue <= 4 then
+            vaultDoorTriggered = false
+            s:sleep(100)
             return
         end
     end
@@ -7273,25 +7343,155 @@ end)
 KortzCenterHeistMenu:add_imgui(function()
     if checkOnline() then return end
     
-    ImGui.Text("General Settings")
+    -- Heist Status
+    local heistActive = isKortzHeistActive()
+    if heistActive then
+        ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "● HEIST IS ACTIVE")
+    else
+        ImGui.TextColored(1.0, 0.5, 0.0, 1.0, "● HEIST NOT ACTIVE")
+    end
+    ImGui.Dummy(0, 5)
+    
+    -- Primary Target Selection
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "PRIMARY TARGET")
     ImGui.Separator()
     
-    local nIndex, changed = ImGui.Combo("Primary Target:", k26_heist_target, targetNames, #targetNames)
+    local nIndex, changed = ImGui.Combo("##PrimaryTarget", k26_heist_target, targetShortNames, #targetShortNames)
     if changed then
         k26_heist_target = nIndex
         stats.set_int(MPX() .. "K26_HEIST_TARGET", k26_heist_target)
-        gui.show_message("Kortz Center Heist", "Primary target set to: " .. targetNames[k26_heist_target + 1])
+        gui.show_message("Kortz Center Heist", "Target set to: " .. targetShortNames[k26_heist_target + 1])
     end
+    ImGui.Dummy(0, 8)
     
+    -- Payout Setter
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "PAYOUT SETTINGS")
     ImGui.Separator()
     
-    if ImGui.Button("Skip Cooldown") then
-        KortzSkipCooldown()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Resets both normal and hard mode cooldowns to 0.")
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "💡 Changes apply instantly - use 'Reload Board' to refresh the planning board view")
+    ImGui.Dummy(0, 5)
+    
+    -- Target selection for payout
+    local targetIdx = selectedPayoutTarget + 1
+    local newSelection, changed2 = ImGui.Combo("Select Target to Edit", selectedPayoutTarget, targetShortNames, #targetShortNames)
+    if changed2 then
+        selectedPayoutTarget = newSelection
+        targetIdx = selectedPayoutTarget + 1
     end
     
+    if targetIdx >= 1 and targetIdx <= 27 then
+        ImGui.Text("Target: " .. targetShortNames[targetIdx])
+        ImGui.Text("Base Payout: $" .. string.format("%.0f", targetBasePayouts[targetIdx]))
+        
+        local currentPayout = getCurrentPayout(targetIdx)
+        if currentPayout > 0 then
+            ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "Current Payout: $" .. string.format("%.0f", currentPayout))
+        else
+            ImGui.TextColored(0.5, 0.5, 0.5, 1.0, "Current Payout: Not Set (using base value)")
+        end
+        
+        ImGui.Dummy(0, 5)
+        
+        -- Multiplier
+        ImGui.Text("Multiplier:")
+        payoutModifiers[targetIdx], _ = ImGui.InputFloat("##Multiplier" .. targetIdx, payoutModifiers[targetIdx], 0.1, 0.5, "%.1f")
+        
+        -- Custom Value
+        ImGui.Text("Custom Value:")
+        payoutCustomValues[targetIdx], _ = ImGui.InputInt("##CustomValue" .. targetIdx, payoutCustomValues[targetIdx], 1000, 10000)
+        
+        ImGui.Dummy(0, 5)
+        
+        -- Apply buttons
+        if ImGui.Button("Apply Multiplier") then
+            local newPayout = math.floor(targetBasePayouts[targetIdx] * payoutModifiers[targetIdx])
+            if newPayout > 0 then
+                setPayout(targetIdx, newPayout)
+                gui.show_message("Kortz Center Heist", "✓ " .. targetShortNames[targetIdx] .. " set to $" .. string.format("%.0f", newPayout))
+            end
+        end
+        
+        ImGui.SameLine()
+        
+        if ImGui.Button("Apply Custom Value") then
+            if payoutCustomValues[targetIdx] > 0 then
+                setPayout(targetIdx, payoutCustomValues[targetIdx])
+                gui.show_message("Kortz Center Heist", "✓ " .. targetShortNames[targetIdx] .. " set to $" .. string.format("%.0f", payoutCustomValues[targetIdx]))
+            else
+                gui.show_message("Kortz Center Heist", "Please enter a custom value greater than 0!")
+            end
+        end
+        
+        ImGui.SameLine()
+        
+        if ImGui.Button("Reset This Target") then
+            setPayout(targetIdx, targetBasePayouts[targetIdx])
+            payoutModifiers[targetIdx] = 1.0
+            payoutCustomValues[targetIdx] = 0
+            gui.show_message("Kortz Center Heist", "✓ " .. targetShortNames[targetIdx] .. " reset to default! ($" .. string.format("%.0f", targetBasePayouts[targetIdx]) .. ")")
+        end
+    end
+    
+    ImGui.Dummy(0, 8)
+    
+    -- Quick Actions
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Quick Actions")
+    ImGui.Separator()
+    
+    if ImGui.Button("2x All Targets") then
+        for i = 1, 27 do
+            payoutModifiers[i] = 2.0
+            local newPayout = math.floor(targetBasePayouts[i] * payoutModifiers[i])
+            setPayout(i, newPayout)
+        end
+        gui.show_message("Kortz Center Heist", "✓ All targets set to 2x payout!")
+    end
+    ImGui.SameLine()
+    
+    if ImGui.Button("3x All Targets") then
+        for i = 1, 27 do
+            payoutModifiers[i] = 3.0
+            local newPayout = math.floor(targetBasePayouts[i] * payoutModifiers[i])
+            setPayout(i, newPayout)
+        end
+        gui.show_message("Kortz Center Heist", "✓ All targets set to 3x payout!")
+    end
+    ImGui.SameLine()
+    
+    if ImGui.Button("5x All Targets") then
+        for i = 1, 27 do
+            payoutModifiers[i] = 5.0
+            local newPayout = math.floor(targetBasePayouts[i] * payoutModifiers[i])
+            setPayout(i, newPayout)
+        end
+        gui.show_message("Kortz Center Heist", "✓ All targets set to 5x payout!")
+    end
+    ImGui.SameLine()
+    
+    if ImGui.Button("Reset All Payouts") then
+        for i = 1, 27 do
+            setPayout(i, targetBasePayouts[i])
+            payoutModifiers[i] = 1.0
+            payoutCustomValues[i] = 0
+        end
+        gui.show_message("Kortz Center Heist", "✓ All payouts reset to default!")
+    end
+    
+    ImGui.Dummy(0, 8)
+    
+    -- Board Management
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Board Management")
+    ImGui.Separator()
+    
+    if ImGui.Button("🔄 Reload Planning Board") then
+        KortzReloadBoard()
+    end
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Refresh the planning board to see updated payout values")
+    
+    ImGui.Dummy(0, 8)
+    
+    -- General Settings
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "GENERAL SETTINGS")
     ImGui.Separator()
     
     local currentBag = getCurrentBagSize()
@@ -7363,7 +7563,25 @@ KortzCenterHeistMenu:add_imgui(function()
     end
     
     ImGui.Separator()
-    ImGui.Text("Prep Work")
+    
+    if ImGui.Button("Skip Cooldown") then
+        KortzSkipCooldown()
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Resets both normal and hard mode cooldowns to 0.")
+    end
+    ImGui.SameLine()
+    if ImGui.Button("Reload Planning Board") then
+        KortzReloadBoard()
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Reloads the planning board to reflect latest changes.")
+    end
+    
+    ImGui.Separator()
+    
+    -- Prep Work
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "PREP WORK")
     ImGui.Separator()
     
     if ImGui.Button("Scope Out Kortz Center") then
@@ -7456,7 +7674,7 @@ KortzCenterHeistMenu:add_imgui(function()
     end
     
     ImGui.Separator()
-    ImGui.Text("Optional Prep Work (Requires POI)")
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "OPTIONAL PREP WORK (Requires POI)")
     ImGui.Separator()
     
     if ImGui.Button("Scope Points of Interest") then
@@ -7560,7 +7778,9 @@ KortzCenterHeistMenu:add_imgui(function()
     end
     
     ImGui.Separator()
-    ImGui.Text("Secondary Targets")
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "SECONDARY TARGETS")
+    ImGui.Separator()
+    
     if ImGui.Button("Scope All Secondary Targets") then
         stats.set_int(MPX() .. "K26_SCOPING_BS", -1)
         gui.show_message("Kortz Center Heist", "All secondary targets scoped!")
@@ -7570,7 +7790,9 @@ KortzCenterHeistMenu:add_imgui(function()
     end
     
     ImGui.Separator()
-    ImGui.Text("Quick Actions")
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "QUICK ACTIONS")
+    ImGui.Separator()
+    
     if ImGui.Button("Complete All Preps") then
         stats.set_int(MPX() .. "K26_GENERAL_BS", -1)
         stats.set_int(MPX() .. "K26_ROBBERY_PROG", 65535)
@@ -7592,16 +7814,11 @@ KortzCenterHeistMenu:add_imgui(function()
     if ImGui.IsItemHovered() then
         ImGui.SetTooltip("Resets all prep progress.")
     end
-    if ImGui.Button("Reload Planning Board") then
-        stats.set_int(MPX() .. "K26_GENERAL_BS2", stats.get_int(MPX() .. "K26_GENERAL_BS2") + 1)
-        gui.show_message("Kortz Center Heist", "Planning board reloaded!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Reloads the planning board.")
-    end
     
     ImGui.Separator()
-    ImGui.Text("Extras")
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "EXTRAS")
+    ImGui.Separator()
+    
     if ImGui.Button("Skip Cutscene") then
         SkipCutscene()
         gui.show_message("Kortz Center Heist", "Cutscene skipped!")
@@ -7612,7 +7829,7 @@ KortzCenterHeistMenu:add_imgui(function()
 end)
 
 -- ============================================
--- MISSION CRACKER TAB - ORGANIZED
+-- MISSION CRACKER TAB
 -- ============================================
 
 KortzCenterCrackerMenu = KortzCenterHeistMenu:add_tab("Mission Cracker")
@@ -7622,13 +7839,11 @@ KortzCenterCrackerMenu:add_imgui(function()
     
     local heistActive = isKortzHeistActive()
     
-    ImGui.Text("Kortz Center Cracker")
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "KORTZ CENTER CRACKER")
     ImGui.Separator()
     
-    -- ============================================
-    -- SECTION: AUTO DOOR HACKS
-    -- ============================================
-    ImGui.Text("Auto Door Hacks")
+    -- Auto Door Hacks
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "AUTO DOOR HACKS")
     ImGui.Separator()
     
     autoHacks, _ = ImGui.Checkbox("Enable Auto Door Hacks", autoHacks)
@@ -7659,10 +7874,8 @@ KortzCenterCrackerMenu:add_imgui(function()
     
     ImGui.Dummy(0, 5)
     
-    -- ============================================
-    -- SECTION: MANUAL DOOR HACKS
-    -- ============================================
-    ImGui.Text("Manual Door Hacks")
+    -- Manual Door Hacks
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "MANUAL DOOR HACKS")
     ImGui.Separator()
     
     if ImGui.Button("Skip Data Crack") then
@@ -7688,10 +7901,8 @@ KortzCenterCrackerMenu:add_imgui(function()
     
     ImGui.Dummy(0, 5)
     
-    -- ============================================
-    -- SECTION: MANUAL ACCESS & SECURITY
-    -- ============================================
-    ImGui.Text("Access & Security")
+    -- Access & Security
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "ACCESS & SECURITY")
     ImGui.Separator()
     
     if ImGui.Button("Auto-Enter Access Code") then
@@ -7710,10 +7921,8 @@ KortzCenterCrackerMenu:add_imgui(function()
     
     ImGui.Dummy(0, 5)
     
-    -- ============================================
-    -- SECTION: GLASS CUTTING
-    -- ============================================
-    ImGui.Text("Glass Cutting")
+    -- Glass Cutting
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "GLASS CUTTING")
     ImGui.Separator()
     
     if ImGui.Button("Cut All Glass") then
@@ -7760,10 +7969,8 @@ KortzCenterCrackerMenu:add_imgui(function()
     
     ImGui.Dummy(0, 5)
     
-    -- ============================================
-    -- SECTION: SOLO SECONDARY TARGETS (WITH RECOMMENDATION)
-    -- ============================================
-    ImGui.Text("Solo Secondary Targets")
+    -- Solo Secondary Targets
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "SOLO SECONDARY TARGETS")
     ImGui.Separator()
     
     if ImGui.Button("Enable Solo Secondary Targets (B2 Floor)") then
@@ -7781,7 +7988,6 @@ KortzCenterCrackerMenu:add_imgui(function()
         )
     end
     
-    -- Recommendation message
     if heistActive then
         ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "Can be enabled once the heist starts.")
         ImGui.TextColored(1.0, 0.8, 0.0, 1.0, "Recommended to enable inside the Exhibit room.")
@@ -7792,10 +7998,8 @@ KortzCenterCrackerMenu:add_imgui(function()
     
     ImGui.Dummy(0, 5)
     
-    -- ============================================
-    -- SECTION: TARGETS
-    -- ============================================
-    ImGui.Text("Targets")
+    -- Targets
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "TARGETS")
     ImGui.Separator()
     
     if ImGui.Button("Take Primary Target") then
@@ -7814,10 +8018,8 @@ KortzCenterCrackerMenu:add_imgui(function()
     
     ImGui.Dummy(0, 5)
     
-    -- ============================================
-    -- SECTION: GLASS CASE STATUS
-    -- ============================================
-    ImGui.Text("Glass Case Status")
+    -- Glass Case Status
+    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "GLASS CASE STATUS")
     ImGui.Separator()
     
     for i = 0, 4 do
