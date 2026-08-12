@@ -134,7 +134,13 @@ IHPL = 56070 + 1776 + 1 --Instant Heist Passed Locals (Casino And CayoPerico)
 NLCl = 213 + 32 + 19 + 1 --("nightclub_office_cutscene") in ("am_mp_nightclub")
 
 SNOW = FMg + 4413
+
+
 halloweatherAddress = FMg + 32246
+
+TRICK_OR_TREAT = 294318
+
+SNOWMEN_COLLECTIBLES = 295462 
 
 --GUN VAN VARIABLES-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 GVADg = FMg + 33392
@@ -1118,6 +1124,34 @@ script.register_looped("halloweather", function(script)
 	else
 		globals.set_int(halloweatherAddress, 0)
 	end
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+trickOrTreatMenu = EventsMenu:add_tab("Trick or Treat Toggle Menu")
+TRICKORTREATCB = trickOrTreatMenu:add_checkbox("Trick or Treat")
+script.register_looped("trick_or_treat", function(script)
+    script:yield()
+    if TRICKORTREATCB:is_enabled() then
+        globals.set_int(TRICK_OR_TREAT, 1)
+    else
+        globals.set_int(TRICK_OR_TREAT, 0)
+    end
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+snowmenMenu = EventsMenu:add_tab("Snowmen Collectibles Toggle Menu")
+SNOWMENCB = snowmenMenu:add_checkbox("Enable Snowmen Collectibles")
+script.register_looped("snowmen_collectibles", function(script)
+    script:yield()
+
+    if SNOWMENCB:is_enabled() then
+        globals.set_int(SNOWMEN_COLLECTIBLES, 1)
+    else
+        globals.set_int(SNOWMEN_COLLECTIBLES, 0)
+    end
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
