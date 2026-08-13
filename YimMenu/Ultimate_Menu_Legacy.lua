@@ -138,9 +138,9 @@ SNOW = FMg + 4413
 
 halloweatherAddress = FMg + 32246
 
-TRICK_OR_TREAT = 294318
+TRICK_OR_TREAT = FMg + 32173 --("COLLECTABLES_TRICK_OR_TREAT") in ("tuneables_processing")
 
-SNOWMEN_COLLECTIBLES = 295462 
+SNOWMEN_COLLECTIBLES = FMG + 33317 --("COLLECTABLES_SNOWMEN") in ("tuneables_processing")
 
 --GUN VAN VARIABLES-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 GVADg = FMg + 33392
