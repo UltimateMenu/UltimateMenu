@@ -136,7 +136,9 @@ NLCl = 213 + 32 + 19 + 1 --("nightclub_office_cutscene") in ("am_mp_nightclub")
 SNOW = FMg + 4413
 
 
-halloweatherAddress = FMg + 32246
+halloweatherAddress = FMg + 32247
+
+yetihuntAddress = FMg + 35041
 
 TRICK_OR_TREAT = FMg + 32173 --("COLLECTABLES_TRICK_OR_TREAT") in ("tuneables_processing")
 
@@ -1116,21 +1118,123 @@ halloweatherMenu = EventsMenu:add_tab("Halloween Weather Toggle Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-hallowCB = halloweatherMenu:add_checkbox("Halloween Weather")
-script.register_looped("halloweather", function(script)
-	script:yield()
-	if hallowCB:is_enabled() then
-		globals.set_int(halloweatherAddress, 1)
-	else
-		globals.set_int(halloweatherAddress, 0)
-	end
+halloweenWeatherMenu = EventsMenu:add_tab("Halloween Weather Toggle Menu")
+
+-- Animated rainbow
+local rainbowOffset = 0
+
+function rainbow_color(offset)
+    local time = os.clock() * 2
+    local r = math.sin(time + offset) * 0.5 + 0.5
+    local g = math.sin(time + offset + 2.094) * 0.5 + 0.5
+    local b = math.sin(time + offset + 4.188) * 0.5 + 0.5
+    return r, g, b, 1.0
+end
+
+script.register_looped("rainbow_anim", function(script)
+    rainbowOffset = rainbowOffset + 0.02
+    if rainbowOffset > 100 then
+        rainbowOffset = 0
+    end
+    script:yield(50)
+end)
+
+-- Info text
+halloweenWeatherMenu:add_text("")
+halloweenWeatherMenu:add_text("Halloween Weather Information")
+halloweenWeatherMenu:add_text("")
+halloweenWeatherMenu:add_text("In GTA Online, Halloween weather only works")
+halloweenWeatherMenu:add_text("between 7:00 PM and 7:30 AM in-game time.")
+halloweenWeatherMenu:add_text("")
+halloweenWeatherMenu:add_text("Toggle below to force it on during that window.")
+halloweenWeatherMenu:add_text("It will stay active as long as the toggle is ON.")
+halloweenWeatherMenu:add_text("")
+
+-- Current time display
+halloweenWeatherMenu:add_imgui(function()
+    local hour = CLOCK.GET_CLOCK_HOURS()
+    local minute = CLOCK.GET_CLOCK_MINUTES()
+    local ampm = "AM"
+    local hour12 = hour
+    if hour >= 12 then
+        ampm = "PM"
+        if hour > 12 then
+            hour12 = hour - 12
+        end
+    end
+    if hour12 == 0 then
+        hour12 = 12
+    end
+    ImGui.TextColored(1.0, 0.8, 0.0, 1.0, "Current In-Game Time: " .. string.format("%02d:%02d %s", hour12, minute, ampm))
+    if hour >= 19 or hour < 7 then
+        ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "Status: Halloween weather is available NOW")
+    else
+        ImGui.TextColored(1.0, 0.5, 0.0, 1.0, "Status: Halloween weather is NOT available")
+        ImGui.TextColored(1.0, 1.0, 1.0, 1.0, "Wait until 7:00 PM in-game time")
+    end
+    ImGui.Separator()
+end)
+
+
+HALLOWEATHERC = halloweenWeatherMenu:add_checkbox("Enable")
+
+function show_notification(title, message)
+    if gui and gui.show_message then
+        gui.show_message(title, message)
+    elseif gui and gui.add_notification then
+        gui.add_notification(title .. ": " .. message)
+    else
+        print(title .. ": " .. message)
+    end
+end
+
+script.register_looped("halloweather_force", function(script)
+    script:yield()
+    if HALLOWEATHERC:is_enabled() then
+        globals.set_int(halloweatherAddress, 1)
+    else
+        globals.set_int(halloweatherAddress, 0)
+    end
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+-- Create the Trick or Treat Menu tab
+trickOrTreatMenu = EventsMenu:add_tab("Trick or Treat Menu")
 
-trickOrTreatMenu = EventsMenu:add_tab("Trick or Treat Toggle Menu")
+-- Rainbow color function
+function rainbow_color(offset)
+    local time = os.clock() * 2
+    local r = math.sin(time + offset) * 0.5 + 0.5
+    local g = math.sin(time + offset + 2.094) * 0.5 + 0.5
+    local b = math.sin(time + offset + 4.188) * 0.5 + 0.5
+    return r, g, b, 1.0
+end
+
+-- Help marker function with rainbow colored icon
+function trick_help_marker(text)
+    ImGui.SameLine()
+    local r, g, b, a = rainbow_color(0)
+    ImGui.PushStyleColor(ImGuiCol.Text, r, g, b, a)
+    ImGui.Text("[?]")
+    ImGui.PopStyleColor()
+    if ImGui.IsItemHovered() then
+        ImGui.BeginTooltip()
+        ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35)
+        ImGui.TextUnformatted(text)
+        ImGui.PopTextWrapPos()
+        ImGui.EndTooltip()
+    end
+end
+
+-- Add Trick or Treat checkbox with help marker
 TRICKORTREATCB = trickOrTreatMenu:add_checkbox("Trick or Treat")
+
+-- Add help marker for the checkbox
+trickOrTreatMenu:add_imgui(function()
+    trick_help_marker("Enables the Trick or Treat event. This allows you to collect Halloween pumpkins from the Halloween event.")
+end)
+
 script.register_looped("trick_or_treat", function(script)
     script:yield()
     if TRICKORTREATCB:is_enabled() then
@@ -1140,248 +1244,374 @@ script.register_looped("trick_or_treat", function(script)
     end
 end)
 
-trickOrTreatMenu:add_separator()
-trickOrTreatMenu:add_text("Jack O' Lantern Locations")
-
-lanternLocation = 0
-lanternLocations = {
-    { 1434.581177, -1494.808960, 61.924484 },
-    { 1318.091797, -1557.906860, 49.406536 },
-    { 1297.748535, -1621.982666, 52.924953 },
-    { 1312.340576, -1701.004272, 56.537983 },
-    { 1256.791260, -1760.271851, 47.959789 },
-    { 1204.294312, -1672.812622, 41.058277 },
-    { 1232.604492, -1593.003418, 52.067909 },
-    { 1152.968140, -1529.164673, 33.691978 },
-    { 1183.517090, -1461.732788, 33.594597 },
-    { 1210.140625, -1390.762085, 34.076641 },
-    { 411.362427, -1485.312622, 28.570503 },
-    { 323.141052, -1759.944092, 28.016262 },
-    { 428.983459, -1723.205811, 27.929178 },
-    { 495.846832, -1817.259521, 27.187927 },
-    { 387.837158, -1883.815430, 24.304468 },
-    { 326.185211, -1947.658691, 23.467230 },
-    { 379.337311, -2069.736328, 19.941431 },
-    { 294.090973, -2098.108154, 15.802926 },
-    { 221.574402, -2036.115112, 16.712660 },
-    { 180.028915, -1930.020508, 19.712641 },
-    { 150.242844, -1868.382568, 22.930975 },
-    { 25.318865, -1894.664185, 21.286211 },
-    { -18.668180, -1855.332764, 23.662672 },
-    { -79.454300, -1641.520874, 28.009012 },
-    { -158.293228, -1680.115479, 35.666103 },
-    { -193.209412, -1609.052246, 32.701607 },
-    { -63.751331, -1452.771973, 30.823833 },
-    { -123.541191, -1490.525513, 32.473259 },
-    { -223.600693, -1500.161133, 30.692902 },
-    { -294.518921, -1332.482910, 29.970270 },
-    { 1014.117920, -423.848389, 63.675259 },
-    { 1266.007446, -428.332397, 68.079376 },
-    { 1370.628906, -558.052185, 73.039597 },
-    { 1324.806519, -580.172913, 71.912575 },
-    { 1204.557251, -620.731323, 64.821854 },
-    { 967.759155, -547.430298, 58.004089 },
-    { 961.077148, -594.268860, 58.192711 },
-    { 999.061157, -727.578979, 56.227200 },
-    { 1143.774292, -981.787659, 44.845215 },
-    { 845.798950, -1019.603210, 26.234652 },
-    { 805.100342, -1075.361694, 27.369886 },
-    { 480.726227, -975.737000, 26.683889 },
-    { 389.172333, -972.175659, 28.140848 },
-    { 360.894836, -1070.573853, 28.238062 },
-    { 244.050507, -1071.695679, 27.986931 },
-    { 264.044403, -1028.192871, 27.911451 },
-    { 75.252281, -1026.460449, 28.174519 },
-    { -16.975662, -977.996521, 28.062405 },
-    { 66.998047, -961.704041, 28.057564 },
-    { 130.983887, -567.115417, 42.440754 },
-    { -191.763809, -764.868286, 29.154016 },
-    { -232.445236, -911.110535, 31.010803 },
-    { -552.145813, -815.285950, 29.390755 },
-    { -731.544312, -676.678467, 28.973450 },
-    { -1025.704224, -921.141296, 3.741233 },
-    { -962.515381, -942.297180, 0.845313 },
-    { -841.248718, -1206.873657, 5.163064 },
-    { -969.639954, -1094.212158, 0.8505334 },
-    { -1075.960327, -1026.114990, 3.245211 },
-    { -1150.731567, -992.529785, 0.850194 },
-    { -1125.693848, -1090.169067, 0.850338 },
-    { -1207.256836, -1136.133057, 6.418141 },
-    { -1185.031738, -1560.465698, 3.061427 },
-    { -1337.111938, -1282.580566, 3.536002 },
-    { -1291.436401, -1115.384399, 5.380210 },
-    { -1505.406006, -938.584167, 8.059047 },
-    { -1581.442627, -951.199219, 11.717396 },
-    { -1187.069458, -564.099121, 26.317165 },
-    { -1340.669434, -408.527100, 35.059433 },
-    { -1534.179565, -425.168396, 34.291149 },
-    { -1977.575928, -534.048889, 10.412008 },
-    { -1886.251953, -367.071625, 47.764736 },
-    { -1686.079102, -292.055634, 50.593338 },
-    { -1729.297974, -191.002090, 57.047939 },
-    { -1549.251831, -89.285751, 53.629169 },
-    { -1465.009766, -30.447273, 53.408463 },
-    { -1473.790649, 62.652233, 51.955498 },
-    { -1565.397949, 41.662537, 57.540710 },
-    { -1539.457520, 128.534393, 55.480267 },
-    { -1649.843994, 148.785080, 60.872307 },
-    { 749.970276, 220.890854, 85.730003 },
-    { 348.487152, 442.021454, 146.400879 },
-    { 327.944977, 536.017639, 152.462311 },
-    { 215.329636, 621.132812, 186.248245 },
-    { 7.990458, 544.689697, 174.240616 },
-    { 56.627422, 454.376404, 145.430801 },
-    { 169.621765, 488.189667, 141.616394 },
-    { 125.038742, 64.603813, 78.442604 },
-    { 85.067253, -93.484367, 59.143009 },
-    { 14.717505, -5.760206, 68.813988 },
-    { -436.087738, -67.952057, 41.706535 },
-    { -373.813538, 44.969456, 53.129925 },
-    { -175.594559, 89.340088, 68.998276 },
-    { -565.616150, 168.983398, 65.538330 },
-    { -598.232544, 275.290619, 80.810440 },
-    { -146.931183, 288.287903, 95.503975 },
-    { -87.271278, 425.587616, 111.912392 },
-    { -252.625534, 397.004730, 109.946564 },
-    { -369.354126, 347.407196, 108.114899 },
-    { -573.230042, 402.716095, 99.368492 },
-    { -584.765686, 496.261749, 105.802574 },
-    { -352.459045, 469.861053, 111.272270 },
-    { -178.125549, 503.593872, 135.551987 },
-    { -136.874252, 595.974915, 203.303223 },
-    { -247.243790, 619.652405, 186.510178 },
-    { -346.281616, 625.225159, 170.056915 },
-    { -445.562164, 684.065796, 151.650650 },
-    { -491.010986, 740.993591, 161.535828 },
-    { -579.493774, 736.161072, 182.526932 },
-    { -549.261047, 827.965210, 196.220291 },
-    { -149.519211, 995.026306, 235.537567 },
-    { -821.168213, 814.200195, 199.545700 },
-    { -703.407898, 591.646423, 140.869995 },
-    { -716.630310, 490.652618, 107.965691 },
-    { -821.048706, 268.837524, 84.892586 },
-    { -863.629517, 387.783356, 86.129707 },
-    { -882.328552, 518.721924, 91.141586 },
-    { -937.415100, 589.408447, 100.195312 },
-    { -887.551086, 701.678711, 149.417191 },
-    { -1020.178894, 716.203674, 162.686401 },
-    { -1166.027588, 729.194946, 154.211594 },
-    { -1291.383911, 648.885010, 140.199905 },
-    { -1124.626709, 575.734802, 103.055000 },
-    { -1024.506104, 502.218384, 79.255287 },
-    { -966.512451, 434.859009, 78.671555 },
-    { -1023.245361, 359.682251, 70.056602 },
-    { -1130.484985, 391.969757, 69.441147 },
-    { -1178.350708, 290.212646, 68.198738 },
-    { -1215.850708, 460.558350, 90.553658 },
-    { -1312.920288, 452.977936, 97.879066 },
-    { -1499.075195, 520.862732, 116.972198 },
-    { -1813.917847, 344.151672, 87.253471 },
-    { -1961.207275, 249.182205, 83.922012 },
-    { -2005.261841, 447.706787, 100.982285 },
-    { -1974.006348, 627.074402, 121.236298 },
-    { -1523.962524, 854.170227, 180.294525 },
-    { -3084.227539, 222.587875, 12.690159 },
-    { -3034.164795, 492.005524, 5.467818 },
-    { -2999.262695, 694.002991, 24.150764 },
-    { -3234.858887, 934.295593, 15.850909 },
-    { -3202.787109, 1151.574829, 8.355104 },
-    { -3180.688232, 1291.906372, 13.120326 },
-    { -2551.712402, 1912.145386, 167.768417 },
-    { -1872.429932, 2029.911011, 138.037140 },
-    { -1112.209106, 2686.990479, 17.318859 },
-    { -262.114075, 2194.963135, 129.098648 },
-    { -267.503265, 2626.278564, 60.810768 },
-    { -462.839874, 2856.521973, 33.321205 },
-    { -327.331085, 2820.612305, 57.069534 },
-    { -289.165649, 2837.083496, 54.012520 },
-    { -38.089405, 2866.223145, 57.879650 },
-    { 200.134537, 3031.658691, 42.007084 },
-    { 245.562866, 3167.225342, 41.543571 },
-    { 36.286015, 3668.123779, 38.331520 },
-    { 92.681717, 3741.556885, 38.248653 },
-    { 439.687134, 3574.860352, 31.938606 },
-    { 470.906616, 2611.910889, 41.949657 },
-    { 561.570679, 2599.967529, 41.738277 },
-    { 734.955811, 2523.633057, 71.924843 },
-    { 721.653381, 2332.206543, 50.450310 },
-    { 790.147888, 2182.331055, 50.818352 },
-    { 841.859131, 2114.335449, 51.001461 },
-    { 1352.933716, 1147.012451, 112.459045 },
-    { 1529.204956, 1728.803955, 108.681503 },
-    { 1531.197266, 2219.515381, 75.833237 },
-    { 1421.380981, 3666.921387, 38.428417 },
-    { 1664.273926, 3824.378662, 33.593254 },
-    { 1762.277954, 3872.228516, 33.132488 },
-    { 1925.091553, 3917.555664, 31.198433 },
-    { 1914.172241, 3825.941162, 31.136677 },
-    { 1773.624268, 3740.501953, 33.356308 },
-    { 1856.470215, 3681.635254, 32.958481 },
-    { 1999.776611, 3776.771484, 30.880787 },
-    { 1991.811035, 3057.610840, 45.760735 },
-    { 2168.261475, 3380.211670, 45.134487 },
-    { 2178.444824, 3499.422119, 44.197418 },
-    { 2590.153320, 3169.243896, 49.646759 },
-    { 2620.696533, 3282.523926, 53.951210 },
-    { 2985.502930, 3484.042236, 70.081779 },
-    { 2420.516602, 4020.245605, 35.535358 },
-    { 2638.094482, 4247.965332, 43.502384 },
-    { 3689.367188, 4563.361328, 23.881674 },
-    { 3315.741455, 5172.885254, 17.129362 },
-    { 2234.621094, 5609.286133, 53.348442 },
-    { 2451.511963, 4961.811035, 44.201416 },
-    { 1967.214966, 4621.931641, 39.482288 },
-    { 1664.723511, 4773.646973, 40.687389 },
-    { 1723.661011, 4642.196777, 42.564026 },
-    { 1311.947632, 4361.838867, 39.552631 },
-    { 724.281311, 4185.006348, 39.409229 },
-    { -771.858582, 5511.423340, 33.605061 },
-    { -342.642487, 6163.851074, 30.190174 },
-    { -402.742828, 6314.299805, 27.649906 },
-    { -306.322205, 6331.539551, 31.189320 },
-    { -245.945114, 6410.604492, 29.897928 },
-    { -105.598267, 6313.783691, 30.190372 },
-    { -112.187599, 6460.697266, 30.168459 },
-    { -50.652882, 6582.884766, 29.876881 },
-    { 54.402122, 6642.595215, 30.223076 },
-    { 1706.896240, 6422.760254, 31.335125 }
+-- Jack o'Lantern locations array (200 locations)
+jackolantern_locations = {
+    vec3:new(1434.581177, -1494.808960, 61.924484),
+    vec3:new(1318.091797, -1557.906860, 49.406536),
+    vec3:new(1297.748535, -1621.982666, 52.924953),
+    vec3:new(1312.340576, -1701.004272, 56.537983),
+    vec3:new(1256.791260, -1760.271851, 47.959789),
+    vec3:new(1204.294312, -1672.812622, 41.058277),
+    vec3:new(1232.604492, -1593.003418, 52.067909),
+    vec3:new(1152.968140, -1529.164673, 33.691978),
+    vec3:new(1183.517090, -1461.732788, 33.594597),
+    vec3:new(1210.140625, -1390.762085, 34.076641),
+    vec3:new(411.362427, -1485.312622, 28.570503),
+    vec3:new(323.141052, -1759.944092, 28.016262),
+    vec3:new(428.983459, -1723.205811, 27.929178),
+    vec3:new(495.846832, -1817.259521, 27.187927),
+    vec3:new(387.837158, -1883.815430, 24.304468),
+    vec3:new(326.185211, -1947.658691, 23.467230),
+    vec3:new(379.337311, -2069.736328, 19.941431),
+    vec3:new(294.090973, -2098.108154, 15.802926),
+    vec3:new(221.574402, -2036.115112, 16.712660),
+    vec3:new(180.028915, -1930.020508, 19.712641),
+    vec3:new(150.242844, -1868.382568, 22.930975),
+    vec3:new(25.318865, -1894.664185, 21.286211),
+    vec3:new(-18.668180, -1855.332764, 23.662672),
+    vec3:new(-79.454300, -1641.520874, 28.009012),
+    vec3:new(-158.293228, -1680.115479, 35.666103),
+    vec3:new(-193.209412, -1609.052246, 32.701607),
+    vec3:new(-63.751331, -1452.771973, 30.823833),
+    vec3:new(-123.541191, -1490.525513, 32.473259),
+    vec3:new(-223.600693, -1500.161133, 30.692902),
+    vec3:new(-294.518921, -1332.482910, 29.970270),
+    vec3:new(1014.117920, -423.848389, 63.675259),
+    vec3:new(1266.007446, -428.332397, 68.079376),
+    vec3:new(1370.628906, -558.052185, 73.039597),
+    vec3:new(1324.806519, -580.172913, 71.912575),
+    vec3:new(1204.557251, -620.731323, 64.821854),
+    vec3:new(967.759155, -547.430298, 58.004089),
+    vec3:new(961.077148, -594.268860, 58.192711),
+    vec3:new(999.061157, -727.578979, 56.227200),
+    vec3:new(1143.774292, -981.787659, 44.845215),
+    vec3:new(845.798950, -1019.603210, 26.234652),
+    vec3:new(805.100342, -1075.361694, 27.369886),
+    vec3:new(480.726227, -975.737000, 26.683889),
+    vec3:new(389.172333, -972.175659, 28.140848),
+    vec3:new(360.894836, -1070.573853, 28.238062),
+    vec3:new(244.050507, -1071.695679, 27.986931),
+    vec3:new(264.044403, -1028.192871, 27.911451),
+    vec3:new(75.252281, -1026.460449, 28.174519),
+    vec3:new(-16.975662, -977.996521, 28.062405),
+    vec3:new(66.998047, -961.704041, 28.057564),
+    vec3:new(130.983887, -567.115417, 42.440754),
+    vec3:new(-191.763809, -764.868286, 29.154016),
+    vec3:new(-232.445236, -911.110535, 31.010803),
+    vec3:new(-552.145813, -815.285950, 29.390755),
+    vec3:new(-731.544312, -676.678467, 28.973450),
+    vec3:new(-1025.704224, -921.141296, 3.741233),
+    vec3:new(-962.515381, -942.297180, 0.845313),
+    vec3:new(-841.248718, -1206.873657, 5.163064),
+    vec3:new(-969.639954, -1094.212158, 0.8505334),
+    vec3:new(-1075.960327, -1026.114990, 3.245211),
+    vec3:new(-1150.731567, -992.529785, 0.850194),
+    vec3:new(-1125.693848, -1090.169067, 0.850338),
+    vec3:new(-1207.256836, -1136.133057, 6.418141),
+    vec3:new(-1185.031738, -1560.465698, 3.061427),
+    vec3:new(-1337.111938, -1282.580566, 3.536002),
+    vec3:new(-1291.436401, -1115.384399, 5.380210),
+    vec3:new(-1505.406006, -938.584167, 8.059047),
+    vec3:new(-1581.442627, -951.199219, 11.717396),
+    vec3:new(-1187.069458, -564.099121, 26.317165),
+    vec3:new(-1340.669434, -408.527100, 35.059433),
+    vec3:new(-1534.179565, -425.168396, 34.291149),
+    vec3:new(-1977.575928, -534.048889, 10.412008),
+    vec3:new(-1886.251953, -367.071625, 47.764736),
+    vec3:new(-1686.079102, -292.055634, 50.593338),
+    vec3:new(-1729.297974, -191.002090, 57.047939),
+    vec3:new(-1549.251831, -89.285751, 53.629169),
+    vec3:new(-1465.009766, -30.447273, 53.408463),
+    vec3:new(-1473.790649, 62.652233, 51.955498),
+    vec3:new(-1565.397949, 41.662537, 57.540710),
+    vec3:new(-1539.457520, 128.534393, 55.480267),
+    vec3:new(-1649.843994, 148.785080, 60.872307),
+    vec3:new(749.970276, 220.890854, 85.730003),
+    vec3:new(348.487152, 442.021454, 146.400879),
+    vec3:new(327.944977, 536.017639, 152.462311),
+    vec3:new(215.329636, 621.132812, 186.248245),
+    vec3:new(7.990458, 544.689697, 174.240616),
+    vec3:new(56.627422, 454.376404, 145.430801),
+    vec3:new(169.621765, 488.189667, 141.616394),
+    vec3:new(125.038742, 64.603813, 78.442604),
+    vec3:new(85.067253, -93.484367, 59.143009),
+    vec3:new(14.717505, -5.760206, 68.813988),
+    vec3:new(-436.087738, -67.952057, 41.706535),
+    vec3:new(-373.813538, 44.969456, 53.129925),
+    vec3:new(-175.594559, 89.340088, 68.998276),
+    vec3:new(-565.616150, 168.983398, 65.538330),
+    vec3:new(-598.232544, 275.290619, 80.810440),
+    vec3:new(-146.931183, 288.287903, 95.503975),
+    vec3:new(-87.271278, 425.587616, 111.912392),
+    vec3:new(-252.625534, 397.004730, 109.946564),
+    vec3:new(-369.354126, 347.407196, 108.114899),
+    vec3:new(-573.230042, 402.716095, 99.368492),
+    vec3:new(-584.765686, 496.261749, 105.802574),
+    vec3:new(-352.459045, 469.861053, 111.272270),
+    vec3:new(-178.125549, 503.593872, 135.551987),
+    vec3:new(-136.874252, 595.974915, 203.303223),
+    vec3:new(-247.243790, 619.652405, 186.510178),
+    vec3:new(-346.281616, 625.225159, 170.056915),
+    vec3:new(-445.562164, 684.065796, 151.650650),
+    vec3:new(-491.010986, 740.993591, 161.535828),
+    vec3:new(-579.493774, 736.161072, 182.526932),
+    vec3:new(-549.261047, 827.965210, 196.220291),
+    vec3:new(-149.519211, 995.026306, 235.537567),
+    vec3:new(-821.168213, 814.200195, 199.545700),
+    vec3:new(-703.407898, 591.646423, 140.869995),
+    vec3:new(-716.630310, 490.652618, 107.965691),
+    vec3:new(-821.048706, 268.837524, 84.892586),
+    vec3:new(-863.629517, 387.783356, 86.129707),
+    vec3:new(-882.328552, 518.721924, 91.141586),
+    vec3:new(-937.415100, 589.408447, 100.195312),
+    vec3:new(-887.551086, 701.678711, 149.417191),
+    vec3:new(-1020.178894, 716.203674, 162.686401),
+    vec3:new(-1166.027588, 729.194946, 154.211594),
+    vec3:new(-1291.383911, 648.885010, 140.199905),
+    vec3:new(-1124.626709, 575.734802, 103.055000),
+    vec3:new(-1024.506104, 502.218384, 79.255287),
+    vec3:new(-966.512451, 434.859009, 78.671555),
+    vec3:new(-1023.245361, 359.682251, 70.056602),
+    vec3:new(-1130.484985, 391.969757, 69.441147),
+    vec3:new(-1178.350708, 290.212646, 68.198738),
+    vec3:new(-1215.850708, 460.558350, 90.553658),
+    vec3:new(-1312.920288, 452.977936, 97.879066),
+    vec3:new(-1499.075195, 520.862732, 116.972198),
+    vec3:new(-1813.917847, 344.151672, 87.253471),
+    vec3:new(-1961.207275, 249.182205, 83.922012),
+    vec3:new(-2005.261841, 447.706787, 100.982285),
+    vec3:new(-1974.006348, 627.074402, 121.236298),
+    vec3:new(-1523.962524, 854.170227, 180.294525),
+    vec3:new(-3084.227539, 222.587875, 12.690159),
+    vec3:new(-3034.164795, 492.005524, 5.467818),
+    vec3:new(-2999.262695, 694.002991, 24.150764),
+    vec3:new(-3234.858887, 934.295593, 15.850909),
+    vec3:new(-3202.787109, 1151.574829, 8.355104),
+    vec3:new(-3180.688232, 1291.906372, 13.120326),
+    vec3:new(-2551.712402, 1912.145386, 167.768417),
+    vec3:new(-1872.429932, 2029.911011, 138.037140),
+    vec3:new(-1112.209106, 2686.990479, 17.318859),
+    vec3:new(-262.114075, 2194.963135, 129.098648),
+    vec3:new(-267.503265, 2626.278564, 60.810768),
+    vec3:new(-462.839874, 2856.521973, 33.321205),
+    vec3:new(-327.331085, 2820.612305, 57.069534),
+    vec3:new(-289.165649, 2837.083496, 54.012520),
+    vec3:new(-38.089405, 2866.223145, 57.879650),
+    vec3:new(200.134537, 3031.658691, 42.007084),
+    vec3:new(245.562866, 3167.225342, 41.543571),
+    vec3:new(36.286015, 3668.123779, 38.331520),
+    vec3:new(92.681717, 3741.556885, 38.248653),
+    vec3:new(439.687134, 3574.860352, 31.938606),
+    vec3:new(470.906616, 2611.910889, 41.949657),
+    vec3:new(561.570679, 2599.967529, 41.738277),
+    vec3:new(734.955811, 2523.633057, 71.924843),
+    vec3:new(721.653381, 2332.206543, 50.450310),
+    vec3:new(790.147888, 2182.331055, 50.818352),
+    vec3:new(841.859131, 2114.335449, 51.001461),
+    vec3:new(1352.933716, 1147.012451, 112.459045),
+    vec3:new(1529.204956, 1728.803955, 108.681503),
+    vec3:new(1531.197266, 2219.515381, 75.833237),
+    vec3:new(1421.380981, 3666.921387, 38.428417),
+    vec3:new(1664.273926, 3824.378662, 33.593254),
+    vec3:new(1762.277954, 3872.228516, 33.132488),
+    vec3:new(1925.091553, 3917.555664, 31.198433),
+    vec3:new(1914.172241, 3825.941162, 31.136677),
+    vec3:new(1773.624268, 3740.501953, 33.356308),
+    vec3:new(1856.470215, 3681.635254, 32.958481),
+    vec3:new(1999.776611, 3776.771484, 30.880787),
+    vec3:new(1991.811035, 3057.610840, 45.760735),
+    vec3:new(2168.261475, 3380.211670, 45.134487),
+    vec3:new(2178.444824, 3499.422119, 44.197418),
+    vec3:new(2590.153320, 3169.243896, 49.646759),
+    vec3:new(2620.696533, 3282.523926, 53.951210),
+    vec3:new(2985.502930, 3484.042236, 70.081779),
+    vec3:new(2420.516602, 4020.245605, 35.535358),
+    vec3:new(2638.094482, 4247.965332, 43.502384),
+    vec3:new(3689.367188, 4563.361328, 23.881674),
+    vec3:new(3315.741455, 5172.885254, 17.129362),
+    vec3:new(2234.621094, 5609.286133, 53.348442),
+    vec3:new(2451.511963, 4961.811035, 44.201416),
+    vec3:new(1967.214966, 4621.931641, 39.482288),
+    vec3:new(1664.723511, 4773.646973, 40.687389),
+    vec3:new(1723.661011, 4642.196777, 42.564026),
+    vec3:new(1311.947632, 4361.838867, 39.552631),
+    vec3:new(724.281311, 4185.006348, 39.409229),
+    vec3:new(-771.858582, 5511.423340, 33.605061),
+    vec3:new(-342.642487, 6163.851074, 30.190174),
+    vec3:new(-402.742828, 6314.299805, 27.649906),
+    vec3:new(-306.322205, 6331.539551, 31.189320),
+    vec3:new(-245.945114, 6410.604492, 29.897928),
+    vec3:new(-105.598267, 6313.783691, 30.190372),
+    vec3:new(-112.187599, 6460.697266, 30.168459),
+    vec3:new(-50.652882, 6582.884766, 29.876881),
+    vec3:new(54.402122, 6642.595215, 30.223076),
+    vec3:new(1706.896240, 6422.760254, 31.335125),
 }
-lanternNames = {}
 
+-- Jack o'Lantern location names (200 locations)
+jackolantern_names = {}
 for i = 1, 200 do
-    lanternNames[i] = string.format("%03d", i)
+    jackolantern_names[i] = "Location " .. string.format("%03d", i)
 end
 
+-- Variables
+jackolantern_selected_loc = 0
+
+-- Add ImGui for Jack o'Lantern teleports
 trickOrTreatMenu:add_imgui(function()
-    ImGui.PushItemWidth(140)
+    ImGui.Separator()
+    ImGui.Text("Jack o'Lantern Teleports")
+    trick_help_marker("Teleport to any of the 200 Jack o'Lantern collectible locations. These are Halloween pumpkins that spawn during the event.")
+    ImGui.Separator()
+    
+    ImGui.Text("Select Jack o'Lantern Location:")
+    trick_help_marker("Choose a location from the dropdown list to teleport to.")
 
-    lanternLocation = ImGui.Combo(
-        "Location##JackOLantern",
-        lanternLocation,
-        lanternNames,
-        #lanternNames
-    )
+    ImGui.SetNextItemWidth(265)
+    jackolantern_selected_loc = ImGui.Combo("##jackolantern_selected_loc", jackolantern_selected_loc, jackolantern_names, 200)
 
-    ImGui.PopItemWidth()
+    ImGui.SameLine()
 
-    if ImGui.Button("Teleport To Jack O' Lantern") then
-        local location = lanternLocations[lanternLocation + 1]
+    if ImGui.Button("Teleport to Location") then
+        script.run_in_fiber(function()
+            local coords = jackolantern_locations[jackolantern_selected_loc + 1]
+            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+        end)
+    end
+    trick_help_marker("Teleports you to the selected Jack o'Lantern location.")
 
-        if location then
-            PED.SET_PED_COORDS_KEEP_VEHICLE(
-                self.get_ped(),
-                location[1],
-                location[2],
-                location[3]
-            )
+    ImGui.Separator()
+    ImGui.Text("Quick Teleport Buttons (1-20):")
+    trick_help_marker("Quickly teleport to any of the first 20 Jack o'Lantern locations.")
+
+    -- Quick teleport buttons in rows of 5 (first 20 locations)
+    for i = 0, 19 do
+        if i % 5 == 0 then
+            ImGui.Text("  ")
+        end
+        
+        if ImGui.Button(jackolantern_names[i + 1]) then
+            script.run_in_fiber(function()
+                local coords = jackolantern_locations[i + 1]
+                PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            end)
+        end
+        
+        if i % 5 ~= 4 and i < 19 then
+            ImGui.SameLine()
         end
     end
-end)
 
+    ImGui.Separator()
+    ImGui.Text("Quick Teleport Buttons (21-40):")
+    trick_help_marker("Quickly teleport to any of the next 20 Jack o'Lantern locations.")
+
+    -- Quick teleport buttons in rows of 5 (next 20 locations)
+    for i = 20, 39 do
+        if i % 5 == 0 then
+            ImGui.Text("  ")
+        end
+        
+        if ImGui.Button(jackolantern_names[i + 1]) then
+            script.run_in_fiber(function()
+                local coords = jackolantern_locations[i + 1]
+                PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            end)
+        end
+        
+        if i % 5 ~= 4 and i < 39 then
+            ImGui.SameLine()
+        end
+    end
+
+    ImGui.Separator()
+    ImGui.Text("Total Jack o'Lantern Locations: 200")
+    
+    if ImGui.Button("Teleport to Random Jack o'Lantern") then
+        script.run_in_fiber(function()
+            local random_index = math.random(1, 200)
+            local coords = jackolantern_locations[random_index]
+            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            gui.show_message("Jack o'Lantern", "Teleported to " .. jackolantern_names[random_index])
+        end)
+    end
+    trick_help_marker("Teleports you to a random Jack o'Lantern location. Great for collecting them all!")
+end)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-snowmenMenu = EventsMenu:add_tab("Snowmen Collectibles Toggle Menu")
+snowmenMenu = EventsMenu:add_tab("Snowmen Collectibles")
+
+-- Snowman locations array
+snowmen_locations = {
+    vec3:new(-955.5352, -782.4186, 15.925326),
+    vec3:new(-819.9067, 165.35524, 71.26295),
+    vec3:new(-247.92003, -1561.2175, 32.22973),
+    vec3:new(901.3996, -288.05026, 65.643715),
+    vec3:new(1275.6772, -642.3789, 68.208786),
+    vec3:new(1993.1008, 3829.6396, 32.167336),
+    vec3:new(-375.47916, 6230.158, 31.490055),
+    vec3:new(-1414.4647, 5094.9272, 60.674263),
+    vec3:new(-1946.0231, 594.93756, 119.79223),
+    vec3:new(-1100.889, -1401.0138, 5.215467),
+    vec3:new(-780.418, 877.2859, 203.18001),
+    vec3:new(-455.12027, 1130.5625, 325.89175),
+    vec3:new(221.46722, -107.01075, 69.763985),
+    vec3:new(1560.3787, 6447.053, 23.9866),
+    vec3:new(3301.7886, 5149.8853, 18.34274),
+    vec3:new(1703.0568, 4671.928, 43.15301),
+    vec3:new(224.9161, 3107.3345, 42.18394),
+    vec3:new(2360.0037, 2522.7166, 46.66731),
+    vec3:new(1510.8555, 1725.0353, 109.89355),
+    vec3:new(-48.96374, 1964.4028, 189.87181),
+    vec3:new(-1516.2083, 2140.2168, 56.11924),
+    vec3:new(-2826.2356, 1424.6211, 100.706116),
+    vec3:new(-2957.531, 723.6389, 28.792404),
+    vec3:new(1341.4302, -1583.5093, 54.135414),
+    vec3:new(178.00232, -895.9712, 30.69326),
+}
+
+-- Snowman location names (numbered 01-25)
+snowmen_names = {}
+for i = 1, 25 do
+    snowmen_names[i] = "Location " .. string.format("%02d", i)
+end
+
+-- Variables
+snowmen_selected_loc = 0
+
+-- Rainbow color function
+function rainbow_color(offset)
+    local time = os.clock() * 2
+    local r = math.sin(time + offset) * 0.5 + 0.5
+    local g = math.sin(time + offset + 2.094) * 0.5 + 0.5
+    local b = math.sin(time + offset + 4.188) * 0.5 + 0.5
+    return r, g, b, 1.0
+end
+
+-- Help marker function with rainbow colored icon
+function snowmen_help_marker(text)
+    ImGui.SameLine()
+    local r, g, b, a = rainbow_color(0)
+    ImGui.PushStyleColor(ImGuiCol.Text, r, g, b, a)
+    ImGui.Text("[?]")
+    ImGui.PopStyleColor()
+    if ImGui.IsItemHovered() then
+        ImGui.BeginTooltip()
+        ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35)
+        ImGui.TextUnformatted(text)
+        ImGui.PopTextWrapPos()
+        ImGui.EndTooltip()
+    end
+end
+
+-- Add the checkbox for enabling snowmen collectibles
 SNOWMENCB = snowmenMenu:add_checkbox("Enable Snowmen Collectibles")
+
+-- Add help marker for the checkbox
+snowmenMenu:add_imgui(function()
+    snowmen_help_marker("Enables the Snowmen Collectibles event. This allows you to collect snowmen by blowing them up or driving your car through them during the winter event.")
+end)
+
 script.register_looped("snowmen_collectibles", function(script)
     script:yield()
 
@@ -1392,56 +1622,63 @@ script.register_looped("snowmen_collectibles", function(script)
     end
 end)
 
-
-snowmanLocation = 0
-snowmanLocationNames = {
-    "01", "02", "03", "04", "05",
-    "06", "07", "08", "09", "10",
-    "11", "12", "13", "14", "15",
-    "16", "17", "18", "19", "20",
-    "21", "22", "23", "24", "25"
-}
-
-snowmanCoords = {
-    { -955.5352,  -782.4186,  15.925326 },
-    { -819.9067,   165.35524, 71.26295  },
-    { -247.92003, -1561.2175, 32.22973  },
-    {  901.3996,  -288.05026, 65.643715 },
-    { 1275.6772,  -642.3789,  68.208786 },
-    { 1993.1008,  3829.6396,  32.167336 },
-    { -375.47916, 6230.158,   31.490055 },
-    {-1414.4647,  5094.9272,  60.674263 },
-    {-1946.0231,   594.93756,119.79223  },
-    {-1100.889,   -1401.0138,  5.215467 },
-    { -780.418,     877.2859,203.18001  },
-    { -455.12027,  1130.5625,325.89175  },
-    {  221.46722,  -107.01075,69.763985 },
-    { 1560.3787,   6447.053,   23.9866   },
-    { 3301.7886,   5149.8853,  18.34274  },
-    { 1703.0568,   4671.928,   43.15301  },
-    {  224.9161,   3107.3345,  42.18394  },
-    { 2360.0037,   2522.7166,  46.66731  },
-    { 1510.8555,   1725.0353, 109.89355  },
-    {  -48.96374,  1964.4028, 189.87181  },
-    {-1516.2083,   2140.2168,  56.11924  },
-    {-2826.2356,   1424.6211, 100.706116 },
-    {-2957.531,     723.6389,  28.792404 },
-    { 1341.4302,  -1583.5093,  54.135414 },
-    {  178.00232,  -895.9712,  30.69326  }
-}
-
+-- Add ImGui for the snowman teleports
 snowmenMenu:add_imgui(function()
+    ImGui.Separator()
     ImGui.Text("Snowman Teleports")
-    ImGui.PushItemWidth(140)
-    snowmanLocation = ImGui.Combo("##SnowmanLocation", snowmanLocation, snowmanLocationNames, #snowmanLocationNames)
-    ImGui.PopItemWidth()
+    snowmen_help_marker("Teleport to any of the 25 Snowman collectible locations. These are snowmen that spawn during the winter event. You can destroy them by blowing them up or driving through them with your vehicle.")
+    ImGui.Separator()
+    
+    ImGui.Text("Select Snowman Location:")
+    snowmen_help_marker("Choose a location from the dropdown list to teleport to.")
 
-    if ImGui.Button("Teleport To Snowman") then
-        local coords = snowmanCoords[snowmanLocation + 1]
-        if coords then
-            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords[1], coords[2], coords[3])
+    ImGui.SetNextItemWidth(265)
+    snowmen_selected_loc = ImGui.Combo("##snowmen_selected_loc", snowmen_selected_loc, snowmen_names, 25)
+
+    ImGui.SameLine()
+
+    if ImGui.Button("Teleport to Location") then
+        script.run_in_fiber(function()
+            local coords = snowmen_locations[snowmen_selected_loc + 1]
+            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+        end)
+    end
+    snowmen_help_marker("Teleports you to the selected Snowman location.")
+
+    ImGui.Separator()
+    ImGui.Text("Quick Teleport Buttons:")
+    snowmen_help_marker("Quickly teleport to any Snowman location to destroy them by blowing them up or driving through them.")
+
+    -- Add quick teleport buttons in rows of 5
+    for i = 0, 24 do
+        if i % 5 == 0 then
+            ImGui.Text("  ")
+        end
+        
+        if ImGui.Button(snowmen_names[i + 1]) then
+            script.run_in_fiber(function()
+                local coords = snowmen_locations[i + 1]
+                PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            end)
+        end
+        
+        if i % 5 ~= 4 and i < 24 then
+            ImGui.SameLine()
         end
     end
+
+    ImGui.Separator()
+    ImGui.Text("Total Snowman Locations: 25")
+    
+    if ImGui.Button("Teleport to Random Snowman") then
+        script.run_in_fiber(function()
+            local random_index = math.random(1, 25)
+            local coords = snowmen_locations[random_index]
+            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            gui.show_message("Snowman", "Teleported to " .. snowmen_names[random_index])
+        end)
+    end
+    snowmen_help_marker("Teleports you to a random Snowman location. Blow them up or drive through them to collect them all!")
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1450,33 +1687,128 @@ YetiHuntMenu = EventsMenu:add_tab("Yeti Hunt Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-YetiHuntMenu:add_button("Enable Yeti Hunt Event", function()
-	globals.set_int(FMg + 35041, 1) -- enable the event 1833904680
-	gui.show_message("Yeti Hunt Event", "Enabled")
+-- Rainbow color function
+function yeti_rainbow_color(offset)
+    local time = os.clock() * 2
+    local r = math.sin(time + offset) * 0.5 + 0.5
+    local g = math.sin(time + offset + 2.094) * 0.5 + 0.5
+    local b = math.sin(time + offset + 4.188) * 0.5 + 0.5
+    return r, g, b, 1.0
+end
+
+-- Help marker function with rainbow colored icon
+function yeti_help_marker(text)
+    ImGui.SameLine()
+    local r, g, b, a = yeti_rainbow_color(0)
+    ImGui.PushStyleColor(ImGuiCol.Text, r, g, b, a)
+    ImGui.Text("[?]")
+    ImGui.PopStyleColor()
+    if ImGui.IsItemHovered() then
+        ImGui.BeginTooltip()
+        ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35)
+        ImGui.TextUnformatted(text)
+        ImGui.PopTextWrapPos()
+        ImGui.EndTooltip()
+    end
+end
+
+-- Yeti Hunt locations array
+yeti_locations = {
+    vec3:new(-1562.69, 4699.04, 50.426),
+    vec3:new(-1359.869, 4733.429, 46.919),
+    vec3:new(-1715.398, 4501.203, 0.096),
+    vec3:new(-1282.18, 4487.826, 12.643),
+    vec3:new(-1569.665, 4478.485, 20.215),
+    vec3:new(-1345.828, 4838.062, 137.522),
+}
+
+-- Yeti location names
+yeti_names = {
+    "Clue Location 1",
+    "Clue Location 2",
+    "Clue Location 3",
+    "Clue Location 4",
+    "Clue Location 5",
+    "Yeti Fight Location",
+}
+
+-- Variables
+yeti_selected_loc = 0
+
+-- Add Yeti Hunt checkbox with help marker
+YETIHUNTCB = YetiHuntMenu:add_checkbox("Enable Yeti Hunt Event")
+
+-- Add help marker for the checkbox
+YetiHuntMenu:add_imgui(function()
+    yeti_help_marker("Enables the Yeti Hunt event. This allows you to hunt the Yeti and collect clues during the event.")
 end)
 
-YetiHuntMenu:add_button("Clue Location 1", function()
-	PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), -1562.69, 4699.04, 50.426)
+script.register_looped("yeti_hunt", function(script)
+    script:yield()
+    if YETIHUNTCB:is_enabled() then
+        globals.set_int(yetihuntAddress, 1) -- enable the event
+    else
+        globals.set_int(yetihuntAddress, 0)
+    end
 end)
 
-YetiHuntMenu:add_button("Clue Location 2", function()
-	PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), -1359.869, 4733.429, 46.919)
-end)
+-- Add ImGui for Yeti Hunt teleports
+YetiHuntMenu:add_imgui(function()
+    ImGui.Separator()
+    ImGui.Text("Yeti Hunt Teleports")
+    yeti_help_marker("Teleport to any of the Yeti Hunt clue locations or the final Yeti fight location.")
+    ImGui.Separator()
+    
+    ImGui.Text("Select Yeti Location:")
+    yeti_help_marker("Choose a location from the dropdown list to teleport to.")
 
-YetiHuntMenu:add_button("Clue Location 3", function()
-	PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), -1715.398, 4501.203, 0.096)
-end)
+    ImGui.SetNextItemWidth(265)
+    yeti_selected_loc = ImGui.Combo("##yeti_selected_loc", yeti_selected_loc, yeti_names, 6)
 
-YetiHuntMenu:add_button("Clue Location 4", function()
-	PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), -1282.18, 4487.826, 12.643)
-end)
+    ImGui.SameLine()
 
-YetiHuntMenu:add_button("Clue Location 5", function()
-	PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), -1569.665, 4478.485, 20.215)
-end)
+    if ImGui.Button("Teleport to Location") then
+        script.run_in_fiber(function()
+            local coords = yeti_locations[yeti_selected_loc + 1]
+            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+        end)
+    end
+    yeti_help_marker("Teleports you to the selected Yeti location.")
 
-YetiHuntMenu:add_button("Teleport To Yeti Fight Location", function()
-	PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), -1345.828, 4838.062, 137.522)
+    ImGui.Separator()
+    ImGui.Text("Quick Teleport Buttons:")
+    yeti_help_marker("Quickly teleport to any Yeti clue location or the fight location.")
+
+    -- Add quick teleport buttons in rows of 3
+    for i = 0, 5 do
+        if i % 3 == 0 then
+            ImGui.Text("  ")
+        end
+        
+        if ImGui.Button(yeti_names[i + 1]) then
+            script.run_in_fiber(function()
+                local coords = yeti_locations[i + 1]
+                PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            end)
+        end
+        
+        if i % 3 ~= 2 and i < 5 then
+            ImGui.SameLine()
+        end
+    end
+
+    ImGui.Separator()
+    ImGui.Text("Total Yeti Locations: 6 (5 Clues + 1 Fight)")
+    
+    if ImGui.Button("Teleport to Random Yeti Location") then
+        script.run_in_fiber(function()
+            local random_index = math.random(1, 6)
+            local coords = yeti_locations[random_index]
+            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            gui.show_message("Yeti Hunt", "Teleported to " .. yeti_names[random_index])
+        end)
+    end
+    yeti_help_marker("Teleports you to a random Yeti location. Find all the clues to hunt the Yeti!")
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
