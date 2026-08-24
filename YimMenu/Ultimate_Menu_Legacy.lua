@@ -84,7 +84,7 @@ KCBRL = 597 -- kortz center reload board local -- ("kortz_planning") -- above 2n
 KCDCL = 1386 -- Data crack local (1386 + 1 + (i * 4) for i = 0-7) [+1 skips array size]
 KCFHL = 26464 -- Fingerprint hack local
 KCAC_BASE = 32416 + 1 -- Access code base (32416 + 1 + (i * 2) for i = 0-2)
-KCLGL = 70416 -- Lasers local
+KCLGL = 70472 -- Lasers local
 KCVLL = 27512 -- Vault door local
 KCCGL_BASE = 32453 + 1 -- Cut glass base (32453 + 1 + (i * 13) + 3 for i = 0-4) [+1 skips array size]
 KCCGL_OFFSET = 3 -- Cut glass offset
