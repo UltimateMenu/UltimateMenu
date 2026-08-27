@@ -7872,7 +7872,7 @@ end)
 
 -- Kortz Center Heist
 
--- Glass Case Names
+-- Glass case display info
 glassCaseNames = {
     [0] = "Venus d'Algernon",
     [1] = "Gemstone",
@@ -7888,88 +7888,38 @@ glassCaseTypes = {
     [4] = "Horizontal Glass Case",
 }
 
--- ============================================
--- MENU CREATION
--- ============================================
-
--- Create menu
+-- Create menu tab
 KortzCenterHeistMenu = HeistsDataEditorMenu:add_tab("Kortz Center Heist")
 
--- State variables
+-- State
 k26_heist_target = 0
 selectedPayoutTarget = 0
 autoHacks = false
-
--- Track auto-hack triggers (reset when heist ends)
 dataCrackTriggered = false
 fingerprintTriggered = false
 vaultDoorTriggered = false
 heistWasActive = false
-
--- UI values
 bagSizeValue = 100
 weeklyMultiplierValue = 4.0
 livesValue = 3
 
--- Target data
+-- Target names
 local targetShortNames = {
-    "La Dernière Débauche",
-    "Hare Oneself Think",
-    "The Downfall of Rome",
-    "Brother Brother",
-    "A Cast of Characters",
-    "Gone To Seed",
-    "True Love",
-    "Breathless",
-    "Consumato",
-    "I Hear Voices",
-    "Winter, Nowhere",
-    "Pearl Necklace",
-    "Chat on Fruit",
-    "Pumpkin",
-    "Twindifference",
-    "Stacks Study V",
-    "I, Fruit",
-    "To Beat About Bush",
-    "In Excess Success",
-    "Juiced",
-    "Winding Road Home",
-    "Teckels",
-    "Trust",
-    "Until Death",
-    "What Are Melons?",
-    "Outcome Endeavour",
-    "Mi O Melee",
+    "La Dernière Débauche", "Hare Oneself Think", "The Downfall of Rome",
+    "Brother Brother", "A Cast of Characters", "Gone To Seed",
+    "True Love", "Breathless", "Consumato", "I Hear Voices",
+    "Winter, Nowhere", "Pearl Necklace", "Chat on Fruit", "Pumpkin",
+    "Twindifference", "Stacks Study V", "I, Fruit", "To Beat About Bush",
+    "In Excess Success", "Juiced", "Winding Road Home", "Teckels",
+    "Trust", "Until Death", "What Are Melons?", "Outcome Endeavour", "Mi O Melee",
 }
 
+-- Base payouts
 local targetBasePayouts = {
-    481250,
-    304500,
-    305000,
-    305500,
-    306000,
-    306500,
-    307000,
-    307500,
-    308000,
-    308500,
-    309000,
-    309500,
-    310000,
-    310500,
-    311000,
-    311500,
-    312000,
-    312500,
-    313000,
-    313500,
-    314000,
-    314500,
-    315000,
-    315500,
-    316000,
-    365000,
-    317000,
+    481250, 304500, 305000, 305500, 306000, 306500, 307000,
+    307500, 308000, 308500, 309000, 309500, 310000, 310500,
+    311000, 311500, 312000, 312500, 313000, 313500, 314000,
+    314500, 315000, 315500, 316000, 365000, 317000,
 }
 
 k26Targets = {}
@@ -7982,7 +7932,6 @@ for _, target in ipairs(k26Targets) do
     table.insert(targetNames, target.name)
 end
 
--- Payout values
 local payoutModifiers = {}
 local payoutCustomValues = {}
 for i = 1, 27 do
@@ -7990,22 +7939,9 @@ for i = 1, 27 do
     payoutCustomValues[i] = 0
 end
 
--- ============================================
--- HELPER FUNCTIONS
--- ============================================
-
-function setK26Bit(stat, bit, name)
-    local current = stats.get_int(MPX() .. stat)
-    stats.set_int(MPX() .. stat, current | bit)
-    gui.show_message("Kortz Center Heist", name .. " enabled")
-end
-
+-- Helper functions
 function isKortzHeistActive()
     return SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("fm_mission_controller_v3")) > 0
-end
-
-function getGlassProgress(i)
-    return locals.get_float("fm_mission_controller_v3", KCCGL_BASE + (i * 13) + KCCGL_OFFSET)
 end
 
 function getCurrentBagSize()
@@ -8016,17 +7952,19 @@ function getCurrentLives()
     return locals.get_int("fm_mission_controller_v3", KCLIVESL)
 end
 
+-- Get payout from Global_262145.f_37405 + (index + 1)
 function getCurrentPayout(index)
-    return globals.get_int(KCPAYOUT_BASE + index)
+    local value = globals.get_int(KCPAYOUT_BASE + index + 1)
+    if value == 0 or value == nil then
+        return targetBasePayouts[index + 1] or 0
+    end
+    return value
 end
 
+-- Set payout to Global_262145.f_37405 + (index + 1)
 function setPayout(index, value)
-    globals.set_int(KCPAYOUT_BASE + index, value)
+    globals.set_int(KCPAYOUT_BASE + index + 1, value)
 end
-
--- ============================================
--- SOLO SECONDARY TARGETS
--- ============================================
 
 function EnableSoloSecondaryTargets()
     local target_indices = { 0, 1, 5, 6, 7, 20, 21 }
@@ -8035,53 +7973,90 @@ function EnableSoloSecondaryTargets()
         globals.set_int(base + 68, 0)
         globals.set_int(base + 143, 0)
     end
-    gui.show_message("Kortz Center", "Solo secondary targets enabled for Exhibit Level 2")
+    gui.show_message("Kortz Center", "Solo secondary targets enabled")
 end
 
--- ============================================
--- AUTO HACK FUNCTIONS (Manual)
--- ============================================
+function SetKortzTarget(target_index)
+    stats.set_int(MPX() .. "K26_HEIST_TARGET", target_index)
+    locals.set_int("kortz_planning", KCBRL, 2)
+    gui.show_message("Kortz Center Heist", "Target set to: " .. targetShortNames[target_index + 1])
+end
 
--- Data Crack - FIXED
+function KortzReloadBoard()
+    locals.set_int("kortz_planning", KCBRL, 2)
+    gui.show_message("Kortz Center Heist", "Planning board reloaded")
+end
+
+function KortzSkipCooldown()
+    globals.set_int(KCCDG, 0)
+    globals.set_int(KCCD2G, 0)
+    gui.show_message("Kortz Center Heist", "Cooldowns reset to 0")
+end
+
+-- Smooth rainbow fade info helper
+function RainbowInfo(tooltip)
+    local time = os.clock() * 0.5
+    local r = (math.sin(time) + 1) / 2
+    local g = (math.sin(time + 2.094) + 1) / 2
+    local b = (math.sin(time + 4.188) + 1) / 2
+    ImGui.TextColored(r, g, b, 1.0, "[?]")
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip(tooltip)
+    end
+end
+
+-- Toggle dropdown helper
+function ToggleBitDropdown(label, stat_name, bit, tooltip)
+    local current = stats.get_int(MPX() .. stat_name)
+    local is_set = (current & bit) ~= 0
+    local options = { "Not Done", "Done" }
+    local idx = is_set and 1 or 0
+    local new_idx, changed = ImGui.Combo(label, idx, options, 2)
+    if changed then
+        if new_idx == 1 then
+            stats.set_int(MPX() .. stat_name, current | bit)
+            gui.show_message("Kortz Center Heist", label .. " completed")
+        else
+            stats.set_int(MPX() .. stat_name, current & ~bit)
+            gui.show_message("Kortz Center Heist", label .. " undone")
+        end
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip(tooltip)
+    end
+end
+
+-- Auto hack functions
 local function KortzSkipDataCrack()
     if isKortzHeistActive() then
-        -- Bypass all rods
         for b = 0, 7 do
             locals.set_int("fm_mission_controller_v3", KCDCL + 1 + (b * 4), 1)
         end
-        -- Set data crack state to completed
         locals.set_int("fm_mission_controller_v3", KCDCL, 1)
-        gui.show_message("Kortz Center Cracker", "Data crack bypassed!")
+        gui.show_message("Kortz Center Cracker", "Data crack bypassed")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
--- Fingerprint Hack - FIXED
 local function KortzSkipFingerprint()
     if isKortzHeistActive() then
         locals.set_int("fm_mission_controller_v3", KCFHL, 5)
-        gui.show_message("Kortz Center Cracker", "Fingerprint scanner bypassed!")
+        gui.show_message("Kortz Center Cracker", "Fingerprint scanner bypassed")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
--- Skip Vault Door - FIXED
 local function KortzSkipVaultDoor()
     if isKortzHeistActive() then
         locals.set_int("fm_mission_controller_v3", KCVLL, 5)
-        gui.show_message("Kortz Center Cracker", "Vault door bypassed!")
+        gui.show_message("Kortz Center Cracker", "Vault door bypassed")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
--- ============================================
--- MANUAL HACK FUNCTIONS
--- ============================================
-
--- Access Code - 00-00-00
 local function KortzAutoAccessCode()
     if isKortzHeistActive() then
         locals.set_int("fm_mission_controller_v3", KCAC_BASE + (0 * 2), 0)
@@ -8090,137 +8065,102 @@ local function KortzAutoAccessCode()
         PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 237, 1.0)
         gui.show_message("Kortz Center Cracker", "Access code entered: 00-00-00")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
--- Disable Lasers
 local function KortzDisableLasers()
     if isKortzHeistActive() then
         locals.set_int("fm_mission_controller_v3", KCLGL, 4294784)
         globals.set_int(KCLDG, 1)
-        gui.show_message("Kortz Center Cracker", "Laser grid neutralized!")
+        gui.show_message("Kortz Center Cracker", "Laser grid neutralized")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
-
--- ============================================
--- GLASS CUTTING FUNCTIONS
--- ============================================
 
 local function CutVenus()
     if isKortzHeistActive() then
         locals.set_float("fm_mission_controller_v3", KCCGL_BASE + (0 * 13) + KCCGL_OFFSET, 100.0)
-        gui.show_message("Kortz Center Cracker", "Venus d'Algernon display case cut!")
+        gui.show_message("Kortz Center Cracker", "Venus d'Algernon cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function CutGemstone()
     if isKortzHeistActive() then
         locals.set_float("fm_mission_controller_v3", KCCGL_BASE + (1 * 13) + KCCGL_OFFSET, 100.0)
-        gui.show_message("Kortz Center Cracker", "Gemstone display case cut!")
+        gui.show_message("Kortz Center Cracker", "Gemstone cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function CutHorse()
     if isKortzHeistActive() then
         locals.set_float("fm_mission_controller_v3", KCCGL_BASE + (2 * 13) + KCCGL_OFFSET, 100.0)
-        gui.show_message("Kortz Center Cracker", "Horse display case cut!")
+        gui.show_message("Kortz Center Cracker", "Horse cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function CutCoquard()
     if isKortzHeistActive() then
         locals.set_float("fm_mission_controller_v3", KCCGL_BASE + (3 * 13) + KCCGL_OFFSET, 100.0)
-        gui.show_message("Kortz Center Cracker", "Coquard Carcanet display case cut!")
+        gui.show_message("Kortz Center Cracker", "Coquard Carcanet cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function CutMemento()
     if isKortzHeistActive() then
         locals.set_float("fm_mission_controller_v3", KCCGL_BASE + (4 * 13) + KCCGL_OFFSET, 100.0)
-        gui.show_message("Kortz Center Cracker", "Memento Non Mori display case cut!")
+        gui.show_message("Kortz Center Cracker", "Memento Non Mori cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function KortzCutAllGlass()
     if isKortzHeistActive() then
-        local cutCount = 0
         for i = 0, 4 do
             locals.set_float("fm_mission_controller_v3", KCCGL_BASE + (i * 13) + KCCGL_OFFSET, 100.0)
-            cutCount = cutCount + 1
         end
-        gui.show_message("Kortz Center Cracker", "Cut " .. cutCount .. " glass cases!")
+        gui.show_message("Kortz Center Cracker", "All glass cases cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
--- ============================================
--- TARGET FUNCTIONS
--- ============================================
-
--- Take primary target
 local function KortzTakePrimary()
     if isKortzHeistActive() then
         locals.set_int("fm_mission_controller_v3", KCPT_STATE, 15)
         locals.set_int("fm_mission_controller_v3", KCPT_STATE, 17)
         PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 237, 1.0)
-        gui.show_message("Kortz Center Cracker", "Primary target acquired!")
+        gui.show_message("Kortz Center Cracker", "Primary target acquired")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
--- Take secondary target
 local function KortzTakeSecondary()
     if isKortzHeistActive() then
         locals.set_int("fm_mission_controller_v3", KCST_STATE, 3)
         PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 219, 1.0)
-        gui.show_message("Kortz Center Cracker", "Secondary target secured!")
+        gui.show_message("Kortz Center Cracker", "Secondary target secured")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active!")
+        gui.show_message("Kortz Center Cracker", "Heist not active")
     end
 end
 
--- ============================================
--- UTILITY FUNCTIONS
--- ============================================
-
--- Skip Cooldown
-local function KortzSkipCooldown()
-    globals.set_int(KCCDG, 0)
-    globals.set_int(KCCD2G, 0)
-    gui.show_message("Kortz Center Heist", "Cooldowns reset!")
-end
-
--- Reload Planning Board
-local function KortzReloadBoard()
-    locals.set_int("kortz_planning", KCBRL, 2)
-    gui.show_message("Kortz Center Heist", "Planning board reloaded!")
-end
-
--- ============================================
--- AUTO HACKS LOOP - FIXED DETECTION
--- ============================================
-
+-- Auto hack loop
 script.register_looped("KortzCenterAutoHack", function(s)
     s:yield()
-    if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
-    then
+    if not network.is_session_started()
+        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then
         return
     end
 
@@ -8242,100 +8182,44 @@ script.register_looped("KortzCenterAutoHack", function(s)
         return
     end
 
-    -- ============================================
-    -- DATA CRACK DETECTION - FIXED
-    -- ============================================
     if not dataCrackTriggered then
-        local isDataCrackActive = false
-        -- Check ALL rods (0-7) for any that are NOT completed (value 0 means active)
+        local isActive = false
         for b = 0, 7 do
-            local value = locals.get_int("fm_mission_controller_v3", KCDCL + 1 + (b * 4))
-            if value == 0 then
-                isDataCrackActive = true
+            if locals.get_int("fm_mission_controller_v3", KCDCL + 1 + (b * 4)) == 0 then
+                isActive = true
                 break
             end
         end
-
-        -- Also check if data crack is active by checking the first rod specifically
-        if not isDataCrackActive then
-            local firstRod = locals.get_int("fm_mission_controller_v3", KCDCL + 1)
-            if firstRod == 0 then
-                isDataCrackActive = true
-            end
-        end
-
-        if isDataCrackActive then
-            -- Bypass all rods
+        if isActive then
             for b = 0, 7 do
                 locals.set_int("fm_mission_controller_v3", KCDCL + 1 + (b * 4), 1)
             end
-            -- Also set the data crack state to completed
             locals.set_int("fm_mission_controller_v3", KCDCL, 1)
             dataCrackTriggered = true
-            gui.show_message("Kortz Center Cracker", "Auto: Data crack bypassed!")
+            gui.show_message("Kortz Center Cracker", "Auto: Data crack bypassed")
             s:sleep(1000)
-            return
-        end
-    else
-        -- Check if all rods are still completed, reset trigger if they become uncompleted
-        local allCompleted = true
-        for b = 0, 7 do
-            local value = locals.get_int("fm_mission_controller_v3", KCDCL + 1 + (b * 4))
-            if value ~= 1 then
-                allCompleted = false
-                break
-            end
-        end
-        if not allCompleted then
-            -- Some rods reset, trigger again
-            dataCrackTriggered = false
-            s:sleep(100)
             return
         end
     end
 
-    -- ============================================
-    -- FINGERPRINT DETECTION - FIXED
-    -- ============================================
     if not fingerprintTriggered then
-        local checkValue = locals.get_int("fm_mission_controller_v3", KCFHL)
-        -- Check if fingerprint hack is active (value between 0-4 means active, 5 means completed)
-        if checkValue ~= nil and checkValue >= 0 and checkValue <= 4 then
+        local val = locals.get_int("fm_mission_controller_v3", KCFHL)
+        if val ~= nil and val >= 0 and val <= 4 then
             locals.set_int("fm_mission_controller_v3", KCFHL, 5)
             fingerprintTriggered = true
-            gui.show_message("Kortz Center Cracker", "Auto: Fingerprint scanner bypassed!")
+            gui.show_message("Kortz Center Cracker", "Auto: Fingerprint bypassed")
             s:sleep(1000)
-            return
-        end
-    else
-        -- Check if fingerprint hack reset
-        local checkValue = locals.get_int("fm_mission_controller_v3", KCFHL)
-        if checkValue ~= nil and checkValue >= 0 and checkValue <= 4 then
-            fingerprintTriggered = false
-            s:sleep(100)
             return
         end
     end
 
-    -- ============================================
-    -- VAULT DOOR DETECTION - FIXED
-    -- ============================================
     if not vaultDoorTriggered then
-        local checkValue = locals.get_int("fm_mission_controller_v3", KCVLL)
-        -- Check if vault door hack is active (value between 0-4 means active, 5 means completed)
-        if checkValue ~= nil and checkValue >= 0 and checkValue <= 4 then
+        local val = locals.get_int("fm_mission_controller_v3", KCVLL)
+        if val ~= nil and val >= 0 and val <= 4 then
             locals.set_int("fm_mission_controller_v3", KCVLL, 5)
             vaultDoorTriggered = true
-            gui.show_message("Kortz Center Cracker", "Auto: Vault door bypassed!")
+            gui.show_message("Kortz Center Cracker", "Auto: Vault door bypassed")
             s:sleep(1000)
-            return
-        end
-    else
-        -- Check if vault door hack reset
-        local checkValue = locals.get_int("fm_mission_controller_v3", KCVLL)
-        if checkValue ~= nil and checkValue >= 0 and checkValue <= 4 then
-            vaultDoorTriggered = false
-            s:sleep(100)
             return
         end
     end
@@ -8348,199 +8232,92 @@ end)
 -- ============================================
 
 KortzCenterHeistMenu:add_imgui(function()
-    if checkOnline() then
-        return
-    end
+    if checkOnline() then return end
 
-    -- Heist Status
     local heistActive = isKortzHeistActive()
     if heistActive then
-        ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "● HEIST IS ACTIVE")
+        ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "HEIST IS ACTIVE")
     else
-        ImGui.TextColored(1.0, 0.5, 0.0, 1.0, "● HEIST NOT ACTIVE")
+        ImGui.TextColored(1.0, 0.5, 0.0, 1.0, "HEIST NOT ACTIVE")
     end
     ImGui.Dummy(0, 5)
 
-    -- Primary Target Selection
+    -- PRIMARY TARGET
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "PRIMARY TARGET")
+    ImGui.SameLine()
+    RainbowInfo("Select the main painting you want to steal.\nClick SET TARGET to apply it.")
     ImGui.Separator()
 
     local nIndex, changed = ImGui.Combo("##PrimaryTarget", k26_heist_target, targetShortNames, #targetShortNames)
     if changed then
         k26_heist_target = nIndex
-        stats.set_int(MPX() .. "K26_HEIST_TARGET", k26_heist_target)
-        gui.show_message("Kortz Center Heist", "Target set to: " .. targetShortNames[k26_heist_target + 1])
     end
+
+    if ImGui.Button("SET TARGET") then
+        SetKortzTarget(k26_heist_target)
+        selectedPayoutTarget = k26_heist_target
+    end
+    ImGui.SameLine()
+    ImGui.Text("Selected: " .. targetShortNames[k26_heist_target + 1])
     ImGui.Dummy(0, 8)
 
-    -- Payout Setter
+    -- PAYOUT SETTINGS
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "PAYOUT SETTINGS")
+    ImGui.SameLine()
+    RainbowInfo("Adjust the payout for the selected target.")
     ImGui.Separator()
 
-    ImGui.TextColored(
-        0.6,
-        0.6,
-        0.6,
-        1.0,
-        "💡 Changes apply instantly - use 'Reload Board' to refresh the planning board view"
-    )
-    ImGui.Dummy(0, 5)
-
-    -- Target selection for payout
+    selectedPayoutTarget = k26_heist_target
     local targetIdx = selectedPayoutTarget + 1
-    local newSelection, changed2 =
-        ImGui.Combo("Select Target to Edit", selectedPayoutTarget, targetShortNames, #targetShortNames)
-    if changed2 then
-        selectedPayoutTarget = newSelection
-        targetIdx = selectedPayoutTarget + 1
-    end
 
     if targetIdx >= 1 and targetIdx <= 27 then
         ImGui.Text("Target: " .. targetShortNames[targetIdx])
-        ImGui.Text("Base Payout: $" .. string.format("%.0f", targetBasePayouts[targetIdx]))
-
-        local currentPayout = getCurrentPayout(targetIdx)
-        if currentPayout > 0 then
-            ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "Current Payout: $" .. string.format("%.0f", currentPayout))
-        else
-            ImGui.TextColored(0.5, 0.5, 0.5, 1.0, "Current Payout: Not Set (using base value)")
-        end
+        ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "Payout: $" .. string.format("%.0f", targetBasePayouts[targetIdx]))
 
         ImGui.Dummy(0, 5)
-
-        -- Multiplier
         ImGui.Text("Multiplier:")
-        payoutModifiers[targetIdx], _ =
-            ImGui.InputFloat("##Multiplier" .. targetIdx, payoutModifiers[targetIdx], 0.1, 0.5, "%.1f")
-
-        -- Custom Value
+        payoutModifiers[targetIdx], _ = ImGui.InputFloat("##Multiplier" .. targetIdx, payoutModifiers[targetIdx], 0.1, 0.5, "%.1f")
         ImGui.Text("Custom Value:")
-        payoutCustomValues[targetIdx], _ =
-            ImGui.InputInt("##CustomValue" .. targetIdx, payoutCustomValues[targetIdx], 1000, 10000)
-
+        payoutCustomValues[targetIdx], _ = ImGui.InputInt("##CustomValue" .. targetIdx, payoutCustomValues[targetIdx], 1000, 10000)
         ImGui.Dummy(0, 5)
 
-        -- Apply buttons
         if ImGui.Button("Apply Multiplier") then
             local newPayout = math.floor(targetBasePayouts[targetIdx] * payoutModifiers[targetIdx])
-            if newPayout > 0 then
-                setPayout(targetIdx, newPayout)
-                gui.show_message(
-                    "Kortz Center Heist",
-                    "✓ " .. targetShortNames[targetIdx] .. " set to $" .. string.format("%.0f", newPayout)
-                )
-            end
+            setPayout(targetIdx - 1, newPayout)
+            KortzReloadBoard()
+            gui.show_message("Kortz Center Heist", "Payout set to $" .. string.format("%.0f", newPayout))
         end
-
         ImGui.SameLine()
-
         if ImGui.Button("Apply Custom Value") then
             if payoutCustomValues[targetIdx] > 0 then
-                setPayout(targetIdx, payoutCustomValues[targetIdx])
-                gui.show_message(
-                    "Kortz Center Heist",
-                    "✓ "
-                        .. targetShortNames[targetIdx]
-                        .. " set to $"
-                        .. string.format("%.0f", payoutCustomValues[targetIdx])
-                )
-            else
-                gui.show_message("Kortz Center Heist", "Please enter a custom value greater than 0!")
+                setPayout(targetIdx - 1, payoutCustomValues[targetIdx])
+                KortzReloadBoard()
+                gui.show_message("Kortz Center Heist", "Payout set to $" .. string.format("%.0f", payoutCustomValues[targetIdx]))
             end
         end
-
         ImGui.SameLine()
-
         if ImGui.Button("Reset This Target") then
-            setPayout(targetIdx, targetBasePayouts[targetIdx])
+            setPayout(targetIdx - 1, targetBasePayouts[targetIdx])
+            KortzReloadBoard()
             payoutModifiers[targetIdx] = 1.0
             payoutCustomValues[targetIdx] = 0
-            gui.show_message(
-                "Kortz Center Heist",
-                "✓ "
-                    .. targetShortNames[targetIdx]
-                    .. " reset to default! ($"
-                    .. string.format("%.0f", targetBasePayouts[targetIdx])
-                    .. ")"
-            )
+            gui.show_message("Kortz Center Heist", "Payout reset to base")
         end
     end
-
     ImGui.Dummy(0, 8)
 
-    -- Quick Actions
-    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Quick Actions")
-    ImGui.Separator()
-
-    if ImGui.Button("2x All Targets") then
-        for i = 1, 27 do
-            payoutModifiers[i] = 2.0
-            local newPayout = math.floor(targetBasePayouts[i] * payoutModifiers[i])
-            setPayout(i, newPayout)
-        end
-        gui.show_message("Kortz Center Heist", "✓ All targets set to 2x payout!")
-    end
-    ImGui.SameLine()
-
-    if ImGui.Button("3x All Targets") then
-        for i = 1, 27 do
-            payoutModifiers[i] = 3.0
-            local newPayout = math.floor(targetBasePayouts[i] * payoutModifiers[i])
-            setPayout(i, newPayout)
-        end
-        gui.show_message("Kortz Center Heist", "✓ All targets set to 3x payout!")
-    end
-    ImGui.SameLine()
-
-    if ImGui.Button("5x All Targets") then
-        for i = 1, 27 do
-            payoutModifiers[i] = 5.0
-            local newPayout = math.floor(targetBasePayouts[i] * payoutModifiers[i])
-            setPayout(i, newPayout)
-        end
-        gui.show_message("Kortz Center Heist", "✓ All targets set to 5x payout!")
-    end
-    ImGui.SameLine()
-
-    if ImGui.Button("Reset All Payouts") then
-        for i = 1, 27 do
-            setPayout(i, targetBasePayouts[i])
-            payoutModifiers[i] = 1.0
-            payoutCustomValues[i] = 0
-        end
-        gui.show_message("Kortz Center Heist", "✓ All payouts reset to default!")
-    end
-
-    ImGui.Dummy(0, 8)
-
-    -- Board Management
-    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Board Management")
-    ImGui.Separator()
-
-    if ImGui.Button("🔄 Reload Planning Board") then
-        KortzReloadBoard()
-    end
-    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Refresh the planning board to see updated payout values")
-
-    ImGui.Dummy(0, 8)
-
-    -- General Settings
+    -- GENERAL SETTINGS
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "GENERAL SETTINGS")
+    ImGui.SameLine()
+    RainbowInfo("Adjust bag size, team lives, weekly multiplier, difficulty, and cooldowns.")
     ImGui.Separator()
 
     local currentBag = getCurrentBagSize()
     ImGui.Text("Bag Capacity: " .. currentBag)
     bagSizeValue, _ = ImGui.InputInt("##BagSize", bagSizeValue)
     if ImGui.Button("Set Bag Size") then
-        if bagSizeValue < 1 then
-            gui.show_message("Kortz Center Heist", "Bag size must be at least 1!")
-        else
-            globals.set_int(KCBGL, bagSizeValue)
-            gui.show_message("Kortz Center Heist", "Bag capacity set to " .. bagSizeValue)
-        end
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Default is 100. Determines how much loot you can carry.")
+        globals.set_int(KCBGL, bagSizeValue)
+        gui.show_message("Kortz Center Heist", "Bag capacity set to " .. bagSizeValue)
     end
 
     ImGui.Separator()
@@ -8549,15 +8326,8 @@ KortzCenterHeistMenu:add_imgui(function()
     ImGui.Text("Team Lives: " .. currentLives)
     livesValue, _ = ImGui.InputInt("##Lives", livesValue)
     if ImGui.Button("Set Lives") then
-        if livesValue < 1 then
-            gui.show_message("Kortz Center Heist", "Lives must be at least 1!")
-        else
-            locals.set_int("fm_mission_controller_v3", KCLIVESL, livesValue)
-            gui.show_message("Kortz Center Heist", "Team lives set to " .. livesValue)
-        end
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Default is 3. Set to 999999 for unlimited lives.")
+        locals.set_int("fm_mission_controller_v3", KCLIVESL, livesValue)
+        gui.show_message("Kortz Center Heist", "Team lives set to " .. livesValue)
     end
 
     ImGui.Separator()
@@ -8565,35 +8335,36 @@ KortzCenterHeistMenu:add_imgui(function()
     ImGui.Text("Weekly Bonus Multiplier:")
     weeklyMultiplierValue, _ = ImGui.InputFloat("##WeeklyMultiplier", weeklyMultiplierValue)
     if ImGui.Button("Set Weekly Multiplier") then
-        if weeklyMultiplierValue < 1.0 then
-            gui.show_message("Kortz Center Heist", "Multiplier must be at least 1.0!")
-        else
-            globals.set_float(KCWMG, weeklyMultiplierValue)
-            gui.show_message("Kortz Center Heist", "Weekly multiplier set to " .. weeklyMultiplierValue .. "x")
-        end
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Default is 4.0x. Affects the first sale bonus multiplier.")
+        globals.set_float(KCWMG, weeklyMultiplierValue)
+        gui.show_message("Kortz Center Heist", "Weekly multiplier set to " .. weeklyMultiplierValue .. "x")
     end
 
     ImGui.Separator()
 
-    ImGui.Text("Difficulty:")
+    local hard_stat = stats.get_int(MPX() .. "K26_GENERAL_BS")
+    local hard_active = (hard_stat & (1 << 28)) ~= 0
+    if hard_active then
+        ImGui.TextColored(1.0, 0.3, 0.3, 1.0, "HARD MODE: ACTIVE")
+    else
+        ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "NORMAL MODE: ACTIVE")
+    end
+
     if ImGui.Button("Hard Mode") then
-        stats.set_int(MPX() .. "K26_GENERAL_BS", 1784442458)
-        gui.show_message("Kortz Center Heist", "Hard Mode enabled!")
+        stats.set_int(MPX() .. "K26_GENERAL_BS", stats.get_int(MPX() .. "K26_GENERAL_BS") | (1 << 28))
+        KortzReloadBoard()
+        gui.show_message("Kortz Center Heist", "Hard Mode enabled")
     end
     if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Enables Hard Mode. Higher risk, higher reward.")
+        ImGui.SetTooltip("Enable Hard Mode")
     end
     ImGui.SameLine()
     if ImGui.Button("Normal Mode") then
-        local current = stats.get_int(MPX() .. "K26_GENERAL_BS")
-        stats.set_int(MPX() .. "K26_GENERAL_BS", current & ~1784442458)
-        gui.show_message("Kortz Center Heist", "Normal Mode enabled!")
+        stats.set_int(MPX() .. "K26_GENERAL_BS", stats.get_int(MPX() .. "K26_GENERAL_BS") & ~(1 << 28))
+        KortzReloadBoard()
+        gui.show_message("Kortz Center Heist", "Normal Mode enabled")
     end
     if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Enables Normal Mode. Standard difficulty.")
+        ImGui.SetTooltip("Enable Normal Mode")
     end
 
     ImGui.Separator()
@@ -8601,264 +8372,179 @@ KortzCenterHeistMenu:add_imgui(function()
     if ImGui.Button("Skip Cooldown") then
         KortzSkipCooldown()
     end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Resets both normal and hard mode cooldowns to 0.")
-    end
     ImGui.SameLine()
-    if ImGui.Button("Reload Planning Board") then
-        KortzReloadBoard()
+    if ImGui.Button("Unlock All Paintings") then
+        stats.set_int(MPX() .. "K26_TARGETS_OWNED_BS", -1)
+        gui.show_message("Kortz Center Heist", "All paintings unlocked")
     end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Reloads the planning board to reflect latest changes.")
-    end
+    ImGui.Dummy(0, 8)
 
+    -- HIGH PRIORITY
+    ImGui.TextColored(1.0, 0.8, 0.0, 1.0, "HIGH PRIORITY (STRONGLY RECOMMENDED)")
+    ImGui.SameLine()
+    RainbowInfo("These preps make the heist much easier.\nStrongly recommended for a smooth run.")
     ImGui.Separator()
 
-    -- Prep Work
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "PREP WORK")
+    ToggleBitDropdown("Unmarked Weapons", "K26_ROBBERY_PROG", 128, "Weapons that can't be traced")
+    ToggleBitDropdown("Getaway Vehicle", "K26_ROBBERY_PROG", 256, "Armored getaway vehicle")
+    ToggleBitDropdown("Guard Routes", "K26_GENERAL_BS", 32, "Reveals guard patrol patterns")
+    ToggleBitDropdown("Glass Cutter", "K26_GENERAL_BS", 64, "Tool for cutting display cases")
+    ToggleBitDropdown("Power Drills", "K26_GENERAL_BS", 128, "Drills for certain locks")
+    ImGui.Dummy(0, 8)
+
+    -- REQUIRED PREPS
+    ImGui.TextColored(1.0, 0.5, 0.5, 1.0, "REQUIRED PREPS")
+    ImGui.SameLine()
+    RainbowInfo("These are mandatory to start the heist.")
     ImGui.Separator()
 
-    if ImGui.Button("Scope Out Kortz Center") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 1)
-        gui.show_message("Kortz Center Heist", "Kortz Center scoped out!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Completes the Scope Out prep mission.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Unscope Out") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") & ~1)
-        gui.show_message("Kortz Center Heist", "Kortz Center unscoped.")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Removes the Scope Out completion.")
-    end
-
-    if ImGui.Button("Alpha Mail Disguise") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 2)
-        gui.show_message("Kortz Center Heist", "Alpha Mail Disguise acquired!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Completes the Alpha Mail Disguise prep.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Hazmat Suit") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 4)
-        gui.show_message("Kortz Center Heist", "Hazmat Suit acquired!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Completes the Hazmat Suit prep.")
+    local scope_current = stats.get_int(MPX() .. "K26_ROBBERY_PROG")
+    local scope_done = (scope_current & 1) ~= 0
+    local scope_idx = scope_done and 1 or 0
+    local scope_new, scope_changed = ImGui.Combo("Scope Out Kortz Center", scope_idx, { "Not Done", "Done" }, 2)
+    if scope_changed then
+        if scope_new == 1 then
+            stats.set_int(MPX() .. "K26_ROBBERY_PROG", scope_current | 1)
+            stats.set_int(MPX() .. "K26_SCOPING_BS", -1)
+            stats.set_int(MPX() .. "K26_POI_BS", -1)
+            gui.show_message("Kortz Center Heist", "Scope Out completed")
+        else
+            stats.set_int(MPX() .. "K26_ROBBERY_PROG", scope_current & ~1)
+            gui.show_message("Kortz Center Heist", "Scope Out undone")
+        end
     end
 
-    if ImGui.Button("Staff Key Card") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 8)
-        gui.show_message("Kortz Center Heist", "Staff Key Card acquired!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Completes the Staff Key Card prep.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Tactical Equipment") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 16)
-        gui.show_message("Kortz Center Heist", "Tactical Equipment acquired!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Completes the Tactical Equipment prep.")
-    end
+    ToggleBitDropdown("Alpha Mail Disguise", "K26_ROBBERY_PROG", 2, "Disguise to enter building")
+    ToggleBitDropdown("Staff Key Card", "K26_ROBBERY_PROG", 8, "Access to staff areas")
+    ToggleBitDropdown("Hacking Device", "K26_ROBBERY_PROG", 32, "Required for vault door")
+    ToggleBitDropdown("Access Code", "K26_ROBBERY_PROG", 64, "Code for security terminal")
+    ImGui.Dummy(0, 8)
 
-    if ImGui.Button("Hacking Device") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 32)
-        gui.show_message("Kortz Center Heist", "Hacking Device acquired!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Completes the Hacking Device prep.")
-    end
+    -- OPTIONAL PREPS
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "OPTIONAL PREPS")
     ImGui.SameLine()
-    if ImGui.Button("Access Code") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 64)
-        gui.show_message("Kortz Center Heist", "Access Code acquired!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Completes the Access Code prep.")
-    end
-
-    ImGui.Text("Vehicles:")
-    if ImGui.Button("Armored Caracara") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 256)
-        gui.show_message("Kortz Center Heist", "Armored Caracara unlocked!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Unlocks the Armored Caracara.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Annihilator Stealth") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 512)
-        gui.show_message("Kortz Center Heist", "Annihilator Stealth unlocked!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Unlocks the Stealth Annihilator.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Manchez (Any Color)") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", stats.get_int(MPX() .. "K26_ROBBERY_PROG") | 1024)
-        gui.show_message("Kortz Center Heist", "Manchez unlocked!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Unlocks the Manchez.")
-    end
-
-    ImGui.Separator()
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "OPTIONAL PREP WORK (Requires POI)")
+    RainbowInfo("Optional preps that can help but aren't required.")
     ImGui.Separator()
 
-    if ImGui.Button("Scope Points of Interest") then
-        stats.set_int(MPX() .. "K26_POI_BS", -1)
-        gui.show_message("Kortz Center Heist", "Points of Interest scoped!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Scopes all Points of Interest.")
-    end
+    ToggleBitDropdown("Hazmat Suit", "K26_ROBBERY_PROG", 4, "Access to chemical area")
+    ToggleBitDropdown("Tactical Equipment", "K26_ROBBERY_PROG", 16, "Body armor and gear")
+    ToggleBitDropdown("Annihilator Stealth", "K26_ROBBERY_PROG", 512, "Stealth helicopter")
+    ToggleBitDropdown("Manchez", "K26_ROBBERY_PROG", 1024, "Motorcycle")
+    ToggleBitDropdown("EMP Charges", "K26_ROBBERY_PROG", 2048, "Disable electronics")
+    ToggleBitDropdown("Guard Shipments", "K26_ROBBERY_PROG", 4096, "Weaken security")
+    ImGui.Dummy(0, 8)
 
-    ImGui.Text("General Upgrades:")
-    if ImGui.Button("Guard Routes") then
-        setK26Bit("K26_GENERAL_BS", 32, "Guard Routes")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Reveals guard patrol routes.")
-    end
+    -- OPTIONAL UPGRADES
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "OPTIONAL UPGRADES")
     ImGui.SameLine()
-    if ImGui.Button("Glass Cutter") then
-        setK26Bit("K26_GENERAL_BS", 64, "Glass Cutter")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Provides a glass cutter.")
-    end
-    if ImGui.Button("Power Drills") then
-        setK26Bit("K26_GENERAL_BS", 128, "Power Drills")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Provides power drills.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("EMP Charges") then
-        setK26Bit("K26_GENERAL_BS", 256, "EMP Charges")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Provides EMP charges.")
-    end
-
-    ImGui.Text("Loadouts:")
-    if ImGui.Button("Street Loadout") then
-        setK26Bit("K26_GENERAL_BS", 512, "Street Loadout")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Equips Street Loadout.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Security Loadout") then
-        setK26Bit("K26_GENERAL_BS", 1024, "Security Loadout")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Equips Security Loadout.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Military Loadout") then
-        setK26Bit("K26_GENERAL_BS", 2048, "Military Loadout")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Equips Military Loadout.")
-    end
-
-    ImGui.Text("Manchez Colors:")
-    if ImGui.Button("Red Manchez") then
-        setK26Bit("K26_GENERAL_BS", 131072, "Red Manchez")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Unlocks Red Manchez.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Blue Manchez") then
-        setK26Bit("K26_GENERAL_BS", 262144, "Blue Manchez")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Unlocks Blue Manchez.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Green Manchez") then
-        setK26Bit("K26_GENERAL_BS", 524288, "Green Manchez")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Unlocks Green Manchez.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Yellow Manchez") then
-        setK26Bit("K26_GENERAL_BS", 1048576, "Yellow Manchez")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Unlocks Yellow Manchez.")
-    end
-    if ImGui.Button("Manhole Key") then
-        setK26Bit("K26_GENERAL_BS", 134217728, "Manhole Key")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Provides Manhole Key.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Weak Guards") then
-        setK26Bit("K26_GENERAL_BS", -2147483648, "Weak Guards")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Weaker guards - easier to take down.")
-    end
-
-    ImGui.Separator()
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "SECONDARY TARGETS")
+    RainbowInfo("Extra upgrades for loadouts, entrances, and vehicles.")
     ImGui.Separator()
 
-    if ImGui.Button("Scope All Secondary Targets") then
-        stats.set_int(MPX() .. "K26_SCOPING_BS", -1)
-        gui.show_message("Kortz Center Heist", "All secondary targets scoped!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Reveals all secondary targets.")
-    end
+    ToggleBitDropdown("Vault Keypad", "K26_GENERAL_BS", 16, "Bypass vault keypad")
+    ToggleBitDropdown("EMP Charges (Upgrade)", "K26_GENERAL_BS", 256, "EMP upgrade")
+    ToggleBitDropdown("Street Loadout", "K26_GENERAL_BS", 512, "Basic weapons")
+    ToggleBitDropdown("Security Loadout", "K26_GENERAL_BS", 1024, "Better weapons")
+    ToggleBitDropdown("Military Loadout", "K26_GENERAL_BS", 2048, "Top weapons")
+    ToggleBitDropdown("Staff Entrance", "K26_GENERAL_BS", 4096, "Staff entry point")
+    ToggleBitDropdown("Sewer", "K26_GENERAL_BS", 32768, "Sewer entry point")
+    ToggleBitDropdown("Manhole Key Location", "K26_GENERAL_BS", 65536, "Find manhole key")
+    ToggleBitDropdown("Red Manchez", "K26_GENERAL_BS", 131072, "Red motorcycle")
+    ToggleBitDropdown("Blue Manchez", "K26_GENERAL_BS", 262144, "Blue motorcycle")
+    ToggleBitDropdown("Green Manchez", "K26_GENERAL_BS", 524288, "Green motorcycle")
+    ToggleBitDropdown("Yellow Manchez", "K26_GENERAL_BS", 1048576, "Yellow motorcycle")
+    ToggleBitDropdown("Advanced Avionics", "K26_GENERAL_BS", 8388608, "Better helicopter")
+    ToggleBitDropdown("Manhole Key", "K26_GENERAL_BS", 134217728, "Sewer access key")
+    ToggleBitDropdown("Weak Guards", "K26_GENERAL_BS", -2147483648, "Easier guards")
+    ImGui.Dummy(0, 8)
 
+    -- POINTS OF INTEREST
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "POINTS OF INTEREST")
+    ImGui.SameLine()
+    RainbowInfo("Scope all points of interest to unlock optional preps.")
     ImGui.Separator()
+
+    local poi_current = stats.get_int(MPX() .. "K26_POI_BS")
+    local poi_idx = (poi_current == -1) and 1 or 0
+    local poi_new, poi_changed = ImGui.Combo("Points of Interest Scoped", poi_idx, { "Not Done", "Done" }, 2)
+    if poi_changed then
+        stats.set_int(MPX() .. "K26_POI_BS", poi_new == 1 and -1 or 0)
+        gui.show_message("Kortz Center Heist", poi_new == 1 and "POI scoped" or "POI unscoped")
+    end
+    ImGui.Dummy(0, 8)
+
+    -- SECONDARY TARGETS
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "SECONDARY TARGETS")
+    ImGui.SameLine()
+    RainbowInfo("Scope all secondary targets for extra loot.")
+    ImGui.Separator()
+
+    local scop_current = stats.get_int(MPX() .. "K26_SCOPING_BS")
+    local scop_idx = (scop_current == -1) and 1 or 0
+    local scop_new, scop_changed = ImGui.Combo("All Secondary Targets Scoped", scop_idx, { "Not Done", "Done" }, 2)
+    if scop_changed then
+        stats.set_int(MPX() .. "K26_SCOPING_BS", scop_new == 1 and -1 or 0)
+        gui.show_message("Kortz Center Heist", scop_new == 1 and "Secondary targets scoped" or "Secondary targets unscoped")
+    end
+    ImGui.Dummy(0, 8)
+
+    -- QUICK ACTIONS
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "QUICK ACTIONS")
+    ImGui.SameLine()
+    RainbowInfo("Complete all selections or reset to just show selected target.")
     ImGui.Separator()
 
-    if ImGui.Button("Complete All Preps") then
-        stats.set_int(MPX() .. "K26_GENERAL_BS", -1)
+    if ImGui.Button("Complete All Selections") then
+        local general_bits = -1
+        general_bits = general_bits & ~(1 << 28)
+        stats.set_int(MPX() .. "K26_GENERAL_BS", general_bits)
         stats.set_int(MPX() .. "K26_ROBBERY_PROG", 65535)
         stats.set_int(MPX() .. "K26_SCOPING_BS", -1)
         stats.set_int(MPX() .. "K26_POI_BS", -1)
-        gui.show_message("Kortz Center Heist", "All preps completed!")
+        stats.set_int(MPX() .. "K26_HEIST_TARGET", k26_heist_target)
+        KortzReloadBoard()
+        gui.show_message("Kortz Center Heist", "All selections completed in Normal Mode")
     end
     if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Completes all prep missions instantly.")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Reset All Preps") then
-        stats.set_int(MPX() .. "K26_GENERAL_BS", 0)
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", 0)
-        stats.set_int(MPX() .. "K26_SCOPING_BS", 0)
-        stats.set_int(MPX() .. "K26_POI_BS", 0)
-        gui.show_message("Kortz Center Heist", "All preps reset!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Resets all prep progress.")
+        ImGui.SetTooltip("Complete ALL dropdown selections.\nKeeps Normal Mode active (Hard Mode NOT enabled).")
     end
 
+    ImGui.SameLine()
+
+    if ImGui.Button("Reset (Keep Target Only)") then
+        stats.set_int(MPX() .. "K26_ROBBERY_PROG", 1)
+        stats.set_int(MPX() .. "K26_SCOPING_BS", -1)
+        stats.set_int(MPX() .. "K26_POI_BS", -1)
+        stats.set_int(MPX() .. "K26_GENERAL_BS", 0)
+        stats.set_int(MPX() .. "K26_HEIST_TARGET", k26_heist_target)
+        KortzReloadBoard()
+        gui.show_message("Kortz Center Heist", "Reset done, target kept: " .. targetShortNames[k26_heist_target + 1])
+    end
+    if ImGui.IsItemHovered() then
+        ImGui.SetTooltip("Reset all preps and upgrades.\nOnly the currently selected target from dropdown will remain.")
+    end
+
+    ImGui.Dummy(0, 8)
+
+    -- BOARD MANAGEMENT
+    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "BOARD MANAGEMENT")
+    ImGui.SameLine()
+    RainbowInfo("Refresh the planning board to see changes.")
     ImGui.Separator()
+
+    if ImGui.Button("Reload Planning Board") then
+        KortzReloadBoard()
+    end
+    ImGui.Dummy(0, 8)
+
+    -- EXTRAS
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "EXTRAS")
+    ImGui.SameLine()
+    RainbowInfo("Additional tools for the heist.")
     ImGui.Separator()
 
     if ImGui.Button("Skip Cutscene") then
         SkipCutscene()
-        gui.show_message("Kortz Center Heist", "Cutscene skipped!")
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Skips any currently playing cutscene.")
+        gui.show_message("Kortz Center Heist", "Cutscene skipped")
     end
 end)
 
@@ -8869,224 +8555,106 @@ end)
 KortzCenterCrackerMenu = KortzCenterHeistMenu:add_tab("Mission Cracker")
 
 KortzCenterCrackerMenu:add_imgui(function()
-    if checkOnline() then
-        return
-    end
+    if checkOnline() then return end
 
     local heistActive = isKortzHeistActive()
 
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "KORTZ CENTER CRACKER")
-    ImGui.Separator()
-
-    -- Auto Door Hacks
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "AUTO DOOR HACKS")
+    ImGui.SameLine()
+    RainbowInfo("Automatically bypass hacks when they appear.")
     ImGui.Separator()
 
     autoHacks, _ = ImGui.Checkbox("Enable Auto Door Hacks", autoHacks)
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip(
-            "Automatically bypasses door-related hacks when detected.\n\n"
-                .. "Hacks included:\n"
-                .. "- Data Crack: Auto-bypasses when minigame starts\n"
-                .. "- Fingerprint: Auto-bypasses when scanner is active\n"
-                .. "- Vault Door: Auto-bypasses when hack is active\n\n"
-                .. "These trigger ONLY when you reach them, not all at once!"
-        )
-    end
-
     if not heistActive then
-        ImGui.TextColored(1.0, 0.8, 0.0, 1.0, "Start the heist first to use auto hacks.")
+        ImGui.TextColored(1.0, 0.8, 0.0, 1.0, "Start heist first to use auto hacks")
     end
-
-    if autoHacks and heistActive then
-        ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "Auto Door Hacks: ENABLED")
-        ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Data Crack | Fingerprint | Vault Door")
-    elseif autoHacks and not heistActive then
-        ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Auto Door Hacks: Waiting for heist...")
-    else
-        ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Auto Door Hacks: DISABLED")
-        ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Use manual buttons below")
-    end
-
     ImGui.Dummy(0, 5)
 
-    -- Manual Door Hacks
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "MANUAL DOOR HACKS")
+    ImGui.SameLine()
+    RainbowInfo("Click to bypass hacks manually.")
     ImGui.Separator()
 
-    if ImGui.Button("Skip Data Crack") then
-        KortzSkipDataCrack()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Bypasses the data crack minigame.\nCracks all 8 rods instantly.")
-    end
+    if ImGui.Button("Skip Data Crack") then KortzSkipDataCrack() end
     ImGui.SameLine()
-    if ImGui.Button("Skip Fingerprint Hack") then
-        KortzSkipFingerprint()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Bypasses the fingerprint scanner.\nNo need to find matching fingerprints.")
-    end
+    if ImGui.Button("Skip Fingerprint Hack") then KortzSkipFingerprint() end
     ImGui.SameLine()
-    if ImGui.Button("Skip Vault Door Hack") then
-        KortzSkipVaultDoor()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Bypasses the vault door signal nodes hack.\nInstant access to the vault.")
-    end
+    if ImGui.Button("Skip Vault Door Hack") then KortzSkipVaultDoor() end
 
     ImGui.Dummy(0, 5)
 
-    -- Access & Security
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "ACCESS & SECURITY")
+    ImGui.SameLine()
+    RainbowInfo("Bypass security systems.")
     ImGui.Separator()
 
-    if ImGui.Button("Auto-Enter Access Code") then
-        KortzAutoAccessCode()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Enters the access code 00-00-00.\nSkips the PC access code puzzle.")
-    end
+    if ImGui.Button("Auto-Enter Access Code") then KortzAutoAccessCode() end
     ImGui.SameLine()
-    if ImGui.Button("Disable Lasers") then
-        KortzDisableLasers()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Deactivates the laser grid security system.\nClear path through the laser hallway.")
-    end
+    if ImGui.Button("Disable Lasers") then KortzDisableLasers() end
 
     ImGui.Dummy(0, 5)
 
-    -- Glass Cutting
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "GLASS CUTTING")
+    ImGui.SameLine()
+    RainbowInfo("Cut display case glass instantly.")
     ImGui.Separator()
 
-    if ImGui.Button("Cut All Glass") then
-        KortzCutAllGlass()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip(
-            "Cuts all 5 display cases instantly.\n\nVenus d'Algernon | Gemstone | Horse | Coquard Carcanet | Memento Non Mori"
-        )
-    end
+    if ImGui.Button("Cut All Glass") then KortzCutAllGlass() end
     ImGui.SameLine()
-    if ImGui.Button("Venus d'Algernon") then
-        CutVenus()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Cuts the Venus d'Algernon display case.")
-    end
+    if ImGui.Button("Venus d'Algernon") then CutVenus() end
     ImGui.SameLine()
-    if ImGui.Button("Gemstone") then
-        CutGemstone()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Cuts the Gemstone display case.")
-    end
+    if ImGui.Button("Gemstone") then CutGemstone() end
 
-    if ImGui.Button("Horse") then
-        CutHorse()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Cuts the Horse display case.")
-    end
+    if ImGui.Button("Horse") then CutHorse() end
     ImGui.SameLine()
-    if ImGui.Button("Coquard Carcanet") then
-        CutCoquard()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Cuts the Coquard Carcanet display case.")
-    end
+    if ImGui.Button("Coquard Carcanet") then CutCoquard() end
     ImGui.SameLine()
-    if ImGui.Button("Memento Non Mori") then
-        CutMemento()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Cuts the Memento Non Mori display case.")
-    end
+    if ImGui.Button("Memento Non Mori") then CutMemento() end
 
     ImGui.Dummy(0, 5)
 
-    -- Solo Secondary Targets
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "SOLO SECONDARY TARGETS")
+    ImGui.SameLine()
+    RainbowInfo("Enable secondary targets for solo play.")
     ImGui.Separator()
 
     if ImGui.Button("Enable Solo Secondary Targets (B2 Floor)") then
         EnableSoloSecondaryTargets()
     end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip(
-            "Resets interaction & loot flags for Exhibit Level 2.\n\n"
-                .. "Fixes:\n"
-                .. "- Tall glass cases (i = 0, 1)\n"
-                .. "- Horizontal glass cases (i = 5, 6, 7)\n"
-                .. "- Artwork (i = 20, 21)\n\n"
-                .. "Press when you enter the Exhibit Level 2 room.\n"
-                .. "Note: This is MANUAL only - not in auto mode."
-        )
-    end
-
-    if heistActive then
-        ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "Can be enabled once the heist starts.")
-        ImGui.TextColored(1.0, 0.8, 0.0, 1.0, "Recommended to enable inside the Exhibit room.")
-    else
-        ImGui.TextColored(1.0, 0.8, 0.0, 1.0, "Start the heist first.")
-        ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "Recommended to enable inside the Exhibit room.")
-    end
 
     ImGui.Dummy(0, 5)
 
-    -- Targets
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "TARGETS")
+    ImGui.SameLine()
+    RainbowInfo("Grab targets instantly (stand near them).")
     ImGui.Separator()
 
-    if ImGui.Button("Take Primary Target") then
-        script.run_in_fiber(function(s)
-            KortzTakePrimary()
-            s:sleep(1000)
-        end)
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Grabs the primary target instantly.\nThe main objective of the heist.")
-    end
+    if ImGui.Button("Take Primary Target") then KortzTakePrimary() end
     ImGui.SameLine()
-    if ImGui.Button("Take Secondary Target") then
-        KortzTakeSecondary()
-    end
-    if ImGui.IsItemHovered() then
-        ImGui.SetTooltip("Grabs a secondary target instantly.\nExtra loot for bigger payout.")
-    end
+    if ImGui.Button("Take Secondary Target") then KortzTakeSecondary() end
 
     ImGui.Dummy(0, 5)
 
-    -- Glass Case Status
     ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "GLASS CASE STATUS")
+    ImGui.SameLine()
+    RainbowInfo("Current status of all display cases.")
     ImGui.Separator()
 
     for i = 0, 4 do
-        local progress = getGlassProgress(i)
-        local status, r, g, b = "Available", 1.0, 0.0, 0.0
+        local progress = locals.get_float("fm_mission_controller_v3", KCCGL_BASE + (i * 13) + KCCGL_OFFSET)
+        local status = "Available"
+        local r, g, b = 1.0, 0.0, 0.0
         if progress >= 100.0 then
-            status, r, g, b = "Cut", 0.0, 1.0, 0.0
+            status = "Cut"
+            r, g, b = 0.0, 1.0, 0.0
         elseif progress == 0 then
-            status, r, g, b = "Empty", 0.5, 0.5, 0.5
+            status = "Empty"
+            r, g, b = 0.5, 0.5, 0.5
         end
-        ImGui.TextColored(
-            r,
-            g,
-            b,
-            1.0,
-            glassCaseTypes[i]
-                .. ": "
-                .. glassCaseNames[i]
-                .. " - "
-                .. status
-                .. " ("
-                .. string.format("%.1f", progress)
-                .. "%)"
-        )
+        ImGui.TextColored(r, g, b, 1.0, glassCaseTypes[i] .. ": " .. glassCaseNames[i] .. " - " .. status)
     end
 end)
+
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
