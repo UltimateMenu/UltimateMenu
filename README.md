@@ -29,6 +29,14 @@
 
 ---
 
+<h2 align="center">📸 Nenyoo Preview (Legacy)</h2>
+
+<p align="center">
+  <img src="Nenyoo/preview.jpg" alt="Ultimate Menu running in Nenyoo on GTA V Legacy">
+</p>
+
+---
+
 ## ❓ FAQ
 
 <details>
@@ -40,6 +48,10 @@
   
 - For **YimMenuV2 Enhanced**:  
   Coming Soon (WIP)
+- For **Nenyoo GTA V Legacy or Enhanced**:
+  Copy the contents of [`Nenyoo`](Nenyoo) to `%LOCALAPPDATA%\Nenyoo\Plus\Scripts\User\UltimateMenu\`. In Nenyoo, open `Scripts` and select `Ultimate_Menu.lua` to load its menu page. The `lib` folder must stay beside the entry script. Join GTA Online before using online actions.
+
+  The Nenyoo edition translates the YimMenu menu hierarchy and controls, with instructions and live status in a companion information panel beside the active submenu. It selects separate named global and script-local catalogs for Legacy build 3889 and Enhanced build 1158.13. It requires a Nenyoo build with the edition, named-script execution, and host-request Lua bridges. Follow [`Nenyoo/TESTING.md`](Nenyoo/TESTING.md) to validate actions in game.
 </details>
 
 ---
@@ -49,6 +61,7 @@
 - **Ultimate Menu for ModestMenu**: Last updated on **Dec 12, 2024** *(Final Update)*  
 - **Ultimate Menu for YimMenu Legacy**: Last updated on **Jul 24, 2026**
 - **Ultimate Menu for YimMenu Enhanced**: **Might Not Coming Soon (WIP Waiting for completion of YimMenuV2 Lua API)**
+- **Ultimate Menu for Nenyoo GTA V Legacy and Enhanced**: complete menu adapter with edition-specific offsets; full in-game validation pending
 
 ---
 
