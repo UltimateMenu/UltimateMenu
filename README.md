@@ -17,14 +17,10 @@
 
 ---
 
-<h2 align="center">📸 Preview (Legacy)</h2>
+<h2 align="center">📸 YimMenu Preview (Legacy)</h2>
 
 <p align="center">
   <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/15.png" alt="Ultimate Menu Preview">
-  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/16.png" alt="Ultimate Menu Preview">
-  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/17.png" alt="Ultimate Menu Preview">
-  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/18.png" alt="Ultimate Menu Preview">
-  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenu/19.png" alt="Ultimate Menu Preview">
 </p>
 
 ---
@@ -73,52 +69,6 @@ You're welcome to fork, use, and build on this script for your own needs.
 Treat it as a base or template if you wish.
 
 Credits For Everything I Used Is Included In The Script.
-
----
-
-## ☕ Support & Donations
-
-<details>
-  <summary><strong>Click to show donation options</strong></summary>
-
-If you'd like to support this project or say thanks you can use one of the below options:
-
-<p align="center">
-  <a href="https://www.buymeacoffee.com/L7NEG" target="_blank">
-    <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-yellow?logo=buy-me-a-coffee&logoColor=white" alt="Buy Me A Coffee">
-  </a>
-</p>
-
-<p align="center">
-  <strong>Binance ID:</strong><br>
-  <code>810214888</code>
-</p>
-
-<p align="center">
-  <strong>Phantom Profile:</strong><br>
-  https://phantom.com/user/l7neg
-</p>
-
-<p align="center">
-  <strong>BTC Address:</strong><br>
-  <code>12U6pLzGtSPivFGvP4rKz9AtesxjDP3fe7</code>
-</p>
-
-<p align="center">
-  <strong>BTC (Taproot) Address:</strong><br>
-  <code>bc1pp8vc4zsfsz7z66f3e75s73kk5q7catugfflfu6n8craylq7r35wsrsa820</code>
-</p>
-
-<p align="center">
-  <strong>BTC (Native Segwit) Address:</strong><br>
-  <code>bc1qxq3c376ewt0xn8994q50zd7kmzv4trhx46f8xa</code>
-</p>
-
-<p align="center"><em>Any support is greatly appreciated! :3.</em></p>
-
-</details>
-
----
 
 ---
 
