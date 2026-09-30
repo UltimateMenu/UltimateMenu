@@ -97,6 +97,13 @@ function globals.set_float(index, value)
     if addr then memory.write_float(addr, value); return true end
     return false
 end
+function globals.set_string(index, value, size)
+    if scan_context then return false end
+    local addr = global_addr(index)
+    if not addr then return false end
+    if memory.write_string then memory.write_string(addr, value or "") return true end
+    return false
+end
 
 locals = {}
 local function local_addr(script_name, index)

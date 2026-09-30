@@ -15,32 +15,39 @@ local globals = {
     ACg3 = 1935929 + 1 + 3, -- apartment cut: player 3
     ACg4 = 1935929 + 1 + 4, -- apartment cut: player 4
     ACg5 = 1937897 + 3008 + 1, -- apartment local-player cut
+    ACg6 = 1937897 + 3008 + 2, -- apartment cut: player 2 (actual)
+    ACg7 = 1937897 + 3008 + 3, -- apartment cut: player 3 (actual)
+    ACg8 = 1937897 + 3008 + 4, -- apartment cut: player 4 (actual)
     AUAJg1 = FREEMODE_TUNABLES + 9184, -- Fleeca job root hash
     AUAJg2 = FREEMODE_TUNABLES + 9189, -- Prison Break root hash
     AUAJg3 = FREEMODE_TUNABLES + 9196, -- Humane Labs root hash
     AUAJg4 = FREEMODE_TUNABLES + 9202, -- Series A root hash
     AUAJg5 = FREEMODE_TUNABLES + 9208, -- Pacific Standard root hash
     ACDg = 2686119, -- apartment cooldown/player-data base
+    AFRg = 2658293, -- apartment force ready global
     AHDg = 4718592 + 3771, -- apartment heist difficulty
 
     DCCg1 = 1972483 + 1497 + 736 + 92 + 1, -- casino cut: player 1
     DCCg2 = 1972483 + 1497 + 736 + 92 + 2, -- casino cut: player 2
     DCCg3 = 1972483 + 1497 + 736 + 92 + 3, -- casino cut: player 3
     DCCg4 = 1972483 + 1497 + 736 + 92 + 4, -- casino cut: player 4
+    CFRg = 1976846, -- casino force ready global
     CPCg1 = 1979291 + 831 + 56 + 1, -- Cayo cut: player 1
     CPCg2 = 1979291 + 831 + 56 + 2, -- Cayo cut: player 2
     CPCg3 = 1979291 + 831 + 56 + 3, -- Cayo cut: player 3
     CPCg4 = 1979291 + 831 + 56 + 4, -- Cayo cut: player 4
+    CYFRg = 1980404, -- Cayo force ready global
     DCg1 = 1968511 + 812 + 50 + 1, -- Doomsday cut: player 1
     DCg2 = 1968511 + 812 + 50 + 2, -- Doomsday cut: player 2
     DCg3 = 1968511 + 812 + 50 + 3, -- Doomsday cut: player 3
     DCg4 = 1968511 + 812 + 50 + 4, -- Doomsday cut: player 4
+    DDFRg = 1882652, -- Doomsday force ready global
     GCg = 2686119 + 6791, -- generic heist cut multiplier
 
     KCBGL = FREEMODE_TUNABLES + 37438, -- Kortz bag size
-    KCWMG = FREEMODE_TUNABLES + 38199, -- Kortz weekly multiplier
-    KCCDG = FREEMODE_TUNABLES + 38102, -- Kortz normal cooldown
-    KCCD2G = FREEMODE_TUNABLES + 38103, -- Kortz hard cooldown
+    KCWMG = FREEMODE_TUNABLES + 37600, -- Kortz weekly multiplier
+    KCCDG = FREEMODE_TUNABLES + 37503, -- Kortz normal cooldown
+    KCCD2G = FREEMODE_TUNABLES + 37504, -- Kortz hard cooldown
     KCLDG = 1935234, -- Kortz lasers disabled
     KCSECONDARY_BASE = 4980736 + 1 + 29174, -- Kortz secondary-target array
     KCPAYOUT_BASE = FREEMODE_TUNABLES + 37405, -- Kortz primary-target payouts
@@ -141,7 +148,7 @@ function globals.HEIST_SOLO_LAUNCH(heist_type)
     return 794989 + 4 + 1 + (heist_type * 95) + 75
 end
 function globals.APARTMENT_FORCE_READY(player_index)
-    return 2658291 + 1 + ((player_index - 1) * 468) + 270
+    return 2658293 + 1 + ((player_index - 1) * 468) + 270
 end
 function globals.LEGACY_HEIST_FORCE_READY(player_index)
     return 1882572 + 1 + ((player_index - 1) * 315) + 43 + 11 + player_index
@@ -200,6 +207,10 @@ local locals = {
     CPXf1 = 56070,
     CPXf2 = 56070 + 1776 + 1,
     CPLIVESL = 62851 + 1109 + 1, -- Cayo team lives
+    CPMantrap1 = 68939 + (0 * 293) + 236, -- Cayo solo mantrap dual keycard 1
+    CPMantrap2 = 20813, -- Cayo solo mantrap dual keycard 2
+    CPSecondary = 28971 + 11, -- Cayo secondary target state
+    CPLootTake = 59552 + 1376 + 60, -- Cayo loot take
 
     DDSHl = 1312 + 135, -- Doomsday scenario hack
     DDIF1 = 19808,
@@ -207,6 +218,7 @@ local locals = {
     DDIF3 = 28722 + 1,
     DDIF4 = 31981 + 1 + 68,
     DDIF5 = 31981 + 97,
+    DDIF6 = 19808 + 1062, -- Doomsday Act III passed flag
     DDLIVESL = 26234 + 1325 + 1, -- Doomsday team lives
 
     KCBRL = 597, -- Kortz planning reload
@@ -215,6 +227,10 @@ local locals = {
     KCAC_BASE = 32416 + 1, -- Kortz access-code base
     KCLGL = 70472, -- Kortz lasers
     KCVLL = 27512, -- Kortz vault door
+    KCLDIF1 = 1058, -- Kortz lasers difficulty 1
+    KCLDIF2 = 1059, -- Kortz lasers difficulty 2
+    KCNoDmg = 1060, -- Kortz no-damage lasers
+    KCLootTake = 60203 + 1376 + 60, -- Kortz loot take
     KCCGL_BASE = 32453 + 1, -- Kortz cut-glass base
     KCCGL_OFFSET = 3,
     KCPT_STATE = 28953 + 11, -- Kortz primary target state
@@ -229,6 +245,8 @@ local locals = {
     ASIFl2 = 56070 + 1776 + 1,
     ASRBl = 416, -- Auto Shop planning reload
     SYRl1 = 545, -- Salvage Yard planning reload
+    LSAIFl1 = 7879 + 1306, -- LSA operations instant finish 1
+    LSAIFl2 = 7741 + 1, -- LSA operations instant finish 2
     HGGs1 = 20194 + 34, -- fmmc_launcher heist type
     HGGs2 = 20194 + 15, -- fmmc_launcher minimum players
     IHPB = 56070,
@@ -269,7 +287,14 @@ local scripts = {
     FMC = "fm_mission_controller",
     FMMCL = "fmmc_launcher",
     FMC2020 = "fm_mission_controller_2020",
+    FMCV3 = "fm_mission_controller_v3",
+    FMMLASERS = "fmmc_lasers",
     HIP = "heist_island_planning",
+    CASPL = "gb_casino_heist_planning",
+    GANGPL = "gb_gang_ops_planning",
+    KORTZPL = "kortz_planning",
+    TUNERPL = "tuner_planning",
+    SMUGOPS = "fm_content_smuggler_ops",
     CASINO_SLOTS = "casino_slots",
     CASINO_LUCKY_WHEEL = "casino_lucky_wheel",
     GUNCLUB_SHOP = "gunclub_shop",
