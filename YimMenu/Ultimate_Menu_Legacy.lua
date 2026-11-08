@@ -9107,7 +9107,6 @@ SN_Guzman:add_separator()
 
 SN_Guzman:add_text("Extras")
 SN_Guzman:add_button("Instant Finish", function()
-    -- Offsets abgeleitet aus Enhanced (56223 -> Legacy 56070), UNGETESTET
     script.run_in_fiber(function()
         locals.set_int(FMC2020, 56070 + 1589, 5)
         locals.set_int(FMC2020, 56070 + 1776 + 1, 999999)
