@@ -33,6 +33,14 @@
 
 ---
 
+<h2 align="center">📸 Cherax Preview (Legacy)</h2>
+
+<p align="center">
+  <img src="Cherax/preview.png" alt="Ultimate Menu running in Cherax on GTA V Legacy">
+</p>
+
+---
+
 ## ❓ FAQ
 
 <details>
@@ -44,9 +52,13 @@
   
 - For **YimMenuV2 Enhanced**:  
   Coming Soon (WIP)
+
 - For **Nenyoo GTA V Legacy or Enhanced**:
   Copy the contents of [`Nenyoo`](Nenyoo) to `%LOCALAPPDATA%\Nenyoo\Plus\Scripts\User\UltimateMenu\`. In Nenyoo, open `Scripts` and select `Ultimate_Menu.lua` to load its menu page. The `lib` folder must stay beside the entry script. Join GTA Online before using online actions.
   Supported builds: Legacy 3889 and Enhanced 1158.13. The matching offsets are selected automatically.
+
+- For **Cherax GTA V Legacy or Enhanced**:
+  Copy the contents of [`Cherax`](Cherax) to `C:\Users\YOURUSERNAME\Documents\Cherax\Lua`. In Cherax, open `Lua Editor`, select `Ultimate_Menu_CheraxLE.lua` and Click on Start Script.
 </details>
 
 ---
@@ -57,6 +69,7 @@
 - **Ultimate Menu for YimMenu Legacy**: Last updated on **Jul 24, 2026**
 - **Ultimate Menu for YimMenu Enhanced**: **Might Not Coming Soon (WIP Waiting for completion of YimMenuV2 Lua API)**
 - **Ultimate Menu for Nenyoo**: Legacy and Enhanced support
+- **Ultimate Menu for Cherax**: Legacy support (WIP)
 
 ---
 
