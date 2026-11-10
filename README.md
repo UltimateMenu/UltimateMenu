@@ -33,7 +33,11 @@
 
 ---
 
+<h2 align="center">📸 Cherax Preview (Legacy)</h2>
 
+<p align="center">
+  <img src="Cherax/preview.png" alt="Ultimate Menu running in Cherax on GTA V Legacy">
+</p>
 
 ---
 
