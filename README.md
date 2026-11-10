@@ -69,7 +69,7 @@
 - **Ultimate Menu for YimMenu Legacy**: Last updated on **Jul 24, 2026**
 - **Ultimate Menu for YimMenu Enhanced**: **Might Not Coming Soon (WIP Waiting for completion of YimMenuV2 Lua API)**
 - **Ultimate Menu for Nenyoo**: Legacy and Enhanced support
-- **Ultimate Menu for Cherax**: Legacy support (WIP)
+- **Ultimate Menu for Cherax**: Legacy support 
 
 ---
 
