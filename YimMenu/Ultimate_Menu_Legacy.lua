@@ -1120,16 +1120,17 @@ prize_wheel_prize = 14
 prize_wheel_prize_state = 45
 
 CasinoServicesMenu:add_text("Casino Chips")
-chipsVal = 1800
-CasinoServicesMenu:add_imgui(function()
-    if isOffline() then
-        return
-    end
-    chipsVal, used = ImGui.SliderInt("Casino Chips Buy Limit", chipsVal, 1800, 2147483647)
-    if used then
-        tunables.set_int("VC_CASINO_CHIP_MAX_BUY", chipsVal)
-        tunables.set_int("VC_CASINO_CHIP_MAX_BUY_PENTHOUSE", chipsVal)
-    end
+local chipLimit = CasinoServicesMenu:add_input_int("Chip Limit")
+CasinoServicesMenu:add_button("Apply Acquire Limit", function()
+    local value = chipLimit:get_value()
+    globals.set_int(FMg + 26623, value)
+    globals.set_int(FMg + 26624, value)
+    gui.show_message("Casino", "Acquire limit set to " .. value)
+end)
+CasinoServicesMenu:add_button("Apply Trade In Limit", function()
+    local value = chipLimit:get_value()
+    globals.set_int(FMg + 26625, value)
+    gui.show_message("Casino", "Trade in limit set to " .. value)
 end)
 
 CasinoServicesMenu:add_button("Bypass Casino Cooldown", function()
@@ -3936,6 +3937,7 @@ filter_text = ""
 weapon_name = ""
 
 gun_van_loc = 0
+discount = false
 
 function render_weapon_editor()
     ImGui.SetNextWindowSize(700, 420)
@@ -4804,7 +4806,7 @@ yim_resupplier:add_imgui(function()
         fdOwned = stats.get_int(MPX() .. "PROP_FAC_SLOT4") ~= 0
         bunkerOwned = stats.get_int(MPX() .. "PROP_FAC_SLOT5") ~= 0
         acidOwned = stats.get_int(MPX() .. "PROP_FAC_SLOT6") ~= 0
-        ImGui.BeginTabBar("YimResupplier", ImGuiTabBarFlags.None)
+        ImGui.BeginTabBar("YimResupplier", 0)
         if ImGui.BeginTabItem("Manage Supplies") then
             local wh1Supplies = stats.get_int(MPX() .. "CONTOTALFORWHOUSE0") or 0
             local wh2Supplies = stats.get_int(MPX() .. "CONTOTALFORWHOUSE1") or 0
@@ -5807,15 +5809,17 @@ WareHouseDataEditorMenu = L7NEG7:add_tab("WareHouse Data Editor")
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 WareHouseDataEditorMenu:add_button("Auto-Reset stats-0/0Sales", function()
-    stats.set_int(MPX() .. "LIFETIME_BUY_COMPLETE", 0)
-    stats.set_int(MPX() .. "LIFETIME_BUY_UNDERTAKEN", 0)
-    stats.set_int(MPX() .. "LIFETIME_SELL_COMPLETE", 0)
-    stats.set_int(MPX() .. "LIFETIME_SELL_UNDERTAKEN", 0)
-    stats.set_int(MPX() .. "LIFETIME_CONTRA_EARNINGS", 0)
-    globals.set_int(CSg1, 11)
-    globals.set_int(CSg2, 1)
-    script:sleep(300)
-    globals.set_int(CSg2, 0)
+    script.run_in_fiber(function(script)
+        stats.set_int(MPX() .. "LIFETIME_BUY_COMPLETE", 0)
+        stats.set_int(MPX() .. "LIFETIME_BUY_UNDERTAKEN", 0)
+        stats.set_int(MPX() .. "LIFETIME_SELL_COMPLETE", 0)
+        stats.set_int(MPX() .. "LIFETIME_SELL_UNDERTAKEN", 0)
+        stats.set_int(MPX() .. "LIFETIME_CONTRA_EARNINGS", 0)
+        globals.set_int(CSg1, 11)
+        globals.set_int(CSg2, 1)
+        script:sleep(300)
+        globals.set_int(CSg2, 0)
+    end)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -5835,21 +5839,46 @@ HeistsDataEditorMenu = makeOnlineTab(L7NEG:add_tab("Heists Data Editor Menu"))
 
 local ApartmentDataEditorMenu = HeistsDataEditorMenu:add_tab("Apartment Heist")
 
-ApartmentDataEditorMenu:add_text("Preps")
-ApartmentDataEditorMenu:add_button("Complete Preps", function()
-    stats.set_int(MPX() .. "HEIST_PLANNING_STAGE", -1)
-    gui.show_message("Apartment Heist", "Preps should've been completed")
+local apartmentHeists = {
+    { name = "The Fleeca Job", rcont = -1072870761, cosmetic = 25, depth = { 1, -1, -1, -1, -1, -1 } },
+    { name = "The Prison Break", rcont = 979654579, cosmetic = 22, depth = { 0, 0, 1, -1, -1, -1 } },
+    { name = "The Humane Labs Raid", rcont = -1096986654, cosmetic = 23, depth = { 0, 1, 2, 2, -1, -1 } },
+    { name = "Series A Funding", rcont = 164435858, cosmetic = 24, depth = { 0, 0, 1, 2, -1, -1 } },
+    { name = "The Pacific Standard Job", rcont = -231973569, cosmetic = 21, depth = { 1, 2, 2, 2, -1, -1 } },
+}
+local apartmentHeistNames = {}
+for i, heist in ipairs(apartmentHeists) do
+    apartmentHeistNames[i] = heist.name
+end
+local apartmentHeistIndex = 0
+
+ApartmentDataEditorMenu:add_imgui(function()
+    ImGui.Text("Max Payout 3.000.000$ (+ optional 12.000.000$)")
+    ImGui.Text("Min Cooldown ~ 0-5 minutes (+ optional > 6 hours)")
+    ImGui.Separator()
+    ImGui.Text("Preps")
+    ImGui.Text("Heist:")
+    apartmentHeistIndex = ImGui.Combo("##ApartmentHeist", apartmentHeistIndex, apartmentHeistNames, #apartmentHeistNames)
+    if ImGui.Button("Apply & Complete Preps") then
+        local heist = apartmentHeists[apartmentHeistIndex + 1]
+        local mpx = MPX()
+        stats.set_int(mpx .. "BITSET_HEIST_VS_MISSIONS", -17809409)
+        if stats.get_int(mpx .. "HEIST_LEADER_APART_ID") == 0 then
+            stats.set_int(mpx .. "HEIST_LEADER_APART_ID", 67108864)
+        end
+        if stats.get_int(mpx .. "HEIST_SESSION_ID_MACADDR") == 0 then
+            stats.set_int(mpx .. "HEIST_SESSION_ID_MACADDR", 183381814)
+        end
+        stats.set_int(mpx .. "HEIST_MISSION_DEPTH_LV_0", -1)
+        for i, value in ipairs(heist.depth) do
+            stats.set_int(mpx .. "HEIST_MISSION_DEPTH_LV_" .. (i + 1), value)
+        end
+        stats.set_int(mpx .. "HEIST_MISSION_RCONT_ID_0", heist.rcont)
+        stats.set_int(mpx .. "HEIST_TOTAL_REWARD_COSMETIC", heist.cosmetic)
+        stats.set_int(mpx .. "HEIST_PLANNING_STAGE", -1)
+        gui.show_message("Apartment Heist", heist.name .. ": preps should've been completed")
+    end
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_text("")
-ApartmentDataEditorMenu:add_text("For Fleeca:")
-ApartmentDataEditorMenu:add_text(
-    'Pay for the preparation, start the first mission and as soon as you are sent to scout\nchange the session, come back to planning room, press "Complete Preps" near white board and press "E"'
-)
-ApartmentDataEditorMenu:add_text("For Other Heist:")
-ApartmentDataEditorMenu:add_text(
-    'Start the mission and leave after the 1st cutscene ends, press "Complete Preps" near white board and press "E"'
-)
 ApartmentDataEditorMenu:add_separator()
 ApartmentDataEditorMenu:add_button("Kill Cooldown", function()
     globals.set_int(ACDg + 1 + (PLAYER.PLAYER_ID() * 77) + 76, -1)
@@ -6107,99 +6136,82 @@ local CayoPericoCrewCut = {
     { tunable = "IH_DEDUCTION_FENCING_FEE", default = -0.1 },
 }
 
-local cayoPrimaryTargets = {
-    { name = "Panther Statue", id = 5 },
-    { name = "Medrazo Files", id = 4 },
-    { name = "Diamond", id = 3 },
-    { name = "Bonds", id = 2 },
-    { name = "Necklace", id = 1 },
-    { name = "Tequila", id = 0 },
+local cayoSetup = {
+    difficulty = { { "Normal", 126823 }, { "Hard", 131055 } },
+    approach = {
+        { "Kosatka", 65283 },
+        { "Alkonost", 65413 },
+        { "Velum", 65289 },
+        { "Stealth Annihilator", 65425 },
+        { "Patrol Boat", 65313 },
+        { "Longfin", 65345 },
+        { "All Ways", 65535 },
+    },
+    loadout = {
+        { "Aggressor", 1 },
+        { "Conspirator", 2 },
+        { "Crackshot", 3 },
+        { "Saboteur", 4 },
+        { "Marksman", 5 },
+    },
+    target = {
+        { "Sinsimito Tequila", 0 },
+        { "Ruby Necklace", 1 },
+        { "Bearer Bonds", 2 },
+        { "Pink Diamond", 3 },
+        { "Madrazo Files", 4 },
+        { "Panther Statue", 5 },
+    },
+    secondary = { { "None", false }, { "Cash", "CASH" }, { "Weed", "WEED" }, { "Coke", "COKE" }, { "Gold", "GOLD" } },
+    compoundAmount = {
+        { "Empty", 0 }, { "1", 128 }, { "2", 192 }, { "3", 196 }, { "4", 204 },
+        { "5", 220 }, { "6", 252 }, { "7", 253 }, { "Full", 255 },
+    },
+    artsAmount = {
+        { "Empty", 0 }, { "1", 64 }, { "2", 96 }, { "3", 112 }, { "4", 120 },
+        { "5", 122 }, { "6", 126 }, { "Full", 127 },
+    },
+    islandAmount = {
+        { "Empty", 0 }, { "1", 8388608 }, { "2", 12582912 }, { "3", 12845056 }, { "4", 12976128 },
+        { "5", 13500416 }, { "6", 14548992 }, { "Full", 16777215 },
+    },
+    lootValues = { CASH = 74925, WEED = 121500, COKE = 182250, GOLD = 300000 },
+    paintValue = 162000,
 }
 
-function CayoCompletePreps()
-    stats.set_int(MPX() .. "H4CNF_UNIFORM", -1)
-    stats.set_int(MPX() .. "H4CNF_GRAPPEL", -1)
-    stats.set_int(MPX() .. "H4CNF_TROJAN", 5)
-    stats.set_int(MPX() .. "H4CNF_WEP_DISRP", 3)
-    stats.set_int(MPX() .. "H4CNF_ARM_DISRP", 3)
-    stats.set_int(MPX() .. "H4CNF_HEL_DISRP", 3)
-    stats.set_int(MPX() .. "H4_PLAYTHROUGH_STATUS", 10)
-    stats.set_int(MPX() .. "H4CNF_BS_GEN", -1)
-    stats.set_int(MPX() .. "H4CNF_BS_ENTR", 63)
-    stats.set_int(MPX() .. "H4CNF_BS_ABIL", 63)
-    stats.set_int(MPX() .. "H4CNF_APPROACH", -1)
+local cayoChoice = {
+    difficulty = 0,
+    approach = 0,
+    loadout = 0,
+    target = 0,
+    compoundTarget = 0,
+    compoundAmount = #cayoSetup.compoundAmount - 1,
+    artsAmount = 0,
+    islandTarget = 0,
+    islandAmount = #cayoSetup.islandAmount - 1,
+}
+
+local function CayoCombo(label, key, options)
+    if not options.names then
+        options.names = {}
+        for i, option in ipairs(options) do
+            options.names[i] = option[1]
+        end
+    end
+    cayoChoice[key] = ImGui.Combo(label, cayoChoice[key], options.names, #options.names)
 end
 
-function CayoTargetsSetter(cash, weed, coke, gold, where)
-    stats.set_int(MPX() .. "H4LOOT_CASH_" .. where, cash)
-    stats.set_int(MPX() .. "H4LOOT_CASH_" .. where .. "_SCOPED", cash)
-    stats.set_int(MPX() .. "H4LOOT_WEED_" .. where, weed)
-    stats.set_int(MPX() .. "H4LOOT_WEED_" .. where .. "_SCOPED", weed)
-    stats.set_int(MPX() .. "H4LOOT_COKE_" .. where, coke)
-    stats.set_int(MPX() .. "H4LOOT_COKE_" .. where .. "_SCOPED", coke)
-    stats.set_int(MPX() .. "H4LOOT_GOLD_" .. where, gold)
-    stats.set_int(MPX() .. "H4LOOT_GOLD_" .. where .. "_SCOPED", gold)
+local function CayoPick(key, options)
+    return options[cayoChoice[key] + 1][2]
 end
 
-function CayoPaintingsToggler(Enabled)
-    if Enabled then
-        stats.set_int(MPX() .. "H4LOOT_PAINT", 127)
-        stats.set_int(MPX() .. "H4LOOT_PAINT_SCOPED", 127)
-        stats.set_int(MPX() .. "H4LOOT_PAINT_V", 189500)
-    else
-        stats.set_int(MPX() .. "H4LOOT_PAINT", 0)
-        stats.set_int(MPX() .. "H4LOOT_PAINT_SCOPED", 0)
-        stats.set_int(MPX() .. "H4LOOT_PAINT_V", 0)
+local function CayoSetSecondary(where, lootType, amount)
+    for loot in pairs(cayoSetup.lootValues) do
+        local value = (loot == lootType) and amount or 0
+        stats.set_int(MPX() .. "H4LOOT_" .. loot .. "_" .. where, value)
+        stats.set_int(MPX() .. "H4LOOT_" .. loot .. "_" .. where .. "_SCOPED", value)
     end
 end
-
-local cayoSecondaryTargets = {
-    {
-        name = "None",
-        caps = "NONE",
-        amount = {
-            compound = { cash = 0, weed = 0, coke = 0, gold = 0 },
-            island = { cash = 0, weed = 0, coke = 0, gold = 0 },
-        },
-        value = 0,
-    },
-    {
-        name = "Gold",
-        caps = "GOLD",
-        amount = {
-            compound = { cash = 0, weed = 0, coke = 0, gold = 255 },
-            island = { cash = 0, weed = 0, coke = 0, gold = 16777215 },
-        },
-        value = 333333,
-    },
-    {
-        name = "Cocaine",
-        caps = "COKE",
-        amount = {
-            compound = { cash = 0, weed = 0, coke = 255, gold = 0 },
-            island = { cash = 0, weed = 0, coke = 16777215, gold = 0 },
-        },
-        value = 202500,
-    },
-    {
-        name = "Weed",
-        caps = "WEED",
-        amount = {
-            compound = { cash = 0, weed = 255, coke = 0, gold = 0 },
-            island = { cash = 0, weed = 16777215, coke = 0, gold = 0 },
-        },
-        value = 135000,
-    },
-    {
-        name = "Cash",
-        caps = "CASH",
-        amount = {
-            compound = { cash = 255, weed = 0, coke = 0, gold = 0 },
-            island = { cash = 16777215, weed = 0, coke = 0, gold = 0 },
-        },
-        value = 83250,
-    },
-}
 
 local cayoLocations = {
     { name = "Front Gate", x = 4990.0386, y = -5717.6895, z = 19.876024 },
@@ -6212,32 +6224,7 @@ local cayoLocations = {
     { name = "Elevator", x = 5012.1533, y = -5749.0107, z = 28.945145 },
 }
 
-local cayoApproachVehicles = {
-    { name = "Longfin", id = 65345 },
-    { name = "Patrol Boat", id = 65313 },
-    { name = "Stealth Annihilator", id = 65425 },
-    { name = "Velum", id = 65289 },
-    { name = "Alkonost", id = 65413 },
-    { name = "Kosatka", id = 65283 },
-    { name = "All Ways", id = 65535 },
-}
-
-local cayoWeapons = {
-    { name = "Aggressor", id = 1 },
-    { name = "Conspirator", id = 2 },
-    { name = "Crackshot", id = 3 },
-    { name = "Saboteur", id = 4 },
-    { name = "Marksman", id = 5 },
-}
-
--- Move these variables outside to maintain state
-local sPrimary = 0
-local compoundI = 0
-local islandI = 0
-local sApproach = 0
-local sWeapon = 0
 local bagValue = 0
-local addPaintings = false
 local cayocut1 = 0
 local cayocut2 = 0
 local cayocut3 = 0
@@ -6298,22 +6285,6 @@ function CayoDrawMisc()
     ImGui.Separator()
 end
 
-function CayoRefreshLootValues()
-    local vals = { CASH = 0, WEED = 0, COKE = 0, GOLD = 0 }
-    local comp = cayoSecondaryTargets[compoundI + 1]
-    local isl = cayoSecondaryTargets[islandI + 1]
-    if comp.caps ~= "NONE" then
-        vals[comp.caps] = comp.value
-    end
-    if isl.caps ~= "NONE" then
-        vals[isl.caps] = isl.value
-    end
-    stats.set_int(MPX() .. "H4LOOT_CASH_V", vals.CASH)
-    stats.set_int(MPX() .. "H4LOOT_WEED_V", vals.WEED)
-    stats.set_int(MPX() .. "H4LOOT_COKE_V", vals.COKE)
-    stats.set_int(MPX() .. "H4LOOT_GOLD_V", vals.GOLD)
-end
-
 local CayoHeistEditorMenu = HeistsDataEditorMenu:add_tab("Cayo Perico Heist")
 
 -- Put EVERYTHING inside add_imgui
@@ -6321,6 +6292,72 @@ CayoHeistEditorMenu:add_imgui(function()
     if isOffline() then
         return
     end
+
+    ImGui.Text("Max Payout 2.550.000$")
+    ImGui.Text("Min Cooldown ~ 15-20 minutes")
+    ImGui.Separator()
+
+    ImGui.Text("Preps")
+    CayoCombo("Difficulty", "difficulty", cayoSetup.difficulty)
+    CayoCombo("Approach", "approach", cayoSetup.approach)
+    CayoCombo("Loadout", "loadout", cayoSetup.loadout)
+    CayoCombo("Target", "target", cayoSetup.target)
+    CayoCombo("Com. Target", "compoundTarget", cayoSetup.secondary)
+    CayoCombo("Com. Amount", "compoundAmount", cayoSetup.compoundAmount)
+    CayoCombo("Arts Amount", "artsAmount", cayoSetup.artsAmount)
+    CayoCombo("Isl. Target", "islandTarget", cayoSetup.secondary)
+    CayoCombo("Isl. Amount", "islandAmount", cayoSetup.islandAmount)
+    if ImGui.Button("Apply & Complete Preps") then
+        local mpx = MPX()
+        stats.set_int(mpx .. "H4_PROGRESS", CayoPick("difficulty", cayoSetup.difficulty))
+        stats.set_int(mpx .. "H4_MISSIONS", CayoPick("approach", cayoSetup.approach))
+        stats.set_int(mpx .. "H4CNF_WEAPONS", CayoPick("loadout", cayoSetup.loadout))
+        stats.set_int(mpx .. "H4CNF_TARGET", CayoPick("target", cayoSetup.target))
+
+        CayoSetSecondary("C", CayoPick("compoundTarget", cayoSetup.secondary), CayoPick("compoundAmount", cayoSetup.compoundAmount))
+        CayoSetSecondary("I", CayoPick("islandTarget", cayoSetup.secondary), CayoPick("islandAmount", cayoSetup.islandAmount))
+        for loot, value in pairs(cayoSetup.lootValues) do
+            stats.set_int(mpx .. "H4LOOT_" .. loot .. "_V", value)
+        end
+        local arts = CayoPick("artsAmount", cayoSetup.artsAmount)
+        stats.set_int(mpx .. "H4LOOT_PAINT", arts)
+        stats.set_int(mpx .. "H4LOOT_PAINT_SCOPED", arts)
+        stats.set_int(mpx .. "H4LOOT_PAINT_V", arts ~= 0 and cayoSetup.paintValue or 0)
+
+        stats.set_int(mpx .. "H4CNF_APPROACH", -1)
+        stats.set_int(mpx .. "H4CNF_BS_GEN", -1)
+        stats.set_int(mpx .. "H4CNF_BS_ENTR", 63)
+        stats.set_int(mpx .. "H4CNF_BS_ABIL", 63)
+        stats.set_int(mpx .. "H4CNF_UNIFORM", -1)
+        stats.set_int(mpx .. "H4CNF_GRAPPEL", -1)
+        stats.set_int(mpx .. "H4CNF_TROJAN", 5)
+        stats.set_int(mpx .. "H4CNF_WEP_DISRP", 3)
+        stats.set_int(mpx .. "H4CNF_ARM_DISRP", 3)
+        stats.set_int(mpx .. "H4CNF_HEL_DISRP", 3)
+        stats.set_int(mpx .. "H4_PLAYTHROUGH_STATUS", 10)
+
+        locals.set_int(HIP, CPRSl, 2)
+        gui.show_message("Cayo Perico Heist", "Preps should've been completed")
+    end
+    if ImGui.Button("Reset Preps") then
+        local mpx = MPX()
+        stats.set_int(mpx .. "H4_PROGRESS", 0)
+        stats.set_int(mpx .. "H4_MISSIONS", 0)
+        stats.set_int(mpx .. "H4CNF_APPROACH", 0)
+        stats.set_int(mpx .. "H4CNF_TARGET", -1)
+        stats.set_int(mpx .. "H4CNF_BS_GEN", 0)
+        stats.set_int(mpx .. "H4CNF_BS_ENTR", 0)
+        stats.set_int(mpx .. "H4CNF_BS_ABIL", 0)
+        stats.set_int(mpx .. "H4_PLAYTHROUGH_STATUS", 0)
+        locals.set_int(HIP, CPRSl, 2)
+        gui.show_message("Cayo Perico Heist", "Preps should've been reset")
+    end
+    if ImGui.Button("Reload Planning Screen") then
+        locals.set_int(HIP, CPRSl, 2)
+        gui.show_message("Cayo Perico Heist", "Screen should've been reloaded")
+    end
+
+    ImGui.Separator()
 
     -- Cayo Bag Size Editor
     ImGui.Text("Cayo Bag Size Editor")
@@ -6336,21 +6373,6 @@ CayoHeistEditorMenu:add_imgui(function()
 
     ImGui.Separator()
 
-    -- Primary Target
-    ImGui.Text("Primary Target:")
-    local primaryNames = {}
-    for _, target in ipairs(cayoPrimaryTargets) do
-        table.insert(primaryNames, target.name)
-    end
-    local nIndex, changed = ImGui.Combo("##CayoPrimary", sPrimary, primaryNames, #primaryNames)
-    if changed then
-        sPrimary = nIndex
-        local selected = cayoPrimaryTargets[sPrimary + 1]
-        stats.set_int(MPX() .. "H4CNF_TARGET", selected.id)
-        gui.show_message("Cayo Perico", "Primary target set to: " .. selected.name)
-    end
-
-    ImGui.Separator()
     ImGui.Text("Primary Payouts (direct tunables):")
     local cayoPrimaryPayouts = {
         { name = "Panther Statue", tunable = "IH_PRIMARY_TARGET_VALUE_SAPPHIRE_PANTHER_STATUE" },
@@ -6371,117 +6393,6 @@ CayoHeistEditorMenu:add_imgui(function()
                 gui.show_message("Cayo Perico", p.name .. " payout set to " .. val)
             end
         end
-    end
-
-    ImGui.Separator()
-
-    -- Secondary Targets
-    local targetNames = {}
-    for i, target in ipairs(cayoSecondaryTargets) do
-        table.insert(targetNames, target.name)
-    end
-
-    ImGui.Text("Compound Target:")
-    local nCompoundI, clickedCompound = ImGui.Combo("##Compound", compoundI, targetNames, #targetNames)
-    if clickedCompound then
-        compoundI = nCompoundI
-        local selected = cayoSecondaryTargets[compoundI + 1]
-        CayoTargetsSetter(
-            selected.amount.compound.cash,
-            selected.amount.compound.weed,
-            selected.amount.compound.coke,
-            selected.amount.compound.gold,
-            "C"
-        )
-        CayoRefreshLootValues()
-        gui.show_message("Cayo Perico", "Compound target set to: " .. selected.name)
-    end
-
-    ImGui.Text("Island Target:")
-    local nIslandI, clickedIsland = ImGui.Combo("##Island", islandI, targetNames, #targetNames)
-    if clickedIsland then
-        islandI = nIslandI
-        local selected = cayoSecondaryTargets[islandI + 1]
-        CayoTargetsSetter(
-            selected.amount.island.cash,
-            selected.amount.island.weed,
-            selected.amount.island.coke,
-            selected.amount.island.gold,
-            "I"
-        )
-        CayoRefreshLootValues()
-        gui.show_message("Cayo Perico", "Island target set to: " .. selected.name)
-    end
-
-    ImGui.Text("")
-    addPaintings, _ = ImGui.Checkbox("Paintings", addPaintings)
-
-    ImGui.Separator()
-
-    -- Difficulty
-    ImGui.Text("Difficulty:")
-    if ImGui.Button("Hard") then
-        stats.set_int(MPX() .. "H4_PROGRESS", 131055)
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Normal") then
-        stats.set_int(MPX() .. "H4_PROGRESS", 126823)
-    end
-
-    ImGui.Separator()
-
-    -- Approach
-    local approachNames = {}
-    for _, veh in ipairs(cayoApproachVehicles) do
-        table.insert(approachNames, veh.name)
-    end
-    ImGui.Text("Approach:")
-    local nIndex2, changed2 = ImGui.Combo("##CayoApproach", sApproach, approachNames, #approachNames)
-    if changed2 then
-        sApproach = nIndex2
-        local selected = cayoApproachVehicles[sApproach + 1]
-        stats.set_int(MPX() .. "H4_MISSIONS", selected.id)
-        gui.show_message("Cayo Perico", "Approach set to: " .. selected.name)
-    end
-
-    ImGui.Separator()
-
-    -- Weapons
-    local weaponNames = {}
-    for _, wep in ipairs(cayoWeapons) do
-        table.insert(weaponNames, wep.name)
-    end
-    ImGui.Text("Weapons:")
-    local nIndex3, changed3 = ImGui.Combo("##CayoWeapon", sWeapon, weaponNames, #weaponNames)
-    if changed3 then
-        sWeapon = nIndex3
-        local selected = cayoWeapons[sWeapon + 1]
-        stats.set_int(MPX() .. "H4CNF_WEAPONS", selected.id)
-        gui.show_message("Cayo Perico", "Weapon loadout set to: " .. selected.name)
-    end
-
-    ImGui.Separator()
-
-    -- Preps
-    ImGui.Text("Preps:")
-    if ImGui.Button("Complete Preps") then
-        CayoPaintingsToggler(addPaintings)
-        CayoCompletePreps()
-        locals.set_int(HIP, CPRSl, 2)
-        gui.show_message("Cayo Perico Heist", "Preps should've been completed")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Reset Preps") then
-        stats.set_int(MPX() .. "H4_PROGRESS", 0)
-        stats.set_int(MPX() .. "H4_MISSIONS", 0)
-        stats.set_int(MPX() .. "H4CNF_APPROACH", 0)
-        stats.set_int(MPX() .. "H4CNF_TARGET", -1)
-        stats.set_int(MPX() .. "H4CNF_BS_GEN", 0)
-        stats.set_int(MPX() .. "H4CNF_BS_ENTR", 0)
-        stats.set_int(MPX() .. "H4CNF_BS_ABIL", 0)
-        stats.set_int(MPX() .. "H4_PLAYTHROUGH_STATUS", 0)
-        locals.set_int(HIP, CPRSl, 2)
-        gui.show_message("Cayo Perico Heist", "Preps should've been reset")
     end
 
     ImGui.Separator()
@@ -6550,15 +6461,6 @@ CayoHeistEditorMenu:add_imgui(function()
         else
             gui.show_message("Cayo Perico", "Unknown primary target")
         end
-    end
-
-    ImGui.Separator()
-
-    -- Reload Planning Screen
-    ImGui.Text("Reload Planning Screen")
-    if ImGui.Button("Reload Planning Screen") then
-        locals.set_int(HIP, CPRSl, 2)
-        gui.show_message("Cayo Perico Heist", "Screen should've been reloaded")
     end
 
     ImGui.Separator()
@@ -6717,6 +6619,9 @@ end)
 -- Casino Heist --
 
 local CasinoHeistEditorMenu = HeistsDataEditorMenu:add_tab("Casino Heist")
+CasinoHeistEditorMenu:add_text("Max Payout 3.619.000$")
+CasinoHeistEditorMenu:add_text("Min Cooldown ~ 15-20 minutes")
+CasinoHeistEditorMenu:add_separator()
 
 CasinoHeistEditorMenu:add_text("One Click Setups:")
 CasinoHeistEditorMenu:add_button("Casino Silent&Sneaky (Diamonds)", function()
@@ -7419,17 +7324,34 @@ function DoomsdayActSetter(progress, status)
 end
 
 local SN_Doomsday = HeistsDataEditorMenu:add_tab("Doomsday Heist")
-SN_Doomsday:add_text("Doomsday Acts")
-SN_Doomsday:add_button("Data Breaches", function()
-    DoomsdayActSetter(503, 229383)
-end)
-SN_Doomsday:add_sameline()
-SN_Doomsday:add_button("Bogdan Problem", function()
-    DoomsdayActSetter(240, 229378)
-end)
-SN_Doomsday:add_sameline()
-SN_Doomsday:add_button("Doomsday Scenario", function()
-    DoomsdayActSetter(16368, 229380)
+local doomsdayActs = {
+    { name = "Data Breaches", progress = 503, status = 229383 },
+    { name = "Bogdan Problem", progress = 240, status = 229378 },
+    { name = "Doomsday Scenario", progress = 16368, status = 229380 },
+}
+local doomsdayActNames = {}
+for i, act in ipairs(doomsdayActs) do
+    doomsdayActNames[i] = act.name
+end
+local doomsdayActIndex = 0
+
+SN_Doomsday:add_imgui(function()
+    ImGui.Text("Max Payout 2.550.000$")
+    ImGui.Text("Min Cooldown ~ 15-20 minutes")
+    ImGui.Separator()
+    ImGui.Text("Preps")
+    ImGui.Text("Act:")
+    doomsdayActIndex = ImGui.Combo("##DoomsdayAct", doomsdayActIndex, doomsdayActNames, #doomsdayActNames)
+    if ImGui.Button("Complete Preps") then
+        local act = doomsdayActs[doomsdayActIndex + 1]
+        DoomsdayActSetter(act.progress, act.status)
+        stats.set_int(MPX() .. "GANGOPS_FM_MISSION_PROG", -1)
+        gui.show_message("Doomsday Heist", act.name .. ": preps should've been completed")
+    end
+    if ImGui.Button("Reset Preps") then
+        DoomsdayActSetter(240, 0)
+        gui.show_message("Doomsday Heist", "Preps should've been reset")
+    end
 end)
 
 local DoomsdayHeists = {
@@ -7535,16 +7457,6 @@ SN_Doomsday:add_imgui(function()
     end
 end)
 
-SN_Doomsday:add_separator()
-SN_Doomsday:add_text("Preps")
-SN_Doomsday:add_button("Reset Preps", function()
-    DoomsdayActSetter(240, 0)
-    gui.show_message("Doomsday Heist", "Preps should've been reset")
-end)
-SN_Doomsday:add_sameline()
-SN_Doomsday:add_button("Complete Preps", function()
-    stats.set_int(MPX() .. "GANGOPS_FM_MISSION_PROG", -1)
-end)
 SN_Doomsday:add_separator()
 SN_Doomsday:add_text("Extras")
 SN_Doomsday:add_button("By Act III Pass hack", function()
@@ -7807,6 +7719,9 @@ end
 local ssIndex = 0
 local SN_Salvage = HeistsDataEditorMenu:add_tab("Salvage Yard")
 SN_Salvage:add_imgui(function()
+    ImGui.Text("Max Payout 2.100.000$")
+    ImGui.Text("Min Cooldown ~ 15-20 minutes")
+    ImGui.Separator()
     local nIndex, changed = ImGui.Combo("##Slot", ssIndex, slot_names, #slot_names)
     if changed then
         ssIndex = nIndex
@@ -8323,6 +8238,10 @@ end)
 KortzCenterHeistMenu:add_imgui(function()
     if isOffline() then return end
 
+    ImGui.Text("Max Payout 2.117.500$")
+    ImGui.Text("Min Cooldown ~ 15-20 minutes")
+    ImGui.Separator()
+
     local heistActive = isKortzHeistActive()
     if heistActive then
         ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "HEIST IS ACTIVE")
@@ -8801,6 +8720,10 @@ for i, contract in ipairs(AgencyContracts) do
 end
 local sContract = 0
 local SN_Agency = FlashOpsMenu:add_tab("Agency")
+SN_Agency:add_text("Don't Fuck With Dre:")
+SN_Agency:add_text("Max Payout 2.500.000$")
+SN_Agency:add_text("Min Cooldown ~ 15-20 minutes")
+SN_Agency:add_separator()
 SN_Agency:add_text("Money")
 local agencySafe = SN_Agency:add_checkbox("Agency Safe Loop")
 script.register_looped("agencyloop", function(script)
@@ -8894,6 +8817,9 @@ local AutoShopContracts = {
 local autoSelectedIndex = 0
 local SN_Autoshop = FlashOpsMenu:add_tab("Autoshop")
 SN_Autoshop:add_imgui(function()
+    ImGui.Text("Max Payout 2.000.000$")
+    ImGui.Text("Min Cooldown ~ 15-20 minutes")
+    ImGui.Separator()
     ImGui.Text("Contract:")
     autoSelectedIndex = ImGui.Combo(
         "##AutoContract",
@@ -8974,19 +8900,34 @@ local cluckperps = {
 }
 
 local SN_Cluck = FlashOpsMenu:add_tab("Cluckin Bell Heist")
+SN_Cluck:add_text("Max Payout 1.000.000$")
+SN_Cluck:add_text("Min Cooldown ~ 15-20 minutes")
+SN_Cluck:add_separator()
 
 SN_Cluck:add_text("Complete Preps")
 
-for _, cluckprep in ipairs(cluckperps) do
-    SN_Cluck:add_button(cluckprep.name, function()
-        stats.set_int(MPX() .. "SALV23_INST_PROG", cluckprep.id)
-    end)
-    SN_Cluck:add_sameline()
+local cluckprepNames = {}
+for i, cluckprep in ipairs(cluckperps) do
+    cluckprepNames[i] = cluckprep.name
 end
-SN_Cluck:add_separator()
-SN_Cluck:add_text("Reset preps")
-SN_Cluck:add_button("Reset Preps", function()
-    stats.set_int(MPX() .. "SALV23_INST_PROG", 0)
+local cluckprepIndex = 0
+
+-- Dropdown und Button in einem Callback, damit die Reihenfolge sicher stimmt
+SN_Cluck:add_imgui(function()
+    cluckprepIndex, _ = ImGui.Combo("##CluckPrep", cluckprepIndex, cluckprepNames, #cluckprepNames)
+    if ImGui.Button("Apply & Complete Preps") then
+        script.run_in_fiber(function()
+            stats.set_int(MPX() .. "SALV23_INST_PROG", cluckperps[cluckprepIndex + 1].id)
+        end)
+    end
+
+    ImGui.Separator()
+    ImGui.Text("Reset preps")
+    if ImGui.Button("Reset Preps") then
+        script.run_in_fiber(function()
+            stats.set_int(MPX() .. "SALV23_INST_PROG", 0)
+        end)
+    end
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -9023,6 +8964,9 @@ end
 
 local guzmanStageIndex = 0
 local SN_Guzman = FlashOpsMenu:add_tab("Guzman Flies")
+SN_Guzman:add_text("Max Payout 2.160.000$")
+SN_Guzman:add_text("Min Cooldown ~ 15-20 minutes")
+SN_Guzman:add_separator()
 SN_Guzman:add_text("Preps")
 SN_Guzman:add_imgui(function()
     ImGui.Text("Stage:")
