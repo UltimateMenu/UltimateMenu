@@ -1,483 +1,430 @@
-UML = UML or {}
-
 local J = Utils.Joaat
+local MENU_NAME = "Ultimate Menu"
+local INT_MAX = 2147483647
 
--- General
-joaat = J
-
-log = {
-    info    = function(m) Logger.LogInfo("[UML] " .. tostring(m)) end,
-    debug   = function(m) Logger.LogInfo("[UML][debug] " .. tostring(m)) end,
-    warning = function(m) Logger.LogInfo("[UML][warn] " .. tostring(m)) end,
+-- Native hashes 
+local N = {
+    PLAYER_PED_ID = 0xD80958FC74E988A6,
+    DOES_ENTITY_EXIST = 0x7239B21A38F536BA,
+    GET_ENTITY_MODEL = 0x9F47B058362C84B5,
+    SET_ENTITY_HEADING = 0x8E2530AA8ADA980E,
+    SET_ENTITY_COORDS = 0x06843DA7060A026B,
+    SET_ENTITY_AS_MISSION_ENTITY = 0xAD738C3085FE7E11,
+    DELETE_ENTITY = 0xAE3CBE5BF394C9C9,
+    SET_PED_COORDS_KEEP_VEHICLE = 0x9AFEFF481A85AB2E,
+    CLEAR_PED_TASKS_IMMEDIATELY = 0xAAA34F8A7CB32098,
+    REQUEST_COLLISION_AT_COORD = 0x07503F7948F491A9,
+    IS_CUTSCENE_PLAYING = 0x6EC47A344923E1ED,
+    STOP_CUTSCENE_IMMEDIATELY = 0xD220BDD222AC4A1E,
+    REMOVE_CUTSCENE = 0x440AF51A3B9D8B3C,
+    GET_FIRST_BLIP_INFO_ID = 0x1BEDE233E6CD2A1F,
+    DOES_BLIP_EXIST = 0xA6DB27D19ECBB7DA,
+    GET_BLIP_COORDS = 0x586AFE3FF72D996E,
+    SET_BLIP_AS_SHORT_RANGE = 0xBE8BE4FE60E27B72,
+    GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH = 0x2C83A9DA6BFFC4F9,
+    REQUEST_SCRIPT = 0x6EB5F71AA68F2E8E,
+    SET_SCRIPT_AS_NO_LONGER_NEEDED = 0xC90D2DCACD56184C,
+    START_NEW_SCRIPT = 0xE81651AD79516E48,
+    GET_CLOCK_HOURS = 0x25223CA6B4D20B7F,
+    GET_CLOCK_MINUTES = 0x13D2B8ADD79640F2,
+    SET_CONTROL_VALUE_NEXT_FRAME = 0xE8A25867FBA3B05E,
+    DISABLE_ALL_CONTROL_ACTIONS = 0x5F4B6931816E599B,
+    NETWORK_IS_SESSION_STARTED = 0x9DE624D2FC4B603F,
+    NETWORK_IS_SESSION_ACTIVE = 0xD83C2B94E7508980,
+    NET_GAMESERVER_BASKET_IS_ACTIVE = 0xA65568121DF2EA26,
+    NET_GAMESERVER_BASKET_END = 0xFA336E7F40C0A0D0,
+    STAT_SET_MASKED_INT = 0x7BBB1B54583ED410,
+    STAT_GET_MASKED_INT = 0x655185A06D9EEAAB,
+    STAT_SET_BOOL_MASKED = 0xF4D8E7AC2A27758C,
+    GET_PACKED_STAT_BOOL_CODE = 0xDA7EBFC49AE3F1B0,
+    SET_PACKED_STAT_BOOL_CODE = 0xDB8A58AEAA67CD07,
+    GET_PACKED_STAT_INT_CODE = 0x0BC900A6FE73770C,
+    SET_PACKED_STAT_INT_CODE = 0x1581503AE529CD2E,
 }
 
-vec3 = {}
-function vec3:new(x, y, z)
-    return { x = x or 0, y = y or 0, z = z or 0 }
+-- Service transaction 
+local NET_SHOP_TTYPE_SERVICE = -1135378931
+
+-- Helpers
+local function Toast(title, text)
+    GUI.AddToast(tostring(title), tostring(text or ""), 3000, eToastPos.TOP_RIGHT)
 end
 
--- Script (Fibers -> Cherax Jobs)
-local fiberObj = {
-    sleep = function(_, ms) Script.Yield(ms or 0) end,
-    yield = function(_) Script.Yield() end,
-}
-
-script = {}
-
-function script.run_in_fiber(fn)
-    Script.QueueJob(function() fn(fiberObj) end)
+-- Stats.Get* return (success, value); these give back just the value.
+local function GetStatInt(name)
+    local _, value = Stats.GetInt(J(name))
+    return value or 0
 end
 
-function script.register_looped(_, fn)
-    Script.RegisterLooped(function() fn(fiberObj) end)
+local function GetStatBool(name)
+    local _, value = Stats.GetBool(J(name))
+    return value == 1 or value == true
 end
 
-function script.execute_as_script(_, fn)
-    fn()
+local function GetStatMaskedInt(name, shift, bits)
+    local out = Memory.AllocInt()
+    Natives.InvokeBool(N.STAT_GET_MASKED_INT, J(name), out, shift, bits, -1)
+    local value = Memory.ReadInt(out)
+    Memory.Free(out)
+    return value
 end
 
-function script.is_active(name)
-    return Natives.InvokeInt(0x2C83A9DA6BFFC4F9, J(name)) > 0
+-- Character slot for the packed stat natives
+local function CharSlot()
+    return GetStatInt("MPPLY_LAST_MP_CHAR")
 end
 
--- GUI
-gui = {}
-local function toast(title, msg)
-    GUI.AddToast(tostring(title), tostring(msg), 3000, eToastPos.TOP_RIGHT)
-end
-gui.show_message = toast
-gui.show_error   = toast
-gui.show_success = toast
-
--- Network
-network = {}
-
-function network.is_session_started()
-    return Natives.InvokeBool(0x9DE624D2FC4B603F) and Natives.InvokeBool(0xD83C2B94E7508980)
+local function IsScriptRunning(name)
+    return Natives.InvokeInt(N.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH, J(name)) > 0
 end
 
-function network.force_script_host(name)
-    GTA.ForceScriptHost(J(name))
-    if UML.ForceScriptHostFeature then
-        local f = FeatureMgr.GetFeature(UML.ForceScriptHostFeature)
-        if f then f:OnClick() end
+local function IsSessionStarted()
+    return Natives.InvokeBool(N.NETWORK_IS_SESSION_STARTED) and Natives.InvokeBool(N.NETWORK_IS_SESSION_ACTIVE)
+end
+
+-- Tunables: Cherax hands out a pointer per tunable, values are read/written through Memory.
+local tunablePtrs = {}
+local function TunablePtr(name)
+    local ptr = tunablePtrs[name]
+    if not ptr or ptr == 0 then
+        ptr = ScriptGlobal.GetTunableByHash(type(name) == "number" and name or J(name))
+        tunablePtrs[name] = ptr
     end
-end
-
--- Stats
-stats = {}
-
-function stats.get_int(name)
-    local _, v = Stats.GetInt(J(name))
-    return v or 0
-end
-function stats.set_int(name, v)    Stats.SetInt(J(name), v) end
-function stats.get_float(name)
-    local _, v = Stats.GetFloat(J(name))
-    return v or 0.0
-end
-function stats.set_float(name, v)  Stats.SetFloat(J(name), v) end
-function stats.get_bool(name)
-    local _, v = Stats.GetBool(J(name))
-    return v == 1 or v == true
-end
-function stats.set_bool(name, v)   Stats.SetBool(J(name), (v and 1) or 0) end
-
-local function charSlot()
-    local _, s = Stats.GetInt(J("MPPLY_LAST_MP_CHAR"))
-    return s or 0
-end
-
--- Packed Stats 
-function stats.get_packed_stat_bool(i) return Natives.InvokeBool(0xDA7EBFC49AE3F1B0, i, charSlot()) end
-function stats.set_packed_stat_bool(i, v) Natives.InvokeVoid(0xDB8A58AEAA67CD07, i, v and true or false, charSlot()) end
-function stats.get_packed_stat_int(i) return Natives.InvokeInt(0x0BC900A6FE73770C, i, charSlot()) end
-function stats.set_packed_stat_int(i, v) Natives.InvokeVoid(0x1581503AE529CD2E, i, v, charSlot()) end
-
--- Masked Stats 
-function stats.set_masked_int(name, value, shift, bits)
-    Natives.InvokeBool(0x7BBB1B54583ED410, J(name), value, shift, bits, true)
-end
-function stats.get_masked_int(name, shift, bits)
-    local mem = Memory.Alloc(8)
-    Memory.WriteInt(mem, 0)
-    Natives.InvokeBool(0x655185A06D9EEAAB, J(name), mem, shift, bits, -1)
-    local v = Memory.ReadInt(mem)
-    Memory.Free(mem)
-    return v
-end
-function stats.set_bool_masked(name, value, index)
-    Natives.InvokeBool(0xF4D8E7AC2A27758C, J(name), value and true or false, index, true)
-end
-
--- globals / locals / tunables 
-globals = {}
-function globals.get_int(i)      return ScriptGlobal.GetInt(i) end
-function globals.set_int(i, v)   ScriptGlobal.SetInt(i, v) end
-function globals.get_float(i)    return ScriptGlobal.GetFloat(i) end
-function globals.set_float(i, v) ScriptGlobal.SetFloat(i, v) end
-function globals.set_string(i, v) ScriptGlobal.SetString(i, v) end
-
-locals = {}
-function locals.get_int(s, i)      return ScriptLocal.GetInt(J(s), i) end
-function locals.set_int(s, i, v)   ScriptLocal.SetInt(J(s), i, v) end
-function locals.get_float(s, i)    return ScriptLocal.GetFloat(J(s), i) end
-function locals.set_float(s, i, v) ScriptLocal.SetFloat(J(s), i, v) end
-
-tunables = {}
-local tunPtr = {}
-local function tptr(name)
-    local p = tunPtr[name]
-    if not p or p == 0 then
-        p = ScriptGlobal.GetTunableByHash(type(name) == "number" and name or J(name))
-        tunPtr[name] = p
-    end
-    if p == 0 then
-        log.warning("Tunable nicht gefunden: " .. tostring(name))
+    if ptr == 0 then
+        Logger.LogError("[" .. MENU_NAME .. "] Tunable not found: " .. tostring(name))
         return nil
     end
-    return p
-end
-function tunables.get_int(n)      local p = tptr(n); return p and Memory.ReadInt(p) or 0 end
-function tunables.set_int(n, v)   local p = tptr(n); if p then Memory.WriteInt(p, v) end end
-function tunables.get_float(n)    local p = tptr(n); return p and Memory.ReadFloat(p) or 0.0 end
-function tunables.set_float(n, v) local p = tptr(n); if p then Memory.WriteFloat(p, v) end end
-function tunables.set_bool(n, v)  local p = tptr(n); if p then Memory.WriteInt(p, v and 1 or 0) end end
-
--- Native-Namespaces 
-local function N(kind, hash)
-    return function(...) return Natives["Invoke" .. kind](hash, ...) end
+    return ptr
 end
 
-PLAYER = {
-    PLAYER_PED_ID = N("Int",  0xD80958FC74E988A6), 
-    PLAYER_ID     = N("Int",  0x4F8644AF03D0E0D6), 
-}
-ENTITY = {
-    DOES_ENTITY_EXIST           = N("Bool",   0x7239B21A38F536BA), 
-    GET_ENTITY_MODEL            = N("Int",    0x9F47B058362C84B5), 
-    SET_ENTITY_HEADING          = N("Void",   0x8E2530AA8ADA980E), 
-    SET_ENTITY_COORDS           = N("Void",   0x06843DA7060A026B), 
-    SET_ENTITY_AS_MISSION_ENTITY = N("Void",  0xAD738C3085FE7E11), 
-    DELETE_ENTITY               = N("Void",   0xAE3CBE5BF394C9C9), 
-}
-PED = {
-    SET_PED_COORDS_KEEP_VEHICLE = N("Void", 0x9AFEFF481A85AB2E), 
-}
-TASK = {
-    CLEAR_PED_TASKS_IMMEDIATELY = N("Void", 0xAAA34F8A7CB32098), 
-}
-STREAMING = {
-    REQUEST_COLLISION_AT_COORD = N("Void", 0x07503F7948F491A9), 
-}
-CUTSCENE = {
-    IS_CUTSCENE_PLAYING       = N("Bool", 0x6EC47A344923E1ED), 
-    STOP_CUTSCENE_IMMEDIATELY = N("Void", 0xD220BDD222AC4A1E), 
-    REMOVE_CUTSCENE           = N("Void", 0x440AF51A3B9D8B3C), 
-}
-HUD = {
-    GET_FIRST_BLIP_INFO_ID = N("Int",    0x1BEDE233E6CD2A1F), 
-    GET_NEXT_BLIP_INFO_ID  = N("Int",    0x14F96AA50D6FBEA7), 
-    DOES_BLIP_EXIST        = N("Bool",   0xA6DB27D19ECBB7DA), 
-    GET_BLIP_COORDS        = N("V3",     0x586AFE3FF72D996E), 
-    SET_BLIP_AS_SHORT_RANGE = N("Void",  0xBE8BE4FE60E27B72), 
-}
-do
-    local raw = HUD.GET_BLIP_COORDS
-    HUD.GET_BLIP_COORDS = function(b)
-        local x, y, z = raw(b)
-        return vec3:new(x, y, z)
-    end
+local function GetTunableInt(name)
+    local ptr = TunablePtr(name)
+    return ptr and Memory.ReadInt(ptr) or 0
 end
-INTERIOR = {
-    GET_INTERIOR_FROM_ENTITY = N("Int", 0x2107BA504071A6BB), 
-}
-SCRIPT = {
-    GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH = N("Int", 0x2C83A9DA6BFFC4F9), 
-    REQUEST_SCRIPT                 = N("Void", 0x6EB5F71AA68F2E8E), 
-    SET_SCRIPT_AS_NO_LONGER_NEEDED = N("Void", 0xC90D2DCACD56184C), 
-}
-SYSTEM = {
-    START_NEW_SCRIPT = N("Int", 0xE81651AD79516E48), 
-}
-CLOCK = {
-    GET_CLOCK_HOURS   = N("Int", 0x25223CA6B4D20B7F), 
-    GET_CLOCK_MINUTES = N("Int", 0x13D2B8ADD79640F2), 
-}
-PAD = {
-    SET_CONTROL_VALUE_NEXT_FRAME = N("Bool", 0xE8A25867FBA3B05E), 
-    DISABLE_ALL_CONTROL_ACTIONS  = N("Void", 0x5F4B6931816E599B), 
-}
 
+local function SetTunableInt(name, value)
+    local ptr = TunablePtr(name)
+    if ptr then Memory.WriteInt(ptr, value) end
+end
 
+local function GetTunableFloat(name)
+    local ptr = TunablePtr(name)
+    return ptr and Memory.ReadFloat(ptr) or 0.0
+end
 
--- Shop-Transactions 
-NETSHOPPING = {
-    NET_GAMESERVER_BASKET_IS_ACTIVE = N("Bool", 0xA65568121DF2EA26), 
-    NET_GAMESERVER_BASKET_END       = N("Bool", 0xFA336E7F40C0A0D0), 
-    NET_GAMESERVER_BEGIN_SERVICE = function(_, category, item, action, value, flags)
-        return GTA.BeginService(-1135378931, category, item, action, value, flags)
-    end,
-    NET_GAMESERVER_CHECKOUT_START = function(id) return GTA.CheckoutStart(id) end,
-}
+local function SetTunableFloat(name, value)
+    local ptr = TunablePtr(name)
+    if ptr then Memory.WriteFloat(ptr, value + 0.0) end
+end
 
--- weapons 
-weapons = {}
-local weaponMap
+local function SetTunableBool(name, value)
+    local ptr = TunablePtr(name)
+    if ptr then Memory.WriteInt(ptr, value and 1 or 0) end
+end
+
+-- Weapon names (the Gun Van section fills WeaponNames)
+WeaponNames = {}
 local EXTRA_WEAPONS = { "WEAPON_GRENADE", "WEAPON_BZGAS", "WEAPON_MOLOTOV", "WEAPON_STICKYBOMB", "WEAPON_PROXMINE",
     "WEAPON_SNOWBALL", "WEAPON_PIPEBOMB", "WEAPON_SMOKEGRENADE", "WEAPON_FLARE", "WEAPON_BALL", "WEAPON_ACIDPACKAGE" }
+local weaponByHash
 
-local function prettify(n)
-    n = n:gsub("^WEAPON_", ""):gsub("_", " "):lower()
-    return (n:gsub("(%a)([%w']*)", function(a, b) return a:upper() .. b end))
+local function PrettyWeaponName(name)
+    name = name:gsub("^WEAPON_", ""):gsub("_", " "):lower()
+    return (name:gsub("(%a)([%w']*)", function(a, b) return a:upper() .. b end))
 end
 
-function weapons.get_weapon_display_name(x)
-    if type(x) == "string" then return prettify(x) end
-    if not weaponMap then
-        weaponMap = {}
-        for _, n in ipairs(UML_WEAPON_NAMES or {}) do weaponMap[J(n)] = n end
-        for _, n in ipairs(EXTRA_WEAPONS) do weaponMap[J(n)] = n end
+local function WeaponDisplayName(weapon)
+    if type(weapon) == "string" then
+        return PrettyWeaponName(weapon)
     end
-    local n = weaponMap[x]
-    if n then return prettify(n) end
-    return "Unknown (" .. tostring(x) .. ")"
-end
-
-self = self or {}
-self.get_ped = function() return PLAYER.PLAYER_PED_ID() end
-
-
-UML = UML or {}
-UML.CFG = UML.CFG or {
-    COMBO_BASE = 0, 
-}
-
-_ImGuiCombo, _ImGuiCheckbox, _ImGuiInputInt = ImGui.Combo, ImGui.Checkbox, ImGui.InputInt
-
-ImGui.Combo = function(label, index, items, count)
-    local base = UML.CFG.COMBO_BASE
-    local ok, a, b = pcall(_ImGuiCombo, label, index + base, items, count or #items)
-    if not ok then log.warning("ImGui.Combo: " .. tostring(a)) return index, false end
-    if type(a) == "number" then return a - base, (b == true) end
-    return index, false
-end
-
-ImGui.Checkbox = function(label, state)
-    local ok, a, b = pcall(_ImGuiCheckbox, label, state)
-    if not ok then log.warning("ImGui.Checkbox: " .. tostring(a)) return state, false end
-    if b ~= nil then return a, b end
-    if a == true then return not state, true end
-    return state, false
-end
-
-ImGui.InputInt = function(label, value, ...)
-    local ok, a, b = pcall(_ImGuiInputInt, label, value, ...)
-    if not ok then log.warning("ImGui.InputInt: " .. tostring(a)) return value, false end
-    if type(a) == "number" then return a, (b == true) end
-    return value, false
-end
-
-UML.treeDepth = 0
-local _treeNode, _treePop = ImGui.TreeNode, ImGui.TreePop
-ImGui.TreeNode = function(...)
-    local open = _treeNode(...)
-    if open then UML.treeDepth = UML.treeDepth + 1 end
-    return open
-end
-ImGui.TreePop = function(...)
-    if UML.treeDepth > 0 then UML.treeDepth = UML.treeDepth - 1 end
-    return _treePop(...)
-end
-function UML.CloseOpenTrees()
-    while UML.treeDepth > 0 do
-        UML.treeDepth = UML.treeDepth - 1
-        _treePop()
+    if not weaponByHash then
+        weaponByHash = {}
+        for _, name in ipairs(WeaponNames) do weaponByHash[J(name)] = name end
+        for _, name in ipairs(EXTRA_WEAPONS) do weaponByHash[J(name)] = name end
     end
+    local name = weaponByHash[weapon]
+    return name and PrettyWeaponName(name) or ("Unknown (" .. tostring(weapon) .. ")")
 end
 
-
-local warned = {}
-local function stub(tbl, tname, name, ret)
-    if tbl[name] == nil then
-        UML = UML or {}
-        UML.stubbed = UML.stubbed or {}
-        UML.stubbed[#UML.stubbed + 1] = tname .. "." .. name
-        tbl[name] = function(...)
-            if not warned[tname .. name] then
-                warned[tname .. name] = true
-                log.warning(tname .. "." .. name .. " ist in Cherax nicht vorhanden (Stub)")
-            end
-            if type(ret) == "function" then return ret(...) end
-            return ret
+-- All object handles in the object pool. Only call from a native thread.
+local function GetAllObjects()
+    local handles = {}
+    for i = 0, PoolMgr.GetMaxObjectCount() - 1 do
+        local handle = PoolMgr.GetObject(i)
+        if handle and handle ~= 0 then
+            handles[#handles + 1] = handle
         end
     end
+    return handles
 end
 
-for _, n in ipairs({ "Dummy", "Spacing", "ProgressBar", "SetNextItemWidth", "PushItemWidth", "PopItemWidth",
-    "PushTextWrapPos", "PopTextWrapPos", "TextWrapped", "SetTooltip", "BeginTooltip", "EndTooltip",
-    "CloseCurrentPopup", "EndPopup", "TreePop", "SetNextWindowSize", "PopStyleColor" }) do
-    stub(ImGui, "ImGui", n, nil)
-end
-for _, n in ipairs({ "IsItemHovered", "IsItemActive", "BeginPopupModal", "Selectable", "TreeNode" }) do
-    stub(ImGui, "ImGui", n, false)
-end
-stub(ImGui, "ImGui", "OpenPopup", nil)
-stub(ImGui, "ImGui", "GetFontSize", 16)
-if ImGui.TextUnformatted == nil then ImGui.TextUnformatted = function(t) ImGui.Text(tostring(t)) end end
-stub(ImGui, "ImGui", "PushStyleColor", nil)
-stub(ImGui, "ImGui", "SliderInt", function(_, v) return v, false end)
-stub(ImGui, "ImGui", "DragInt", function(_, v) return v, false end)
-stub(ImGui, "ImGui", "InputFloat", function(_, v) return v, false end)
-stub(ImGui, "ImGui", "InputText", function(_, v) return v, false end)
-
-
-local listBoxChild = {}
-if ImGui.BeginListBox == nil then
-    ImGui.BeginListBox = function(label, w, h)
-        if ImGui.BeginChild then
-            local ok, r = pcall(ImGui.BeginChild, label, w or 0, h or 0, true)
-            if ok then
-                listBoxChild[#listBoxChild + 1] = true
-                return r ~= false
-            end
-        end
-        listBoxChild[#listBoxChild + 1] = false
-        return true
-    end
-    ImGui.EndListBox = function()
-        local used = table.remove(listBoxChild)
-        if used and ImGui.EndChild then ImGui.EndChild() end
-    end
+-- DELETE_ENTITY takes a pointer to the handle. Only call from a native thread.
+local function DeleteEntity(handle)
+    local ptr = Memory.AllocInt()
+    Memory.WriteInt(ptr, handle)
+    Natives.InvokeVoid(N.DELETE_ENTITY, ptr)
+    Memory.Free(ptr)
 end
 
-ImGuiCol = ImGuiCol or { Text = 0 }
-ImGuiWindowFlags = ImGuiWindowFlags or { NoResize = 2, NoMove = 4, NoCollapse = 32, Modal = 0 }
-ImGuiCond = ImGuiCond or { Always = 1, Once = 2 }
-
-entities = entities or { get_all_objects_as_handles = function() return {} end }
-
-if io and io.exists == nil then
-    io.exists = function(p)
-        local f = io.open(p, "r")
-        if f then f:close() return true end
-        return false
-    end
-end
-
-
-local Tab = {}
-Tab.__index = Tab
-
-local function newTab(name, parent)
-    return setmetatable({ name = name, parent = parent, items = {}, children = {} }, Tab)
-end
-
-function Tab:add_tab(name)
-    local t = newTab(name, self)
-    table.insert(self.children, t)
-    return t
-end
-
-function Tab:add_text(label)       table.insert(self.items, { t = "text", label = label }) end
-function Tab:add_separator()       table.insert(self.items, { t = "sep" }) end
-function Tab:add_sameline()        table.insert(self.items, { t = "same" }) end
-function Tab:add_imgui(cb)         table.insert(self.items, { t = "imgui", cb = cb }) end
-function Tab:add_button(label, cb) table.insert(self.items, { t = "button", label = label, cb = cb }) end
-
-function Tab:add_checkbox(label, default)
-    local o = { t = "checkbox", label = label, state = default or false }
-    function o:is_enabled() return self.state end
-    function o:set_enabled(v) self.state = v end
-    table.insert(self.items, o)
-    return o
-end
-
-function Tab:add_input_int(label, default)
-    local o = { t = "input_int", label = label, value = default or 0 }
-    function o:get_value() return self.value end
-    function o:set_value(v) self.value = v end
-    table.insert(self.items, o)
-    return o
-end
-
-local function safe(cb, ...)
-    UML.treeDepth = 0
-    local ok, err = pcall(cb, ...)
+-- Each menu section loads on its own, so one failing section does not take the rest down.
+local function Section(name, build)
+    local ok, err = pcall(build)
     if not ok then
-        log.warning(tostring(err))
-        UML.CloseOpenTrees()
+        Logger.LogError("[" .. MENU_NAME .. "] Section '" .. name .. "' failed to load: " .. tostring(err))
     end
 end
 
-local function renderItems(t)
-    for _, it in ipairs(t.items) do
-        if it.t == "text" then
-            ImGui.Text(tostring(it.label))
-        elseif it.t == "sep" then
-            ImGui.Separator()
-        elseif it.t == "same" then
-            ImGui.SameLine()
-        elseif it.t == "button" then
-            if ImGui.Button(it.label) then safe(it.cb) end
-        elseif it.t == "checkbox" then
-            it.state = ImGui.Checkbox(it.label, it.state)
-        elseif it.t == "input_int" then
-            it.value = ImGui.InputInt(it.label, it.value)
-        elseif it.t == "imgui" then
-            safe(it.cb)
+-- Session state
+-- Natives are not safe on the render thread, so the tab reads this cached state.
+local Session = { ready = false, online = false }
+
+Script.RegisterLooped(function()
+    Session.ready = not IsScriptRunning("maintransition")
+        and Natives.InvokeBool(N.DOES_ENTITY_EXIST, Natives.InvokeInt(N.PLAYER_PED_ID))
+    Session.online = IsSessionStarted()
+    Script.Yield(250)
+end)
+
+-- UI
+-- Page = one tab (pages nest as sub tabs). A page holds boxes, and every box is a
+-- ClickGUI custom child window holding features, text or custom ImGui drawing.
+BypassOnlineCheck = nil 
+
+local Page = {}
+Page.__index = Page
+
+local usedFeatureIds = {}
+local reportedRenderErrors = {}
+
+local function NewPage(title, parent)
+    return setmetatable({
+        title = title,
+        path = parent and (parent.path .. "/" .. title) or title,
+        tabs = {},
+        boxes = {},
+        columns = 2,
+    }, Page)
+end
+
+-- Adds a sub tab.
+function Page:Tab(title)
+    local page = NewPage(title, self)
+    self.tabs[#self.tabs + 1] = page
+    return page
+end
+
+-- This tab (and its sub tabs) only shows its content in GTA Online.
+function Page:RequireOnline()
+    self.online = true
+    return self
+end
+
+-- Number of box columns on this page.
+function Page:Columns(count)
+    self.columns = count
+    return self
+end
+
+-- Starts a box; everything added afterwards goes into it.
+-- Using the title of an existing box continues that box.
+-- column (optional) pins a new box to that column instead of the automatic left-to-right fill;
+-- column 0 makes it span the full width above the columns.
+function Page:Box(title, column)
+    for _, box in ipairs(self.boxes) do
+        if box.title == title then
+            self.box = box
+            return self
         end
     end
+    self.box = { title = title, items = {}, column = column }
+    self.boxes[#self.boxes + 1] = self.box
+    return self
 end
 
-local function renderTab(t)
-    renderItems(t)
-    if #t.children > 0 then
-        if ImGui.BeginTabBar("##tabs_" .. t.name) then
-            for _, c in ipairs(t.children) do
-                if not c.hidden and ImGui.BeginTabItem(c.name) then
-                    renderTab(c)
-                    ImGui.EndTabItem()
-                end
-            end
-            ImGui.EndTabBar()
-        end
+function Page:Add(item)
+    if not self.box then
+        self:Box(self.title)
     end
+    self.box.items[#self.box.items + 1] = item
 end
 
-local roots = {}
-
-function gui.get_tab(name)
-    if roots[name] then return roots[name] end
-    local root = newTab(name)
-    roots[name] = root
-    ClickGUI.AddTab(name, function() renderTab(root) end)
-    return root
-end
-
-function UML.RenderTabToggles(root, exclude)
-    ImGui.Text("Select which tabs are shown:")
-    ImGui.Separator()
-    for _, c in ipairs(root.children) do
-        if c.name ~= exclude then
-            local shown = ImGui.Checkbox(c.name .. "##tabvis", not c.hidden)
-            c.hidden = not shown
-        end
+-- Registers a Cherax feature and places it in the current box.
+function Page:Feature(name, featureType, desc, callback)
+    local id = "UltimateMenu/" .. self.path .. "/" .. name
+    local unique, n = id, 1
+    while usedFeatureIds[unique] do
+        n = n + 1
+        unique = id .. "#" .. n
     end
+    usedFeatureIds[unique] = true
+
+    local hash = J(unique)
+    local feature
+    if callback then
+        feature = FeatureMgr.AddFeature(hash, name, featureType, desc or "", callback)
+    else
+        feature = FeatureMgr.AddFeature(hash, name, featureType, desc or "")
+    end
+    feature:SetSaveable(false)
+    self:Add({ feature = hash })
+    return feature
 end
 
-function UML.MoveTabAfter(root, name, afterName)
+-- onClick runs in a native thread, so it may call natives and Script.Yield.
+function Page:Button(name, onClick, desc)
+    return self:Feature(name, eFeatureType.Button, desc, function()
+        onClick()
+    end)
+end
+
+function Page:Toggle(name, desc)
+    return self:Feature(name, eFeatureType.Toggle, desc)
+end
+
+function Page:InputInt(name, desc)
+    local feature = self:Feature(name, eFeatureType.InputInt, desc)
+    feature:SetLimitValues(0, INT_MAX)
+    return feature
+end
+
+function Page:Text(text)
+    self:Add({ text = text })
+end
+
+-- render() draws with ImGui inside the box. It runs on the render thread.
+function Page:Custom(render)
+    self:Add({ render = render })
+end
+
+function Page:MoveTabAfter(title, afterTitle)
     local from, to
-    for i, c in ipairs(root.children) do
-        if c.name == name then from = i end
-        if c.name == afterName then to = i end
+    for i, tab in ipairs(self.tabs) do
+        if tab.title == title then from = i end
+        if tab.title == afterTitle then to = i end
     end
     if not from or not to or from == to + 1 then return end
-    local c = table.remove(root.children, from)
+    local tab = table.remove(self.tabs, from)
     if from < to then to = to - 1 end
-    table.insert(root.children, to + 1, c)
+    table.insert(self.tabs, to + 1, tab)
 end
 
+local function RenderBox(box)
+    if not ClickGUI.BeginCustomChildWindow(box.title) then
+        return
+    end
+    for _, item in ipairs(box.items) do
+        if item.feature then
+            ClickGUI.RenderFeature(item.feature)
+        elseif item.text then
+            ImGui.TextWrapped(item.text)
+        else
+            local width = ImGui.GetContentRegionAvail()
+            ImGui.PushItemWidth(width * 0.55)
+            local ok, err = pcall(item.render)
+            ImGui.PopItemWidth()
+            if not ok and not reportedRenderErrors[err] then
+                reportedRenderErrors[err] = true
+                Logger.LogError("[" .. MENU_NAME .. "] " .. box.title .. ": " .. tostring(err))
+            end
+        end
+    end
+    ClickGUI.EndCustomChildWindow()
+end
+
+-- Boxes fill the columns left to right, then stack downwards.
+-- A box pinned to a column goes to the end of that column and is skipped by the fill.
+-- Column 0 boxes span the full width above the columns.
+local function RenderBoxes(page)
+    local inColumns = 0
+    for _, box in ipairs(page.boxes) do
+        if box.column == 0 then
+            RenderBox(box)
+        else
+            inColumns = inColumns + 1
+        end
+    end
+
+    local columns = math.min(page.columns, inColumns)
+    if columns <= 1 then
+        for _, box in ipairs(page.boxes) do
+            if box.column ~= 0 then
+                RenderBox(box)
+            end
+        end
+        return
+    end
+    if ImGui.BeginTable("##boxes", columns, ImGuiTableFlags.SizingStretchSame) then
+        for column = 1, columns do
+            ImGui.TableNextColumn()
+            local filled = 0
+            for _, box in ipairs(page.boxes) do
+                if box.column ~= 0 then
+                    local target = box.column and math.min(box.column, columns)
+                    if not target then
+                        target = filled % columns + 1
+                        filled = filled + 1
+                    end
+                    if target == column then
+                        RenderBox(box)
+                    end
+                end
+            end
+        end
+        ImGui.EndTable()
+    end
+end
+
+local function BlockedReason(page)
+    if not page.online or (BypassOnlineCheck and BypassOnlineCheck:IsToggled()) then
+        return nil
+    end
+    if not Session.ready then
+        return "Waiting for game..."
+    end
+    if not Session.online then
+        return "Unavailable in Single Player."
+    end
+    return nil
+end
+
+local function RenderPage(page)
+    local blocked = BlockedReason(page)
+    if blocked then
+        ImGui.Text(blocked)
+        return
+    end
+    if #page.tabs == 0 then
+        RenderBoxes(page)
+        return
+    end
+    if ImGui.BeginTabBar("##tabs") then
+        -- A page with both own content and sub tabs shows its content as "Main".
+        if #page.boxes > 0 and ImGui.BeginTabItem("Main") then
+            RenderBoxes(page)
+            ImGui.EndTabItem()
+        end
+        for _, tab in ipairs(page.tabs) do
+            local hidden = tab.hideToggle and tab.hideToggle:IsToggled()
+            if not hidden and ImGui.BeginTabItem(tab.title) then
+                ImGui.PushID(tab.title)
+                RenderPage(tab)
+                ImGui.PopID()
+                ImGui.EndTabItem()
+            end
+        end
+        ImGui.EndTabBar()
+    end
+end
+
+local Menu = NewPage(MENU_NAME)
+
+ClickGUI.AddTab(MENU_NAME, function()
+    RenderPage(Menu)
+end)
+
+EventMgr.RegisterHandler(eLuaEvent.ON_UNLOAD, function()
+    ClickGUI.RemoveTab(MENU_NAME)
+end)
 
 --Required Stats----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --Globals & Locals & Variables (Legacy 1.73)--
@@ -514,7 +461,7 @@ AHSo = 19808 + 2 -- Apartment heist skip checkpoint
 ACDg = 2686119 -- apartment cooldown global
 -- Force Ready [stride 468] Global_2658293[PLAYER_ID].f_270 = 6 --
 AFRg = 2658293 -- apartment force ready global
-AHDg = 4718592 + 3771 -- search in tuneables_processing.c for joaat("HEIST_DIFFICULTY_EASY") then search the global you find in fmmc_launcher.c then take the global in switch state above it done
+AHDg = 4718592 + 3771 -- search in tuneables_processing.c for J("HEIST_DIFFICULTY_EASY") then search the global you find in fmmc_launcher.c then take the global in switch state above it done
 AHLIVESL = 26234 + 1325 + 1 -- Apartment Heist team lives local
 
 -- 2. Diamond Casino Heist --
@@ -646,7 +593,7 @@ NLCl = 213 + 32 + 19 + 1 --("nightclub_office_cutscene") in ("am_mp_nightclub")
 --Required Stats----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function MPX()
-    local PI = stats.get_int("MPPLY_LAST_MP_CHAR")
+    local PI = GetStatInt("MPPLY_LAST_MP_CHAR")
     if PI == 1 then
         return "MP1_"
     end
@@ -654,390 +601,27 @@ function MPX()
 end
 
 function SkipCutscene()
-    script.run_in_fiber(function(script)
-        if CUTSCENE.IS_CUTSCENE_PLAYING() then
-            CUTSCENE.STOP_CUTSCENE_IMMEDIATELY()
-            script:sleep(100)
-            CUTSCENE.REMOVE_CUTSCENE()
+    Script.QueueJob(function()
+        if Natives.InvokeBool(N.IS_CUTSCENE_PLAYING) then
+            Natives.InvokeVoid(N.STOP_CUTSCENE_IMMEDIATELY)
+            Script.Yield(100)
+            Natives.InvokeVoid(N.REMOVE_CUTSCENE)
         end
     end)
 end
 
-function SPX()
-    local player_ped = PLAYER.PLAYER_PED_ID()
-    if player_ped == 0 then
-        return "SP0_"
-    end
-    local PI = ENTITY.GET_ENTITY_MODEL(player_ped)
-    if PI == joaat("Player_One") then
-        return "SP1_"
-    elseif PI == joaat("Player_Two") then
-        return "SP2_"
-    end
-    return "SP0_"
-end
-
-local bypassOnlineCheckbox = nil
-
-function checkOnline()
-    if bypassOnlineCheckbox and bypassOnlineCheckbox:is_enabled() then
-        return false
-    end
-    if
-        SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
-        or not ENTITY.DOES_ENTITY_EXIST(PLAYER.PLAYER_PED_ID())
-    then
-        ImGui.Text("Waiting for game...")
-        return true
-    end
-    if not network.is_session_started() then
-        ImGui.Text("\nUnavailable in Single Player.\n\n")
-        return true
-    end
-    return false
-end
-
-function checkStoryMode()
-    if
-        SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
-        or not ENTITY.DOES_ENTITY_EXIST(PLAYER.PLAYER_PED_ID())
-    then
-        ImGui.Text("Waiting for game...")
-        return true
-    end
-    if network.is_session_started() then
-        ImGui.Text("\nUnavailable in Multiplayer.\n\n")
-        return true
-    end
-    return false
-end
-
--- Silent offline check: returns true if offline, but shows NO text
-function isOffline()
-    if bypassOnlineCheckbox and bypassOnlineCheckbox:is_enabled() then
-        return false
-    end
-    if
-        SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
-        or not ENTITY.DOES_ENTITY_EXIST(PLAYER.PLAYER_PED_ID())
-    then
-        return true
-    end
-    if not network.is_session_started() then
-        return true
-    end
-    return false
-end
-
--- Shared guard: ensures exactly ONE warning callback per tab
-local online_guards = {}
-function ensureOnlineGuard(tab)
-    if not online_guards[tab] then
-        online_guards[tab] = true
-        tab:add_imgui(function()
-            checkOnline() -- only this one shows the warning text
-        end)
-    end
-end
-
--- Story Mode widget system
-local story_widgets = {}
-local story_initialized = {}
-
-function isStoryBlocked()
-    if
-        SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
-        or not ENTITY.DOES_ENTITY_EXIST(PLAYER.PLAYER_PED_ID())
-    then
-        return true
-    end
-    if network.is_session_started() then
-        return true
-    end
-    return false
-end
-
-local story_guards = {}
-function ensureStoryGuard(tab)
-    if not story_guards[tab] then
-        story_guards[tab] = true
-        tab:add_imgui(function()
-            checkStoryMode()
-        end)
-    end
-end
-
-function initStoryTab(tab)
-    if not story_initialized[tab] then
-        story_initialized[tab] = true
-        story_widgets[tab] = {}
-        ensureStoryGuard(tab)
-        tab:add_imgui(function()
-            if isStoryBlocked() then
-                return
-            end
-            for _, widget in ipairs(story_widgets[tab]) do
-                if widget.type == "button" then
-                    if ImGui.Button(widget.label) then
-                        widget.callback()
-                    end
-                elseif widget.type == "sameline" then
-                    ImGui.SameLine()
-                elseif widget.type == "separator" then
-                    ImGui.Separator()
-                elseif widget.type == "text" then
-                    ImGui.Text(widget.label)
-                elseif widget.type == "checkbox" then
-                    local changed
-                    widget.state, changed = ImGui.Checkbox(widget.label, widget.state)
-                elseif widget.type == "input_int" then
-                    widget.value, __ = ImGui.InputInt(widget.label, widget.value)
-                end
-            end
-        end)
-    end
-end
-
-function addStoryButton(tab, label, callback)
-    initStoryTab(tab)
-    table.insert(story_widgets[tab], { type = "button", label = label, callback = callback })
-end
-
-function addStorySameline(tab)
-    initStoryTab(tab)
-    table.insert(story_widgets[tab], { type = "sameline" })
-end
-
-function addStorySeparator(tab)
-    initStoryTab(tab)
-    table.insert(story_widgets[tab], { type = "separator" })
-end
-
-function addStoryText(tab, label)
-    initStoryTab(tab)
-    table.insert(story_widgets[tab], { type = "text", label = label })
-end
-
-function addStoryCheckbox(tab, label, default_value)
-    initStoryTab(tab)
-    local checkbox_obj = {
-        type = "checkbox",
-        label = label,
-        state = default_value or false,
-        is_enabled = function(self)
-            return self.state
-        end,
-        set_enabled = function(self, val)
-            self.state = val
-        end,
-    }
-    table.insert(story_widgets[tab], checkbox_obj)
-    return checkbox_obj
-end
-
-function addStoryInputInt(tab, label, default_value)
-    initStoryTab(tab)
-    local input_obj = {
-        type = "input_int",
-        label = label,
-        value = default_value or 0,
-        get_value = function(self)
-            return self.value
-        end,
-        set_value = function(self, val)
-            self.value = val
-        end,
-    }
-    table.insert(story_widgets[tab], input_obj)
-    return input_obj
-end
-
-function makeStoryTab(tab)
-    local wrapped = {}
-
-    function wrapped:add_tab(name)
-        return makeStoryTab(tab:add_tab(name))
-    end
-
-    function wrapped:add_button(label, callback)
-        addStoryButton(tab, label, callback)
-    end
-
-    function wrapped:add_checkbox(label, default_value)
-        return addStoryCheckbox(tab, label, default_value)
-    end
-
-    function wrapped:add_input_int(label, default_value)
-        return addStoryInputInt(tab, label, default_value)
-    end
-
-    function wrapped:add_text(label)
-        addStoryText(tab, label)
-    end
-
-    function wrapped:add_separator()
-        addStorySeparator(tab)
-    end
-
-    function wrapped:add_sameline()
-        addStorySameline(tab)
-    end
-
-    function wrapped:add_imgui(callback)
-        ensureStoryGuard(tab)
-        tab:add_imgui(function()
-            if isStoryBlocked() then
-                return
-            end
-            callback()
-        end)
-    end
-
-    return wrapped
-end
-
-local online_widgets = {}
-
-function initOnlineTab(tab)
-    if not online_widgets[tab] then
-        online_widgets[tab] = {}
-        ensureOnlineGuard(tab) -- shared guard shows the warning
-        tab:add_imgui(function()
-            if isOffline() then
-                return
-            end -- silent check, no duplicate text
-            for _, widget in ipairs(online_widgets[tab]) do
-                if widget.type == "button" then
-                    if ImGui.Button(widget.label) then
-                        widget.callback()
-                    end
-                elseif widget.type == "sameline" then
-                    ImGui.SameLine()
-                elseif widget.type == "separator" then
-                    ImGui.Separator()
-                elseif widget.type == "text" then
-                    ImGui.Text(widget.label)
-                elseif widget.type == "checkbox" then
-                    local changed
-                    widget.state, changed = ImGui.Checkbox(widget.label, widget.state)
-                elseif widget.type == "input_int" then
-                    widget.value, __ = ImGui.InputInt(widget.label, widget.value)
-                end
-            end
-        end)
-    end
-end
-
-function addOnlineButton(tab, label, callback)
-    initOnlineTab(tab)
-    table.insert(online_widgets[tab], { type = "button", label = label, callback = callback })
-end
-
-function addOnlineSameline(tab)
-    initOnlineTab(tab)
-    table.insert(online_widgets[tab], { type = "sameline" })
-end
-
-function addOnlineSeparator(tab)
-    initOnlineTab(tab)
-    table.insert(online_widgets[tab], { type = "separator" })
-end
-
-function addOnlineText(tab, label)
-    initOnlineTab(tab)
-    table.insert(online_widgets[tab], { type = "text", label = label })
-end
-
-function addOnlineCheckbox(tab, label, default_value)
-    initOnlineTab(tab)
-    local checkbox_obj = {
-        type = "checkbox",
-        label = label,
-        state = default_value or false,
-        is_enabled = function(self)
-            return self.state
-        end,
-        set_enabled = function(self, val)
-            self.state = val
-        end,
-    }
-    table.insert(online_widgets[tab], checkbox_obj)
-    return checkbox_obj
-end
-
-function addOnlineInputInt(tab, label, default_value)
-    initOnlineTab(tab)
-    local input_obj = {
-        type = "input_int",
-        label = label,
-        value = default_value or 0,
-        get_value = function(self)
-            return self.value
-        end,
-        set_value = function(self, val)
-            self.value = val
-        end,
-    }
-    table.insert(online_widgets[tab], input_obj)
-    return input_obj
-end
-
-function makeOnlineTab(tab)
-    local wrapped = {}
-
-    function wrapped:add_tab(name)
-        return makeOnlineTab(tab:add_tab(name))
-    end
-
-    function wrapped:add_button(label, callback)
-        addOnlineButton(tab, label, callback)
-    end
-
-    function wrapped:add_checkbox(label, default_value)
-        return addOnlineCheckbox(tab, label, default_value)
-    end
-
-    function wrapped:add_input_int(label, default_value)
-        return addOnlineInputInt(tab, label, default_value)
-    end
-
-    function wrapped:add_text(label)
-        addOnlineText(tab, label)
-    end
-
-    function wrapped:add_separator()
-        addOnlineSeparator(tab)
-    end
-
-    function wrapped:add_sameline()
-        addOnlineSameline(tab)
-    end
-
-    function wrapped:add_imgui(callback)
-        ensureOnlineGuard(tab) -- shared guard shows the warning
-        tab:add_imgui(function()
-            if isOffline() then
-                return
-            end -- silent check, no duplicate text
-            callback()
-        end)
-    end
-
-    return wrapped
-end
-
-function SN_ApplyApartmentCutsCherax(c1, c2, c3, c4, isFleeca)
+function SN_ApplyApartmentCuts(c1, c2, c3, c4, isFleeca)
     if isFleeca then
         c3 = 0
         c4 = 0
     end
-    globals.set_int(ACg5, c1)
-    globals.set_int(ACg6, c2)
-    globals.set_int(ACg7, c3)
-    globals.set_int(ACg8, c4)
+    ScriptGlobal.SetInt(ACg5, c1)
+    ScriptGlobal.SetInt(ACg6, c2)
+    ScriptGlobal.SetInt(ACg7, c3)
+    ScriptGlobal.SetInt(ACg8, c4)
 end
 
-function SN_ApartmentMaxCutCherax(doubleWeek)
+function SN_ApartmentMaxCut(doubleWeek)
     local payoutsByHash = {
         [1328892776] = { 100625, 201250, 251563 },
         [964111671] = { 350000, 700000, 875000 },
@@ -1045,8 +629,8 @@ function SN_ApartmentMaxCutCherax(doubleWeek)
         [1967927346] = { 353500, 707000, 883750 },
         [1182286714] = { 750000, 1500000, 1875000 },
     }
-    local key = globals.get_int(ACDg + (PLAYER.PLAYER_ID() * 77) + 24 + 2)
-    local diff = globals.get_int(AHDg) + 1
+    local key = ScriptGlobal.GetInt(ACDg + (GTA.GetLocalPlayerId() * 77) + 24 + 2)
+    local diff = ScriptGlobal.GetInt(AHDg) + 1
     if diff < 1 or diff > 3 then
         diff = 3
     end
@@ -1059,16 +643,16 @@ function SN_ApartmentMaxCutCherax(doubleWeek)
     return cut, key
 end
 
-function SN_ApplyCayoCutsCherax(c1, c2, c3, c4)
-    globals.set_int(CPCg1, c1)
-    globals.set_int(CPCg2, c2)
-    globals.set_int(CPCg3, c3)
-    globals.set_int(CPCg4, c4)
+function SN_ApplyCayoCuts(c1, c2, c3, c4)
+    ScriptGlobal.SetInt(CPCg1, c1)
+    ScriptGlobal.SetInt(CPCg2, c2)
+    ScriptGlobal.SetInt(CPCg3, c3)
+    ScriptGlobal.SetInt(CPCg4, c4)
 end
 
-function SN_CayoMaxCutCherax()
-    local target = stats.get_int(MPX() .. "H4CNF_TARGET")
-    local isHard = (stats.get_int(MPX() .. "H4_PROGRESS") & 4096) ~= 0
+function SN_CayoMaxCut()
+    local target = GetStatInt(MPX() .. "H4CNF_TARGET")
+    local isHard = (GetStatInt(MPX() .. "H4_PROGRESS") & 4096) ~= 0
     local diff = isHard and 2 or 1
     local payouts = {
         [0] = { 630000, 693000 },
@@ -1110,27 +694,27 @@ function SN_CayoMaxCutCherax()
 end
 
 function changeSession(session)
-    script.run_in_fiber(function(script)
-        globals.set_int(CSg1, session)
+    Script.QueueJob(function()
+        ScriptGlobal.SetInt(CSg1, session)
         if session == -1 then
-            globals.set_int(CSg3, -1)
+            ScriptGlobal.SetInt(CSg3, -1)
         end
-        script:sleep(1000)
-        globals.set_int(CSg2, 1)
-        script:sleep(1000)
-        globals.set_int(CSg2, 0)
+        Script.Yield(1000)
+        ScriptGlobal.SetInt(CSg2, 1)
+        Script.Yield(1000)
+        ScriptGlobal.SetInt(CSg2, 0)
     end)
 end
 
 function stats_set_packed_bools(packed_bool_start, packed_bool_finish, bool)
     for i = packed_bool_start, packed_bool_finish do
-        stats.set_packed_stat_bool(i, bool)
+        Natives.InvokeVoid(N.SET_PACKED_STAT_BOOL_CODE, i, bool, CharSlot())
     end
 end
 
 function globals_set_ints(global_start, global_finish, step, value)
     for i = global_start, global_finish, step do
-        globals.set_int(i, value)
+        ScriptGlobal.SetInt(i, value)
     end
 end
 
@@ -1148,172 +732,157 @@ KORTZPL = "kortz_planning"
 TUNERPL = "tuner_planning"
 SMUGOPS = "fm_content_smuggler_ops"
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-L7NEG = gui.get_tab("Ultimate Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
 function selfTP(keepVehicle, setHeading, coords, heading)
-    script.run_in_fiber(function(selftp)
-        STREAMING.REQUEST_COLLISION_AT_COORD(coords.x, coords.y, coords.z)
-        selftp:sleep(300)
+    Script.QueueJob(function()
+        Natives.InvokeVoid(N.REQUEST_COLLISION_AT_COORD, coords.x, coords.y, coords.z)
+        Script.Yield(300)
         if setHeading then
             if heading == nil then
-                heading = 0
+                heading = 0.0
             end
-            ENTITY.SET_ENTITY_HEADING(self.get_ped(), heading)
+            Natives.InvokeVoid(N.SET_ENTITY_HEADING, Natives.InvokeInt(N.PLAYER_PED_ID), heading)
         end
         if keepVehicle then
-            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
         else
-            TASK.CLEAR_PED_TASKS_IMMEDIATELY(self.get_ped())
-            ENTITY.SET_ENTITY_COORDS(self.get_ped(), coords.x, coords.y, coords.z, false, false, false, true)
+            Natives.InvokeVoid(N.CLEAR_PED_TASKS_IMMEDIATELY, Natives.InvokeInt(N.PLAYER_PED_ID))
+            Natives.InvokeVoid(N.SET_ENTITY_COORDS, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z, false, false, false, true)
         end
     end)
 end
-
-
-function __uml_block(name, fn)
-    local ok, err = pcall(fn)
-    if not ok then Logger.LogInfo('[UML] Block ' .. name .. ' Fehler: ' .. tostring(err)) end
-end
-
-__uml_block("Self = makeOnlineTab(L7NEG:add_tab(Self Menu))", function()
-Self = makeOnlineTab(L7NEG:add_tab("Self"))
-SelfMain = Self:add_tab("Main")
+Section("Self", function()
+Self = Menu:Tab("Self"):RequireOnline()
+SelfMain = Self:Tab("Main")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-AGCT = SelfMain:add_checkbox("Unlock Gender Change")
-script.register_looped("UnlockGenderChange", function(script)
-    script:yield()
+SelfMain:Box("General")
+AGCT = SelfMain:Toggle("Unlock Gender Change")
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
-        script:sleep(500)
+        Script.Yield(500)
         return
     end
-    local want = AGCT:is_enabled() and 52 or 0
+    local want = AGCT:IsToggled() and 52 or 0
     if want ~= _genderPrev then
-        stats.set_int(MPX() .. "ALLOW_GENDER_CHANGE", want)
+        Stats.SetInt(J(MPX() .. "ALLOW_GENDER_CHANGE"), want)
         _genderPrev = want
     end
-    script:sleep(500)
+    Script.Yield(500)
 end)
 
-RTPT = SelfMain:add_checkbox("Remove Transaction Error")
-script.register_looped("RemoveTransactionError", function(script)
-    script:yield()
+RTPT = SelfMain:Toggle("Remove Transaction Error")
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
-        script:sleep(500)
+        Script.Yield(500)
         return
     end
-    if RTPT:is_enabled() then
-        globals.set_int(4516981, 0)
-        globals.set_int(4516982, 0)
-        globals.set_int(4516983, 0)
+    if RTPT:IsToggled() then
+        ScriptGlobal.SetInt(4516981, 0)
+        ScriptGlobal.SetInt(4516982, 0)
+        ScriptGlobal.SetInt(4516983, 0)
     end
-    script:sleep(500)
+    Script.Yield(500)
 end)
 
-SelfMain:add_button("Remove Published And Players Job Liked To You", function()
-    stats.set_int("MPPLY_AWD_FM_CR_DM_MADE", 0)
-    stats.set_int("MPPLY_AWD_FM_CR_RACES_MADE", 0)
-    stats.set_int("MPPLY_NUM_CAPTURES_CREATED", 0)
-    stats.set_int("MPPLY_LTS_CREATED", 0)
-    stats.set_int("MPPLY_AWD_FM_CR_PLAYED_BY_PEEP", 0)
-    stats.set_int("MPPLY_AWD_FM_CR_MISSION_SCORE", 0)
-    stats.set_int("MPPLY_FM_MISSION_LIKES", 0)
+SelfMain:Button("Remove Published And Players Job Liked To You", function()
+    Stats.SetInt(J("MPPLY_AWD_FM_CR_DM_MADE"), 0)
+    Stats.SetInt(J("MPPLY_AWD_FM_CR_RACES_MADE"), 0)
+    Stats.SetInt(J("MPPLY_NUM_CAPTURES_CREATED"), 0)
+    Stats.SetInt(J("MPPLY_LTS_CREATED"), 0)
+    Stats.SetInt(J("MPPLY_AWD_FM_CR_PLAYED_BY_PEEP"), 0)
+    Stats.SetInt(J("MPPLY_AWD_FM_CR_MISSION_SCORE"), 0)
+    Stats.SetInt(J("MPPLY_FM_MISSION_LIKES"), 0)
 end)
 
-SelfMain:add_button("Remove Orbital Cannon Cooldown", function()
-    stats.set_int(MPX() .. "ORBITAL_CANNON_COOLDOWN", 0)
+SelfMain:Button("Remove Orbital Cannon Cooldown", function()
+    Stats.SetInt(J(MPX() .. "ORBITAL_CANNON_COOLDOWN"), 0)
 end)
 
-SelfMain:add_button("Refill Nightclub Popularity", function()
-    stats.set_int(MPX() .. "CLUB_POPULARITY", 1000)
+SelfMain:Button("Refill Nightclub Popularity", function()
+    Stats.SetInt(J(MPX() .. "CLUB_POPULARITY"), 1000)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-SelfMain:add_button("Refill Inventory/Armour", function()
-    stats.set_int(MPX() .. "NO_BOUGHT_YUM_SNACKS", 30)
-    stats.set_int(MPX() .. "NO_BOUGHT_HEALTH_SNACKS", 15)
-    stats.set_int(MPX() .. "NO_BOUGHT_EPIC_SNACKS", 5)
-    stats.set_int(MPX() .. "NUMBER_OF_CHAMP_BOUGHT", 5)
-    stats.set_int(MPX() .. "NUMBER_OF_ORANGE_BOUGHT", 11)
-    stats.set_int(MPX() .. "NUMBER_OF_BOURGE_BOUGHT", 10)
-    stats.set_int(MPX() .. "NUMBER_OF_SPRUNK_BOUGHT", 10)
-    stats.set_int(MPX() .. "CIGARETTES_BOUGHT", 20)
-    stats.set_int(MPX() .. "MP_CHAR_ARMOUR_1_COUNT", 10)
-    stats.set_int(MPX() .. "MP_CHAR_ARMOUR_2_COUNT", 10)
-    stats.set_int(MPX() .. "MP_CHAR_ARMOUR_3_COUNT", 10)
-    stats.set_int(MPX() .. "MP_CHAR_ARMOUR_4_COUNT", 10)
-    stats.set_int(MPX() .. "MP_CHAR_ARMOUR_5_COUNT", 10)
-    stats.set_int(MPX() .. "BREATHING_APPAR_BOUGHT", 20)
+SelfMain:Box("Inventory")
+SelfMain:Button("Refill Inventory/Armour", function()
+    Stats.SetInt(J(MPX() .. "NO_BOUGHT_YUM_SNACKS"), 30)
+    Stats.SetInt(J(MPX() .. "NO_BOUGHT_HEALTH_SNACKS"), 15)
+    Stats.SetInt(J(MPX() .. "NO_BOUGHT_EPIC_SNACKS"), 5)
+    Stats.SetInt(J(MPX() .. "NUMBER_OF_CHAMP_BOUGHT"), 5)
+    Stats.SetInt(J(MPX() .. "NUMBER_OF_ORANGE_BOUGHT"), 11)
+    Stats.SetInt(J(MPX() .. "NUMBER_OF_BOURGE_BOUGHT"), 10)
+    Stats.SetInt(J(MPX() .. "NUMBER_OF_SPRUNK_BOUGHT"), 10)
+    Stats.SetInt(J(MPX() .. "CIGARETTES_BOUGHT"), 20)
+    Stats.SetInt(J(MPX() .. "MP_CHAR_ARMOUR_1_COUNT"), 10)
+    Stats.SetInt(J(MPX() .. "MP_CHAR_ARMOUR_2_COUNT"), 10)
+    Stats.SetInt(J(MPX() .. "MP_CHAR_ARMOUR_3_COUNT"), 10)
+    Stats.SetInt(J(MPX() .. "MP_CHAR_ARMOUR_4_COUNT"), 10)
+    Stats.SetInt(J(MPX() .. "MP_CHAR_ARMOUR_5_COUNT"), 10)
+    Stats.SetInt(J(MPX() .. "BREATHING_APPAR_BOUGHT"), 20)
 end)
 
-SelfMain:add_button("Refill Inv/Armour x1000", function()
-    stats.set_int(MPX() .. "NO_BOUGHT_YUM_SNACKS", 1000)
-    stats.set_int(MPX() .. "NO_BOUGHT_HEALTH_SNACKS", 1000)
-    stats.set_int(MPX() .. "NO_BOUGHT_EPIC_SNACKS", 1000)
-    stats.set_int(MPX() .. "NUMBER_OF_CHAMP_BOUGHT", 1000)
-    stats.set_int(MPX() .. "NUMBER_OF_ORANGE_BOUGHT", 1000)
-    stats.set_int(MPX() .. "NUMBER_OF_BOURGE_BOUGHT", 1000)
-    stats.set_int(MPX() .. "NUMBER_OF_SPRUNK_BOUGHT", 1000)
-    stats.set_int(MPX() .. "CIGARETTES_BOUGHT", 1000)
-    stats.set_int(MPX() .. "MP_CHAR_ARMOUR_1_COUNT", 1000)
-    stats.set_int(MPX() .. "MP_CHAR_ARMOUR_2_COUNT", 1000)
-    stats.set_int(MPX() .. "MP_CHAR_ARMOUR_3_COUNT", 1000)
-    stats.set_int(MPX() .. "MP_CHAR_ARMOUR_4_COUNT", 1000)
-    stats.set_int(MPX() .. "MP_CHAR_ARMOUR_5_COUNT", 1000)
-    stats.set_int(MPX() .. "BREATHING_APPAR_BOUGHT", 1000)
+SelfMain:Button("Refill Inv/Armour x1000", function()
+    Stats.SetInt(J(MPX() .. "NO_BOUGHT_YUM_SNACKS"), 1000)
+    Stats.SetInt(J(MPX() .. "NO_BOUGHT_HEALTH_SNACKS"), 1000)
+    Stats.SetInt(J(MPX() .. "NO_BOUGHT_EPIC_SNACKS"), 1000)
+    Stats.SetInt(J(MPX() .. "NUMBER_OF_CHAMP_BOUGHT"), 1000)
+    Stats.SetInt(J(MPX() .. "NUMBER_OF_ORANGE_BOUGHT"), 1000)
+    Stats.SetInt(J(MPX() .. "NUMBER_OF_BOURGE_BOUGHT"), 1000)
+    Stats.SetInt(J(MPX() .. "NUMBER_OF_SPRUNK_BOUGHT"), 1000)
+    Stats.SetInt(J(MPX() .. "CIGARETTES_BOUGHT"), 1000)
+    Stats.SetInt(J(MPX() .. "MP_CHAR_ARMOUR_1_COUNT"), 1000)
+    Stats.SetInt(J(MPX() .. "MP_CHAR_ARMOUR_2_COUNT"), 1000)
+    Stats.SetInt(J(MPX() .. "MP_CHAR_ARMOUR_3_COUNT"), 1000)
+    Stats.SetInt(J(MPX() .. "MP_CHAR_ARMOUR_4_COUNT"), 1000)
+    Stats.SetInt(J(MPX() .. "MP_CHAR_ARMOUR_5_COUNT"), 1000)
+    Stats.SetInt(J(MPX() .. "BREATHING_APPAR_BOUGHT"), 1000)
 end)
 
-SelfMain:add_separator()
 
-SelfMain:add_text("Bad Sport!")
+SelfMain:Box("Bad Sport")
 
 BadSportCombo = 0
-SelfMain:add_imgui(function()
-    ImGui.PushItemWidth(140)
+SelfMain:Custom(function()
+    ImGui.SetNextItemWidth(140)
     BadSportCombo = ImGui.Combo("##BadSport", BadSportCombo, { "Remove", "Add" }, 2)
 end)
 
 function BadSport(State, Overall, Bool)
-    script.run_in_fiber(function(script)
-        gui.show_message("Bad Sport!", "Awaiting Session Change")
-        script:sleep(1000)
-        stats.set_int("MPPLY_BADSPORT_MESSAGE", State)
-        stats.set_float("MPPLY_OVERALL_BADSPORT", Overall)
-        stats.set_bool("MPPLY_CHAR_IS_BADSPORT", Bool)
-        globals.set_int(CSg1, 11)
-        globals.set_int(CSg2, 1)
-        script:sleep(300)
-        globals.set_int(CSg2, 0)
+    Script.QueueJob(function()
+        Toast("Bad Sport!", "Awaiting Session Change")
+        Script.Yield(1000)
+        Stats.SetInt(J("MPPLY_BADSPORT_MESSAGE"), State)
+        Stats.SetFloat(J("MPPLY_OVERALL_BADSPORT"), Overall + 0.0)
+        Stats.SetBool(J("MPPLY_CHAR_IS_BADSPORT"), (Bool) and 1 or 0)
+        ScriptGlobal.SetInt(CSg1, 11)
+        ScriptGlobal.SetInt(CSg2, 1)
+        Script.Yield(300)
+        ScriptGlobal.SetInt(CSg2, 0)
     end)
 end
 
-SelfMain:add_sameline()
 
-SelfMain:add_button("Execute", function()
+SelfMain:Button("Execute", function()
     if BadSportCombo == 0 then
         BadSport(0, 0, false)
     else
         BadSport(1, 3000, true)
     end
 end)
-
 end)
 
-__uml_block("RecoveryMenu = makeOnlineTab(L7NEG:add_tab(Recovery Menu))", function()
-RecoveryMenu = makeOnlineTab(L7NEG:add_tab("Recovery"))
+Section("Recovery", function()
+RecoveryMenu = Menu:Tab("Recovery"):RequireOnline()
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1425,39 +994,38 @@ function getRP(level)
         return math.floor(25 * (level ^ 2) + 23575 * level - 1023150)
     end
 end
-
 end)
 
-__uml_block("SkillsMenu = RecoveryMenu:add_tab(Skills Menu)", function()
-SkillsMenu = RecoveryMenu:add_tab("Skills")
+Section("Skills", function()
+SkillsMenu = RecoveryMenu:Tab("Skills")
 
-SkillsMenu:add_button("Max Current Skills", function()
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_STAM", 100)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_STRN", 100)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_LUNG", 100)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_DRIV", 100)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_FLY", 100)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_SHO", 100)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_STL", 100)
-    gui.show_message("Skills", "Skills should've been maximized")
+SkillsMenu:Box("Skills")
+SkillsMenu:Button("Max Current Skills", function()
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_STAM"), 100)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_STRN"), 100)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_LUNG"), 100)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_DRIV"), 100)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_FLY"), 100)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_SHO"), 100)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_STL"), 100)
+    Toast("Skills", "Skills should've been maximized")
 end)
 
-SkillsMenu:add_button("Reset Skills", function()
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_STAM", 0)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_STRN", 0)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_LUNG", 0)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_DRIV", 0)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_FLY", 0)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_SHO", 0)
-    stats.set_int(MPX() .. "SCRIPT_INCREASE_STL", 0)
+SkillsMenu:Button("Reset Skills", function()
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_STAM"), 0)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_STRN"), 0)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_LUNG"), 0)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_DRIV"), 0)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_FLY"), 0)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_SHO"), 0)
+    Stats.SetInt(J(MPX() .. "SCRIPT_INCREASE_STL"), 0)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("CasinoServicesMenu = makeOnlineTab(OnlineServicesMenu:add_ta", function()
-CasinoServicesMenu = makeOnlineTab(L7NEG:add_tab("Casino"))
+Section("Casino", function()
+CasinoServicesMenu = Menu:Tab("Casino"):RequireOnline()
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1467,195 +1035,185 @@ prize_wheel_win_state = 309
 prize_wheel_prize = 14
 prize_wheel_prize_state = 45
 
-CasinoServicesMenu:add_text("Casino Chips")
-chipsVal = 1800
-CasinoServicesMenu:add_imgui(function()
-    if isOffline() then
-        return
-    end
-    chipsVal, used = ImGui.SliderInt("Casino Chips Buy Limit", chipsVal, 1800, 2147483647)
-    if used then
-        tunables.set_int("VC_CASINO_CHIP_MAX_BUY", chipsVal)
-        tunables.set_int("VC_CASINO_CHIP_MAX_BUY_PENTHOUSE", chipsVal)
-    end
+CasinoServicesMenu:Box("Casino Chips")
+-- Chip limits live in the free mode globals (FMg + 26623/26624 = acquire, FMg + 26625 = trade in).
+local chipLimit = CasinoServicesMenu:InputInt("Chip Limit")
+CasinoServicesMenu:Button("Apply Acquire Limit", function()
+    local value = chipLimit:GetIntValue()
+    ScriptGlobal.SetInt(FMg + 26623, value)
+    ScriptGlobal.SetInt(FMg + 26624, value)
+    Toast("Casino", "Acquire limit set to " .. value)
+end)
+CasinoServicesMenu:Button("Apply Trade In Limit", function()
+    local value = chipLimit:GetIntValue()
+    ScriptGlobal.SetInt(FMg + 26625, value)
+    Toast("Casino", "Trade in limit set to " .. value)
 end)
 
-CasinoServicesMenu:add_button("Bypass Casino Cooldown", function()
-    stats.set_int("MPPLY_CASINO_CHIPS_WON_GD", 0)
-    stats.set_int("MPPLY_CASINO_CHIPS_WONTIM", 0)
-    stats.set_int("MPPLY_CASINO_GMBLNG_GD", 0)
-    stats.set_int("MPPLY_CASINO_BAN_TIME", 0)
-    stats.set_int("MPPLY_CASINO_CHIPS_PURTIM", 0)
-    stats.set_int("MPPLY_CASINO_CHIPS_PUR_GD", 0)
-    stats.set_int("MPPLY_CASINO_CHIPS_SOLD", 0)
-    stats.set_int("MPPLY_CASINO_CHIPS_SELTIM", 0)
+CasinoServicesMenu:Button("Bypass Casino Cooldown", function()
+    Stats.SetInt(J("MPPLY_CASINO_CHIPS_WON_GD"), 0)
+    Stats.SetInt(J("MPPLY_CASINO_CHIPS_WONTIM"), 0)
+    Stats.SetInt(J("MPPLY_CASINO_GMBLNG_GD"), 0)
+    Stats.SetInt(J("MPPLY_CASINO_BAN_TIME"), 0)
+    Stats.SetInt(J("MPPLY_CASINO_CHIPS_PURTIM"), 0)
+    Stats.SetInt(J("MPPLY_CASINO_CHIPS_PUR_GD"), 0)
+    Stats.SetInt(J("MPPLY_CASINO_CHIPS_SOLD"), 0)
+    Stats.SetInt(J("MPPLY_CASINO_CHIPS_SELTIM"), 0)
 end)
-CasinoServicesMenu:add_text("Winning too much too quickly might get you banned, enable this at your own risk.")
+CasinoServicesMenu:Text("Winning too much too quickly might get you banned, enable this at your own risk.")
 
-CasinoServicesMenu:add_separator()
 
-CasinoServicesMenu:add_text("Slots")
+CasinoServicesMenu:Box("Slots")
 
-CasinoServicesMenu:add_button("Rig Slot Machines", function()
+CasinoServicesMenu:Button("Rig Slot Machines", function()
     for i = 3, 196 do
         if i ~= 67 and i ~= 132 then
-            locals.set_int(cslots, slots_random_results_table + i, 6)
+            ScriptLocal.SetInt(J(cslots), slots_random_results_table + i, 6)
         end
     end
 end)
 
-CasinoServicesMenu:add_button("Lose Slot Machines", function()
+CasinoServicesMenu:Button("Lose Slot Machines", function()
     for i = 3, 196 do
         if i ~= 67 and i ~= 132 then
-            locals.set_int(cslots, slots_random_results_table + i, 0)
+            ScriptLocal.SetInt(J(cslots), slots_random_results_table + i, 0)
         end
     end
 end)
 
-CasinoServicesMenu:add_separator()
-CasinoServicesMenu:add_text("Lucky Wheel")
+CasinoServicesMenu:Box("Lucky Wheel")
 
-CasinoServicesMenu:add_button("Give Podium Vehicle", function()
-    script.run_in_fiber(function(script)
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("casino_lucky_wheel")) ~= 0 then
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize, 18)
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize_state, 11)
+CasinoServicesMenu:Button("Give Podium Vehicle", function()
+    Script.QueueJob(function()
+        if IsScriptRunning("casino_lucky_wheel") then
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize, 18)
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize_state, 11)
         end
     end)
 end)
-CasinoServicesMenu:add_sameline()
-CasinoServicesMenu:add_button("Give Mystery Prize", function()
-    script.run_in_fiber(function(script)
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("casino_lucky_wheel")) ~= 0 then
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize, 11)
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize_state, 11)
+CasinoServicesMenu:Button("Give Mystery Prize", function()
+    Script.QueueJob(function()
+        if IsScriptRunning("casino_lucky_wheel") then
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize, 11)
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize_state, 11)
         end
     end)
 end)
-CasinoServicesMenu:add_sameline()
-CasinoServicesMenu:add_button("Give $50,000", function()
-    script.run_in_fiber(function(script)
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("casino_lucky_wheel")) ~= 0 then
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize, 19)
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize_state, 11)
+CasinoServicesMenu:Button("Give $50,000", function()
+    Script.QueueJob(function()
+        if IsScriptRunning("casino_lucky_wheel") then
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize, 19)
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize_state, 11)
         end
     end)
 end)
-CasinoServicesMenu:add_sameline()
-CasinoServicesMenu:add_button("Give 25,000 Chips", function()
-    script.run_in_fiber(function(script)
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("casino_lucky_wheel")) ~= 0 then
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize, 15)
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize_state, 11)
+CasinoServicesMenu:Button("Give 25,000 Chips", function()
+    Script.QueueJob(function()
+        if IsScriptRunning("casino_lucky_wheel") then
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize, 15)
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize_state, 11)
         end
     end)
 end)
-CasinoServicesMenu:add_button("Give 15,000 RP", function()
-    script.run_in_fiber(function(script)
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("casino_lucky_wheel")) ~= 0 then
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize, 17)
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize_state, 11)
+CasinoServicesMenu:Button("Give 15,000 RP", function()
+    Script.QueueJob(function()
+        if IsScriptRunning("casino_lucky_wheel") then
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize, 17)
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize_state, 11)
         end
     end)
 end)
-CasinoServicesMenu:add_sameline()
-CasinoServicesMenu:add_button("Give Discount", function()
-    script.run_in_fiber(function(script)
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("casino_lucky_wheel")) ~= 0 then
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize, 4)
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize_state, 11)
+CasinoServicesMenu:Button("Give Discount", function()
+    Script.QueueJob(function()
+        if IsScriptRunning("casino_lucky_wheel") then
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize, 4)
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize_state, 11)
         end
     end)
 end)
-CasinoServicesMenu:add_sameline()
-CasinoServicesMenu:add_button("Give Clothing", function()
-    script.run_in_fiber(function(script)
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("casino_lucky_wheel")) ~= 0 then
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize, 8)
-            locals.set_int("casino_lucky_wheel", prize_wheel_win_state + prize_wheel_prize_state, 11)
+CasinoServicesMenu:Button("Give Clothing", function()
+    Script.QueueJob(function()
+        if IsScriptRunning("casino_lucky_wheel") then
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize, 8)
+            ScriptLocal.SetInt(J("casino_lucky_wheel"), prize_wheel_win_state + prize_wheel_prize_state, 11)
         end
     end)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("CollectiblesMenu = makeOnlineTab(L7NEG:add_tab(Collectibles)", function()
-CollectiblesMenu = RecoveryMenu:add_tab("Collectibles")
-CollectiblesMenu:add_text("Los Santos Collectibles")
-CollectiblesMenu:add_separator()
-CollectiblesMenu:add_button("Collect All Action Figures", function()
+Section("Collectibles", function()
+CollectiblesMenu = RecoveryMenu:Tab("Collectibles")
+CollectiblesMenu:Box("Los Santos Collectibles")
+CollectiblesMenu:Button("Collect All Action Figures", function()
     for i = 0, 99 do
-        stats.set_bool(MPX() .. "PROP_FIGURE_" .. i, true)
+        Stats.SetBool(J(MPX() .. "PROP_FIGURE_" .. i), 1)
     end
 end)
-CollectiblesMenu:add_button("Collect All Signal Jammers", function()
+CollectiblesMenu:Button("Collect All Signal Jammers", function()
     for i = 0, 49 do
-        stats.set_bool(MPX() .. "JAMMER_IDENTIFIED_" .. i, true)
+        Stats.SetBool(J(MPX() .. "JAMMER_IDENTIFIED_" .. i), 1)
     end
 end)
-CollectiblesMenu:add_button("Collect All Playing Cards", function()
+CollectiblesMenu:Button("Collect All Playing Cards", function()
     for i = 0, 53 do
-        stats.set_bool(MPX() .. "CH_CARD_ID_" .. i, true)
+        Stats.SetBool(J(MPX() .. "CH_CARD_ID_" .. i), 1)
     end
 end)
-CollectiblesMenu:add_button("Collect All Props", function()
+CollectiblesMenu:Button("Collect All Props", function()
     for i = 0, 9 do
-        stats.set_bool(MPX() .. "PROP_HIDDEN_SOL_ID_" .. i, true)
+        Stats.SetBool(J(MPX() .. "PROP_HIDDEN_SOL_ID_" .. i), 1)
     end
 end)
-CollectiblesMenu:add_button("Collect All Movie Props", function()
+CollectiblesMenu:Button("Collect All Movie Props", function()
     for i = 1, 10 do
-        stats.set_int(MPX() .. "MOVIE_PROP_COLLECTED_" .. i, -1)
+        Stats.SetInt(J(MPX() .. "MOVIE_PROP_COLLECTED_" .. i), -1)
     end
 end)
-CollectiblesMenu:add_button("Collect All LD Organics", function()
+CollectiblesMenu:Button("Collect All LD Organics", function()
     for i = 0, 99 do
-        stats.set_bool(MPX() .. "LD_ORGANIC_COLLECTED_" .. i, true)
+        Stats.SetBool(J(MPX() .. "LD_ORGANIC_COLLECTED_" .. i), 1)
     end
 end)
-CollectiblesMenu:add_button("Collect Ghost Exposed", function()
+CollectiblesMenu:Button("Collect Ghost Exposed", function()
     for i = 0, 9 do
-        stats.set_bool(MPX() .. "GHOST_EXPOSED_" .. i, true)
+        Stats.SetBool(J(MPX() .. "GHOST_EXPOSED_" .. i), 1)
     end
 end)
-CollectiblesMenu:add_separator()
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("EventsMenu = makeOnlineTab(L7NEG:add_tab(Events Menu))", function()
-EventsMenu = makeOnlineTab(L7NEG:add_tab("Events"))
+Section("Events", function()
+EventsMenu = Menu:Tab("Events"):RequireOnline()
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("SnowToggleMenu = EventsMenu:add_tab(Snow Toggle Menu)", function()
-SnowToggleMenu = EventsMenu:add_tab("Snow Toggle")
+Section("Snow Toggle", function()
+SnowToggleMenu = EventsMenu:Tab("Snow Toggle")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-SNOWCB = SnowToggleMenu:add_checkbox("Snow")
+SnowToggleMenu:Box("Snow")
+SNOWCB = SnowToggleMenu:Toggle("Snow")
 local snowPrev = nil
-script.register_looped("snow", function(script)
-    script:yield()
-    local want = SNOWCB:is_enabled() and 1 or 0
+Script.RegisterLooped(function()
+    Script.Yield()
+    local want = SNOWCB:IsToggled() and 1 or 0
     if want ~= snowPrev then
-        tunables.set_bool("TURN_SNOW_ON_OFF", want == 1)
+        SetTunableBool("TURN_SNOW_ON_OFF", want == 1)
         snowPrev = want
     end
-    script:sleep(100)
+    Script.Yield(100)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("halloweenWeatherMenu = EventsMenu:add_tab(Halloween Weather ", function()
-halloweenWeatherMenu = EventsMenu:add_tab("Halloween Weather")
+Section("Halloween Weather", function()
+halloweenWeatherMenu = EventsMenu:Tab("Halloween Weather")
 
 -- Animated rainbow
 function rainbow_color(offset)
@@ -1682,20 +1240,17 @@ function help_marker(text)
 end
 
 -- Info text
-halloweenWeatherMenu:add_text("")
-halloweenWeatherMenu:add_text("Halloween Weather Information")
-halloweenWeatherMenu:add_text("")
-halloweenWeatherMenu:add_text("In GTA Online, Halloween weather only works")
-halloweenWeatherMenu:add_text("between 7:00 PM and 7:30 AM in-game time.")
-halloweenWeatherMenu:add_text("")
-halloweenWeatherMenu:add_text("Toggle below to force it on during that window.")
-halloweenWeatherMenu:add_text("It will stay active as long as the toggle is ON.")
-halloweenWeatherMenu:add_text("")
+halloweenWeatherMenu:Box("Information")
+halloweenWeatherMenu:Text("In GTA Online, Halloween weather only works")
+halloweenWeatherMenu:Text("between 7:00 PM and 7:30 AM in-game time.")
+halloweenWeatherMenu:Text("Toggle below to force it on during that window.")
+halloweenWeatherMenu:Text("It will stay active as long as the toggle is ON.")
 
 -- Current time display
-halloweenWeatherMenu:add_imgui(function()
-    local hour = CLOCK.GET_CLOCK_HOURS()
-    local minute = CLOCK.GET_CLOCK_MINUTES()
+halloweenWeatherMenu:Box("Halloween Weather")
+halloweenWeatherMenu:Custom(function()
+    local hour = Natives.InvokeInt(N.GET_CLOCK_HOURS)
+    local minute = Natives.InvokeInt(N.GET_CLOCK_MINUTES)
     local ampm = "AM"
     local hour12 = hour
     if hour >= 12 then
@@ -1720,251 +1275,246 @@ halloweenWeatherMenu:add_imgui(function()
         ImGui.TextColored(1.0, 0.5, 0.0, 1.0, "Status: Halloween weather is NOT available")
         ImGui.TextColored(1.0, 1.0, 1.0, 1.0, "Wait until 7:00 PM in-game time")
     end
-    ImGui.Separator()
 end)
 
-HALLOWEATHERC = halloweenWeatherMenu:add_checkbox("Enable")
+HALLOWEATHERC = halloweenWeatherMenu:Toggle("Enable")
 
 local halloweatherPrev = nil
-script.register_looped("halloweather_force", function(script)
-    script:yield()
-    local want = HALLOWEATHERC:is_enabled() and 1 or 0
+Script.RegisterLooped(function()
+    Script.Yield()
+    local want = HALLOWEATHERC:IsToggled() and 1 or 0
     if want ~= halloweatherPrev then
-        tunables.set_bool("SSP2WEATHER", want == 1)
+        SetTunableBool("SSP2WEATHER", want == 1)
         halloweatherPrev = want
     end
-    script:sleep(100)
+    Script.Yield(100)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Create the Trick or Treat Menu tab
 end)
 
-__uml_block("trickOrTreatMenu = EventsMenu:add_tab(Trick or Treat Menu)", function()
-trickOrTreatMenu = EventsMenu:add_tab("Trick or Treat")
+Section("Trick or Treat", function()
+trickOrTreatMenu = EventsMenu:Tab("Trick or Treat")
 
 -- Add Trick or Treat checkbox with help marker
-TRICKORTREATCB = trickOrTreatMenu:add_checkbox("Trick or Treat")
+trickOrTreatMenu:Columns(1)
+trickOrTreatMenu:Box("Event")
+TRICKORTREATCB = trickOrTreatMenu:Toggle("Trick or Treat", "Enables the Trick or Treat event. This allows you to collect Halloween pumpkins from the Halloween event.")
 
--- Add help marker for the checkbox
-trickOrTreatMenu:add_imgui(function()
-    help_marker(
-        "Enables the Trick or Treat event. This allows you to collect Halloween pumpkins from the Halloween event."
-    )
-end)
 
-script.register_looped("trick_or_treat", function(script)
-    script:yield()
-    local want = TRICKORTREATCB:is_enabled() and 1 or 0
+Script.RegisterLooped(function()
+    Script.Yield()
+    local want = TRICKORTREATCB:IsToggled() and 1 or 0
     if want ~= _trickPrev then
-        tunables.set_bool("COLLECTABLES_TRICK_OR_TREAT", want == 1)
+        SetTunableBool("COLLECTABLES_TRICK_OR_TREAT", want == 1)
         _trickPrev = want
     end
-    script:sleep(100)
+    Script.Yield(100)
 end)
 
 -- Jack o'Lantern locations array (200 locations)
 jackolantern_locations = {
-    vec3:new(1434.581177, -1494.808960, 61.924484),
-    vec3:new(1318.091797, -1557.906860, 49.406536),
-    vec3:new(1297.748535, -1621.982666, 52.924953),
-    vec3:new(1312.340576, -1701.004272, 56.537983),
-    vec3:new(1256.791260, -1760.271851, 47.959789),
-    vec3:new(1204.294312, -1672.812622, 41.058277),
-    vec3:new(1232.604492, -1593.003418, 52.067909),
-    vec3:new(1152.968140, -1529.164673, 33.691978),
-    vec3:new(1183.517090, -1461.732788, 33.594597),
-    vec3:new(1210.140625, -1390.762085, 34.076641),
-    vec3:new(411.362427, -1485.312622, 28.570503),
-    vec3:new(323.141052, -1759.944092, 28.016262),
-    vec3:new(428.983459, -1723.205811, 27.929178),
-    vec3:new(495.846832, -1817.259521, 27.187927),
-    vec3:new(387.837158, -1883.815430, 24.304468),
-    vec3:new(326.185211, -1947.658691, 23.467230),
-    vec3:new(379.337311, -2069.736328, 19.941431),
-    vec3:new(294.090973, -2098.108154, 15.802926),
-    vec3:new(221.574402, -2036.115112, 16.712660),
-    vec3:new(180.028915, -1930.020508, 19.712641),
-    vec3:new(150.242844, -1868.382568, 22.930975),
-    vec3:new(25.318865, -1894.664185, 21.286211),
-    vec3:new(-18.668180, -1855.332764, 23.662672),
-    vec3:new(-79.454300, -1641.520874, 28.009012),
-    vec3:new(-158.293228, -1680.115479, 35.666103),
-    vec3:new(-193.209412, -1609.052246, 32.701607),
-    vec3:new(-63.751331, -1452.771973, 30.823833),
-    vec3:new(-123.541191, -1490.525513, 32.473259),
-    vec3:new(-223.600693, -1500.161133, 30.692902),
-    vec3:new(-294.518921, -1332.482910, 29.970270),
-    vec3:new(1014.117920, -423.848389, 63.675259),
-    vec3:new(1266.007446, -428.332397, 68.079376),
-    vec3:new(1370.628906, -558.052185, 73.039597),
-    vec3:new(1324.806519, -580.172913, 71.912575),
-    vec3:new(1204.557251, -620.731323, 64.821854),
-    vec3:new(967.759155, -547.430298, 58.004089),
-    vec3:new(961.077148, -594.268860, 58.192711),
-    vec3:new(999.061157, -727.578979, 56.227200),
-    vec3:new(1143.774292, -981.787659, 44.845215),
-    vec3:new(845.798950, -1019.603210, 26.234652),
-    vec3:new(805.100342, -1075.361694, 27.369886),
-    vec3:new(480.726227, -975.737000, 26.683889),
-    vec3:new(389.172333, -972.175659, 28.140848),
-    vec3:new(360.894836, -1070.573853, 28.238062),
-    vec3:new(244.050507, -1071.695679, 27.986931),
-    vec3:new(264.044403, -1028.192871, 27.911451),
-    vec3:new(75.252281, -1026.460449, 28.174519),
-    vec3:new(-16.975662, -977.996521, 28.062405),
-    vec3:new(66.998047, -961.704041, 28.057564),
-    vec3:new(130.983887, -567.115417, 42.440754),
-    vec3:new(-191.763809, -764.868286, 29.154016),
-    vec3:new(-232.445236, -911.110535, 31.010803),
-    vec3:new(-552.145813, -815.285950, 29.390755),
-    vec3:new(-731.544312, -676.678467, 28.973450),
-    vec3:new(-1025.704224, -921.141296, 3.741233),
-    vec3:new(-962.515381, -942.297180, 0.845313),
-    vec3:new(-841.248718, -1206.873657, 5.163064),
-    vec3:new(-969.639954, -1094.212158, 0.8505334),
-    vec3:new(-1075.960327, -1026.114990, 3.245211),
-    vec3:new(-1150.731567, -992.529785, 0.850194),
-    vec3:new(-1125.693848, -1090.169067, 0.850338),
-    vec3:new(-1207.256836, -1136.133057, 6.418141),
-    vec3:new(-1185.031738, -1560.465698, 3.061427),
-    vec3:new(-1337.111938, -1282.580566, 3.536002),
-    vec3:new(-1291.436401, -1115.384399, 5.380210),
-    vec3:new(-1505.406006, -938.584167, 8.059047),
-    vec3:new(-1581.442627, -951.199219, 11.717396),
-    vec3:new(-1187.069458, -564.099121, 26.317165),
-    vec3:new(-1340.669434, -408.527100, 35.059433),
-    vec3:new(-1534.179565, -425.168396, 34.291149),
-    vec3:new(-1977.575928, -534.048889, 10.412008),
-    vec3:new(-1886.251953, -367.071625, 47.764736),
-    vec3:new(-1686.079102, -292.055634, 50.593338),
-    vec3:new(-1729.297974, -191.002090, 57.047939),
-    vec3:new(-1549.251831, -89.285751, 53.629169),
-    vec3:new(-1465.009766, -30.447273, 53.408463),
-    vec3:new(-1473.790649, 62.652233, 51.955498),
-    vec3:new(-1565.397949, 41.662537, 57.540710),
-    vec3:new(-1539.457520, 128.534393, 55.480267),
-    vec3:new(-1649.843994, 148.785080, 60.872307),
-    vec3:new(749.970276, 220.890854, 85.730003),
-    vec3:new(348.487152, 442.021454, 146.400879),
-    vec3:new(327.944977, 536.017639, 152.462311),
-    vec3:new(215.329636, 621.132812, 186.248245),
-    vec3:new(7.990458, 544.689697, 174.240616),
-    vec3:new(56.627422, 454.376404, 145.430801),
-    vec3:new(169.621765, 488.189667, 141.616394),
-    vec3:new(125.038742, 64.603813, 78.442604),
-    vec3:new(85.067253, -93.484367, 59.143009),
-    vec3:new(14.717505, -5.760206, 68.813988),
-    vec3:new(-436.087738, -67.952057, 41.706535),
-    vec3:new(-373.813538, 44.969456, 53.129925),
-    vec3:new(-175.594559, 89.340088, 68.998276),
-    vec3:new(-565.616150, 168.983398, 65.538330),
-    vec3:new(-598.232544, 275.290619, 80.810440),
-    vec3:new(-146.931183, 288.287903, 95.503975),
-    vec3:new(-87.271278, 425.587616, 111.912392),
-    vec3:new(-252.625534, 397.004730, 109.946564),
-    vec3:new(-369.354126, 347.407196, 108.114899),
-    vec3:new(-573.230042, 402.716095, 99.368492),
-    vec3:new(-584.765686, 496.261749, 105.802574),
-    vec3:new(-352.459045, 469.861053, 111.272270),
-    vec3:new(-178.125549, 503.593872, 135.551987),
-    vec3:new(-136.874252, 595.974915, 203.303223),
-    vec3:new(-247.243790, 619.652405, 186.510178),
-    vec3:new(-346.281616, 625.225159, 170.056915),
-    vec3:new(-445.562164, 684.065796, 151.650650),
-    vec3:new(-491.010986, 740.993591, 161.535828),
-    vec3:new(-579.493774, 736.161072, 182.526932),
-    vec3:new(-549.261047, 827.965210, 196.220291),
-    vec3:new(-149.519211, 995.026306, 235.537567),
-    vec3:new(-821.168213, 814.200195, 199.545700),
-    vec3:new(-703.407898, 591.646423, 140.869995),
-    vec3:new(-716.630310, 490.652618, 107.965691),
-    vec3:new(-821.048706, 268.837524, 84.892586),
-    vec3:new(-863.629517, 387.783356, 86.129707),
-    vec3:new(-882.328552, 518.721924, 91.141586),
-    vec3:new(-937.415100, 589.408447, 100.195312),
-    vec3:new(-887.551086, 701.678711, 149.417191),
-    vec3:new(-1020.178894, 716.203674, 162.686401),
-    vec3:new(-1166.027588, 729.194946, 154.211594),
-    vec3:new(-1291.383911, 648.885010, 140.199905),
-    vec3:new(-1124.626709, 575.734802, 103.055000),
-    vec3:new(-1024.506104, 502.218384, 79.255287),
-    vec3:new(-966.512451, 434.859009, 78.671555),
-    vec3:new(-1023.245361, 359.682251, 70.056602),
-    vec3:new(-1130.484985, 391.969757, 69.441147),
-    vec3:new(-1178.350708, 290.212646, 68.198738),
-    vec3:new(-1215.850708, 460.558350, 90.553658),
-    vec3:new(-1312.920288, 452.977936, 97.879066),
-    vec3:new(-1499.075195, 520.862732, 116.972198),
-    vec3:new(-1813.917847, 344.151672, 87.253471),
-    vec3:new(-1961.207275, 249.182205, 83.922012),
-    vec3:new(-2005.261841, 447.706787, 100.982285),
-    vec3:new(-1974.006348, 627.074402, 121.236298),
-    vec3:new(-1523.962524, 854.170227, 180.294525),
-    vec3:new(-3084.227539, 222.587875, 12.690159),
-    vec3:new(-3034.164795, 492.005524, 5.467818),
-    vec3:new(-2999.262695, 694.002991, 24.150764),
-    vec3:new(-3234.858887, 934.295593, 15.850909),
-    vec3:new(-3202.787109, 1151.574829, 8.355104),
-    vec3:new(-3180.688232, 1291.906372, 13.120326),
-    vec3:new(-2551.712402, 1912.145386, 167.768417),
-    vec3:new(-1872.429932, 2029.911011, 138.037140),
-    vec3:new(-1112.209106, 2686.990479, 17.318859),
-    vec3:new(-262.114075, 2194.963135, 129.098648),
-    vec3:new(-267.503265, 2626.278564, 60.810768),
-    vec3:new(-462.839874, 2856.521973, 33.321205),
-    vec3:new(-327.331085, 2820.612305, 57.069534),
-    vec3:new(-289.165649, 2837.083496, 54.012520),
-    vec3:new(-38.089405, 2866.223145, 57.879650),
-    vec3:new(200.134537, 3031.658691, 42.007084),
-    vec3:new(245.562866, 3167.225342, 41.543571),
-    vec3:new(36.286015, 3668.123779, 38.331520),
-    vec3:new(92.681717, 3741.556885, 38.248653),
-    vec3:new(439.687134, 3574.860352, 31.938606),
-    vec3:new(470.906616, 2611.910889, 41.949657),
-    vec3:new(561.570679, 2599.967529, 41.738277),
-    vec3:new(734.955811, 2523.633057, 71.924843),
-    vec3:new(721.653381, 2332.206543, 50.450310),
-    vec3:new(790.147888, 2182.331055, 50.818352),
-    vec3:new(841.859131, 2114.335449, 51.001461),
-    vec3:new(1352.933716, 1147.012451, 112.459045),
-    vec3:new(1529.204956, 1728.803955, 108.681503),
-    vec3:new(1531.197266, 2219.515381, 75.833237),
-    vec3:new(1421.380981, 3666.921387, 38.428417),
-    vec3:new(1664.273926, 3824.378662, 33.593254),
-    vec3:new(1762.277954, 3872.228516, 33.132488),
-    vec3:new(1925.091553, 3917.555664, 31.198433),
-    vec3:new(1914.172241, 3825.941162, 31.136677),
-    vec3:new(1773.624268, 3740.501953, 33.356308),
-    vec3:new(1856.470215, 3681.635254, 32.958481),
-    vec3:new(1999.776611, 3776.771484, 30.880787),
-    vec3:new(1991.811035, 3057.610840, 45.760735),
-    vec3:new(2168.261475, 3380.211670, 45.134487),
-    vec3:new(2178.444824, 3499.422119, 44.197418),
-    vec3:new(2590.153320, 3169.243896, 49.646759),
-    vec3:new(2620.696533, 3282.523926, 53.951210),
-    vec3:new(2985.502930, 3484.042236, 70.081779),
-    vec3:new(2420.516602, 4020.245605, 35.535358),
-    vec3:new(2638.094482, 4247.965332, 43.502384),
-    vec3:new(3689.367188, 4563.361328, 23.881674),
-    vec3:new(3315.741455, 5172.885254, 17.129362),
-    vec3:new(2234.621094, 5609.286133, 53.348442),
-    vec3:new(2451.511963, 4961.811035, 44.201416),
-    vec3:new(1967.214966, 4621.931641, 39.482288),
-    vec3:new(1664.723511, 4773.646973, 40.687389),
-    vec3:new(1723.661011, 4642.196777, 42.564026),
-    vec3:new(1311.947632, 4361.838867, 39.552631),
-    vec3:new(724.281311, 4185.006348, 39.409229),
-    vec3:new(-771.858582, 5511.423340, 33.605061),
-    vec3:new(-342.642487, 6163.851074, 30.190174),
-    vec3:new(-402.742828, 6314.299805, 27.649906),
-    vec3:new(-306.322205, 6331.539551, 31.189320),
-    vec3:new(-245.945114, 6410.604492, 29.897928),
-    vec3:new(-105.598267, 6313.783691, 30.190372),
-    vec3:new(-112.187599, 6460.697266, 30.168459),
-    vec3:new(-50.652882, 6582.884766, 29.876881),
-    vec3:new(54.402122, 6642.595215, 30.223076),
-    vec3:new(1706.896240, 6422.760254, 31.335125),
+    V3.New(1434.581177, -1494.808960, 61.924484),
+    V3.New(1318.091797, -1557.906860, 49.406536),
+    V3.New(1297.748535, -1621.982666, 52.924953),
+    V3.New(1312.340576, -1701.004272, 56.537983),
+    V3.New(1256.791260, -1760.271851, 47.959789),
+    V3.New(1204.294312, -1672.812622, 41.058277),
+    V3.New(1232.604492, -1593.003418, 52.067909),
+    V3.New(1152.968140, -1529.164673, 33.691978),
+    V3.New(1183.517090, -1461.732788, 33.594597),
+    V3.New(1210.140625, -1390.762085, 34.076641),
+    V3.New(411.362427, -1485.312622, 28.570503),
+    V3.New(323.141052, -1759.944092, 28.016262),
+    V3.New(428.983459, -1723.205811, 27.929178),
+    V3.New(495.846832, -1817.259521, 27.187927),
+    V3.New(387.837158, -1883.815430, 24.304468),
+    V3.New(326.185211, -1947.658691, 23.467230),
+    V3.New(379.337311, -2069.736328, 19.941431),
+    V3.New(294.090973, -2098.108154, 15.802926),
+    V3.New(221.574402, -2036.115112, 16.712660),
+    V3.New(180.028915, -1930.020508, 19.712641),
+    V3.New(150.242844, -1868.382568, 22.930975),
+    V3.New(25.318865, -1894.664185, 21.286211),
+    V3.New(-18.668180, -1855.332764, 23.662672),
+    V3.New(-79.454300, -1641.520874, 28.009012),
+    V3.New(-158.293228, -1680.115479, 35.666103),
+    V3.New(-193.209412, -1609.052246, 32.701607),
+    V3.New(-63.751331, -1452.771973, 30.823833),
+    V3.New(-123.541191, -1490.525513, 32.473259),
+    V3.New(-223.600693, -1500.161133, 30.692902),
+    V3.New(-294.518921, -1332.482910, 29.970270),
+    V3.New(1014.117920, -423.848389, 63.675259),
+    V3.New(1266.007446, -428.332397, 68.079376),
+    V3.New(1370.628906, -558.052185, 73.039597),
+    V3.New(1324.806519, -580.172913, 71.912575),
+    V3.New(1204.557251, -620.731323, 64.821854),
+    V3.New(967.759155, -547.430298, 58.004089),
+    V3.New(961.077148, -594.268860, 58.192711),
+    V3.New(999.061157, -727.578979, 56.227200),
+    V3.New(1143.774292, -981.787659, 44.845215),
+    V3.New(845.798950, -1019.603210, 26.234652),
+    V3.New(805.100342, -1075.361694, 27.369886),
+    V3.New(480.726227, -975.737000, 26.683889),
+    V3.New(389.172333, -972.175659, 28.140848),
+    V3.New(360.894836, -1070.573853, 28.238062),
+    V3.New(244.050507, -1071.695679, 27.986931),
+    V3.New(264.044403, -1028.192871, 27.911451),
+    V3.New(75.252281, -1026.460449, 28.174519),
+    V3.New(-16.975662, -977.996521, 28.062405),
+    V3.New(66.998047, -961.704041, 28.057564),
+    V3.New(130.983887, -567.115417, 42.440754),
+    V3.New(-191.763809, -764.868286, 29.154016),
+    V3.New(-232.445236, -911.110535, 31.010803),
+    V3.New(-552.145813, -815.285950, 29.390755),
+    V3.New(-731.544312, -676.678467, 28.973450),
+    V3.New(-1025.704224, -921.141296, 3.741233),
+    V3.New(-962.515381, -942.297180, 0.845313),
+    V3.New(-841.248718, -1206.873657, 5.163064),
+    V3.New(-969.639954, -1094.212158, 0.8505334),
+    V3.New(-1075.960327, -1026.114990, 3.245211),
+    V3.New(-1150.731567, -992.529785, 0.850194),
+    V3.New(-1125.693848, -1090.169067, 0.850338),
+    V3.New(-1207.256836, -1136.133057, 6.418141),
+    V3.New(-1185.031738, -1560.465698, 3.061427),
+    V3.New(-1337.111938, -1282.580566, 3.536002),
+    V3.New(-1291.436401, -1115.384399, 5.380210),
+    V3.New(-1505.406006, -938.584167, 8.059047),
+    V3.New(-1581.442627, -951.199219, 11.717396),
+    V3.New(-1187.069458, -564.099121, 26.317165),
+    V3.New(-1340.669434, -408.527100, 35.059433),
+    V3.New(-1534.179565, -425.168396, 34.291149),
+    V3.New(-1977.575928, -534.048889, 10.412008),
+    V3.New(-1886.251953, -367.071625, 47.764736),
+    V3.New(-1686.079102, -292.055634, 50.593338),
+    V3.New(-1729.297974, -191.002090, 57.047939),
+    V3.New(-1549.251831, -89.285751, 53.629169),
+    V3.New(-1465.009766, -30.447273, 53.408463),
+    V3.New(-1473.790649, 62.652233, 51.955498),
+    V3.New(-1565.397949, 41.662537, 57.540710),
+    V3.New(-1539.457520, 128.534393, 55.480267),
+    V3.New(-1649.843994, 148.785080, 60.872307),
+    V3.New(749.970276, 220.890854, 85.730003),
+    V3.New(348.487152, 442.021454, 146.400879),
+    V3.New(327.944977, 536.017639, 152.462311),
+    V3.New(215.329636, 621.132812, 186.248245),
+    V3.New(7.990458, 544.689697, 174.240616),
+    V3.New(56.627422, 454.376404, 145.430801),
+    V3.New(169.621765, 488.189667, 141.616394),
+    V3.New(125.038742, 64.603813, 78.442604),
+    V3.New(85.067253, -93.484367, 59.143009),
+    V3.New(14.717505, -5.760206, 68.813988),
+    V3.New(-436.087738, -67.952057, 41.706535),
+    V3.New(-373.813538, 44.969456, 53.129925),
+    V3.New(-175.594559, 89.340088, 68.998276),
+    V3.New(-565.616150, 168.983398, 65.538330),
+    V3.New(-598.232544, 275.290619, 80.810440),
+    V3.New(-146.931183, 288.287903, 95.503975),
+    V3.New(-87.271278, 425.587616, 111.912392),
+    V3.New(-252.625534, 397.004730, 109.946564),
+    V3.New(-369.354126, 347.407196, 108.114899),
+    V3.New(-573.230042, 402.716095, 99.368492),
+    V3.New(-584.765686, 496.261749, 105.802574),
+    V3.New(-352.459045, 469.861053, 111.272270),
+    V3.New(-178.125549, 503.593872, 135.551987),
+    V3.New(-136.874252, 595.974915, 203.303223),
+    V3.New(-247.243790, 619.652405, 186.510178),
+    V3.New(-346.281616, 625.225159, 170.056915),
+    V3.New(-445.562164, 684.065796, 151.650650),
+    V3.New(-491.010986, 740.993591, 161.535828),
+    V3.New(-579.493774, 736.161072, 182.526932),
+    V3.New(-549.261047, 827.965210, 196.220291),
+    V3.New(-149.519211, 995.026306, 235.537567),
+    V3.New(-821.168213, 814.200195, 199.545700),
+    V3.New(-703.407898, 591.646423, 140.869995),
+    V3.New(-716.630310, 490.652618, 107.965691),
+    V3.New(-821.048706, 268.837524, 84.892586),
+    V3.New(-863.629517, 387.783356, 86.129707),
+    V3.New(-882.328552, 518.721924, 91.141586),
+    V3.New(-937.415100, 589.408447, 100.195312),
+    V3.New(-887.551086, 701.678711, 149.417191),
+    V3.New(-1020.178894, 716.203674, 162.686401),
+    V3.New(-1166.027588, 729.194946, 154.211594),
+    V3.New(-1291.383911, 648.885010, 140.199905),
+    V3.New(-1124.626709, 575.734802, 103.055000),
+    V3.New(-1024.506104, 502.218384, 79.255287),
+    V3.New(-966.512451, 434.859009, 78.671555),
+    V3.New(-1023.245361, 359.682251, 70.056602),
+    V3.New(-1130.484985, 391.969757, 69.441147),
+    V3.New(-1178.350708, 290.212646, 68.198738),
+    V3.New(-1215.850708, 460.558350, 90.553658),
+    V3.New(-1312.920288, 452.977936, 97.879066),
+    V3.New(-1499.075195, 520.862732, 116.972198),
+    V3.New(-1813.917847, 344.151672, 87.253471),
+    V3.New(-1961.207275, 249.182205, 83.922012),
+    V3.New(-2005.261841, 447.706787, 100.982285),
+    V3.New(-1974.006348, 627.074402, 121.236298),
+    V3.New(-1523.962524, 854.170227, 180.294525),
+    V3.New(-3084.227539, 222.587875, 12.690159),
+    V3.New(-3034.164795, 492.005524, 5.467818),
+    V3.New(-2999.262695, 694.002991, 24.150764),
+    V3.New(-3234.858887, 934.295593, 15.850909),
+    V3.New(-3202.787109, 1151.574829, 8.355104),
+    V3.New(-3180.688232, 1291.906372, 13.120326),
+    V3.New(-2551.712402, 1912.145386, 167.768417),
+    V3.New(-1872.429932, 2029.911011, 138.037140),
+    V3.New(-1112.209106, 2686.990479, 17.318859),
+    V3.New(-262.114075, 2194.963135, 129.098648),
+    V3.New(-267.503265, 2626.278564, 60.810768),
+    V3.New(-462.839874, 2856.521973, 33.321205),
+    V3.New(-327.331085, 2820.612305, 57.069534),
+    V3.New(-289.165649, 2837.083496, 54.012520),
+    V3.New(-38.089405, 2866.223145, 57.879650),
+    V3.New(200.134537, 3031.658691, 42.007084),
+    V3.New(245.562866, 3167.225342, 41.543571),
+    V3.New(36.286015, 3668.123779, 38.331520),
+    V3.New(92.681717, 3741.556885, 38.248653),
+    V3.New(439.687134, 3574.860352, 31.938606),
+    V3.New(470.906616, 2611.910889, 41.949657),
+    V3.New(561.570679, 2599.967529, 41.738277),
+    V3.New(734.955811, 2523.633057, 71.924843),
+    V3.New(721.653381, 2332.206543, 50.450310),
+    V3.New(790.147888, 2182.331055, 50.818352),
+    V3.New(841.859131, 2114.335449, 51.001461),
+    V3.New(1352.933716, 1147.012451, 112.459045),
+    V3.New(1529.204956, 1728.803955, 108.681503),
+    V3.New(1531.197266, 2219.515381, 75.833237),
+    V3.New(1421.380981, 3666.921387, 38.428417),
+    V3.New(1664.273926, 3824.378662, 33.593254),
+    V3.New(1762.277954, 3872.228516, 33.132488),
+    V3.New(1925.091553, 3917.555664, 31.198433),
+    V3.New(1914.172241, 3825.941162, 31.136677),
+    V3.New(1773.624268, 3740.501953, 33.356308),
+    V3.New(1856.470215, 3681.635254, 32.958481),
+    V3.New(1999.776611, 3776.771484, 30.880787),
+    V3.New(1991.811035, 3057.610840, 45.760735),
+    V3.New(2168.261475, 3380.211670, 45.134487),
+    V3.New(2178.444824, 3499.422119, 44.197418),
+    V3.New(2590.153320, 3169.243896, 49.646759),
+    V3.New(2620.696533, 3282.523926, 53.951210),
+    V3.New(2985.502930, 3484.042236, 70.081779),
+    V3.New(2420.516602, 4020.245605, 35.535358),
+    V3.New(2638.094482, 4247.965332, 43.502384),
+    V3.New(3689.367188, 4563.361328, 23.881674),
+    V3.New(3315.741455, 5172.885254, 17.129362),
+    V3.New(2234.621094, 5609.286133, 53.348442),
+    V3.New(2451.511963, 4961.811035, 44.201416),
+    V3.New(1967.214966, 4621.931641, 39.482288),
+    V3.New(1664.723511, 4773.646973, 40.687389),
+    V3.New(1723.661011, 4642.196777, 42.564026),
+    V3.New(1311.947632, 4361.838867, 39.552631),
+    V3.New(724.281311, 4185.006348, 39.409229),
+    V3.New(-771.858582, 5511.423340, 33.605061),
+    V3.New(-342.642487, 6163.851074, 30.190174),
+    V3.New(-402.742828, 6314.299805, 27.649906),
+    V3.New(-306.322205, 6331.539551, 31.189320),
+    V3.New(-245.945114, 6410.604492, 29.897928),
+    V3.New(-105.598267, 6313.783691, 30.190372),
+    V3.New(-112.187599, 6460.697266, 30.168459),
+    V3.New(-50.652882, 6582.884766, 29.876881),
+    V3.New(54.402122, 6642.595215, 30.223076),
+    V3.New(1706.896240, 6422.760254, 31.335125),
 }
 
 -- Jack o'Lantern location names (200 locations)
@@ -1977,13 +1527,8 @@ end
 jackolantern_selected_loc = 0
 
 -- Add ImGui for Jack o'Lantern teleports
-trickOrTreatMenu:add_imgui(function()
-    ImGui.Separator()
-    ImGui.Text("Jack o'Lantern Teleports")
-    help_marker(
-        "Teleport to any of the 200 Jack o'Lantern collectible locations. These are Halloween pumpkins that spawn during the event."
-    )
-    ImGui.Separator()
+trickOrTreatMenu:Box("Teleport")
+trickOrTreatMenu:Custom(function()
 
     ImGui.Text("Select Jack o'Lantern Location:")
     help_marker("Choose a location from the dropdown list to teleport to.")
@@ -1995,103 +1540,93 @@ trickOrTreatMenu:add_imgui(function()
     ImGui.SameLine()
 
     if ImGui.Button("Teleport to Location") then
-        script.run_in_fiber(function()
+        Script.QueueJob(function()
             local coords = jackolantern_locations[jackolantern_selected_loc + 1]
-            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
         end)
     end
     help_marker("Teleports you to the selected Jack o'Lantern location.")
-
-    ImGui.Separator()
-    ImGui.Text("Quick Teleport Buttons (1-20):")
-    help_marker("Quickly teleport to any of the first 20 Jack o'Lantern locations.")
-
+end)
+trickOrTreatMenu:Box("Quick Teleport (1-20)")
+trickOrTreatMenu:Custom(function()
     -- Quick teleport buttons in rows of 5 (first 20 locations)
     for i = 0, 19 do
-        if i % 5 == 0 then
-            ImGui.Text("  ")
-        end
 
         if ImGui.Button(jackolantern_names[i + 1]) then
-            script.run_in_fiber(function()
+            Script.QueueJob(function()
                 local coords = jackolantern_locations[i + 1]
-                PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+                Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
             end)
         end
 
-        if i % 5 ~= 4 and i < 19 then
+        if i % 4 ~= 3 and i < 19 then
             ImGui.SameLine()
         end
     end
-
-    ImGui.Separator()
-    ImGui.Text("Quick Teleport Buttons (21-40):")
-    help_marker("Quickly teleport to any of the next 20 Jack o'Lantern locations.")
-
+end)
+trickOrTreatMenu:Box("Quick Teleport (21-40)")
+trickOrTreatMenu:Custom(function()
     -- Quick teleport buttons in rows of 5 (next 20 locations)
     for i = 20, 39 do
-        if i % 5 == 0 then
-            ImGui.Text("  ")
-        end
 
         if ImGui.Button(jackolantern_names[i + 1]) then
-            script.run_in_fiber(function()
+            Script.QueueJob(function()
                 local coords = jackolantern_locations[i + 1]
-                PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+                Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
             end)
         end
 
-        if i % 5 ~= 4 and i < 39 then
+        if i % 4 ~= 3 and i < 39 then
             ImGui.SameLine()
         end
     end
-
-    ImGui.Separator()
+end)
+trickOrTreatMenu:Box("Random")
+trickOrTreatMenu:Custom(function()
     ImGui.Text("Total Jack o'Lantern Locations: 200")
 
     if ImGui.Button("Teleport to Random Jack o'Lantern") then
-        script.run_in_fiber(function()
+        Script.QueueJob(function()
             local random_index = math.random(1, 200)
             local coords = jackolantern_locations[random_index]
-            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
-            gui.show_message("Jack o'Lantern", "Teleported to " .. jackolantern_names[random_index])
+            Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
+            Toast("Jack o'Lantern", "Teleported to " .. jackolantern_names[random_index])
         end)
     end
 end)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("snowmenMenu = EventsMenu:add_tab(Snowmen Collectibles)", function()
-snowmenMenu = EventsMenu:add_tab("Snowmen Collectibles")
+Section("Snowmen Collectibles", function()
+snowmenMenu = EventsMenu:Tab("Snowmen Collectibles")
 
 -- Snowman locations array
 snowmen_locations = {
-    vec3:new(-955.5352, -782.4186, 15.925326),
-    vec3:new(-819.9067, 165.35524, 71.26295),
-    vec3:new(-247.92003, -1561.2175, 32.22973),
-    vec3:new(901.3996, -288.05026, 65.643715),
-    vec3:new(1275.6772, -642.3789, 68.208786),
-    vec3:new(1993.1008, 3829.6396, 32.167336),
-    vec3:new(-375.47916, 6230.158, 31.490055),
-    vec3:new(-1414.4647, 5094.9272, 60.674263),
-    vec3:new(-1946.0231, 594.93756, 119.79223),
-    vec3:new(-1100.889, -1401.0138, 5.215467),
-    vec3:new(-780.418, 877.2859, 203.18001),
-    vec3:new(-455.12027, 1130.5625, 325.89175),
-    vec3:new(221.46722, -107.01075, 69.763985),
-    vec3:new(1560.3787, 6447.053, 23.9866),
-    vec3:new(3301.7886, 5149.8853, 18.34274),
-    vec3:new(1703.0568, 4671.928, 43.15301),
-    vec3:new(224.9161, 3107.3345, 42.18394),
-    vec3:new(2360.0037, 2522.7166, 46.66731),
-    vec3:new(1510.8555, 1725.0353, 109.89355),
-    vec3:new(-48.96374, 1964.4028, 189.87181),
-    vec3:new(-1516.2083, 2140.2168, 56.11924),
-    vec3:new(-2826.2356, 1424.6211, 100.706116),
-    vec3:new(-2957.531, 723.6389, 28.792404),
-    vec3:new(1341.4302, -1583.5093, 54.135414),
-    vec3:new(178.00232, -895.9712, 30.69326),
+    V3.New(-955.5352, -782.4186, 15.925326),
+    V3.New(-819.9067, 165.35524, 71.26295),
+    V3.New(-247.92003, -1561.2175, 32.22973),
+    V3.New(901.3996, -288.05026, 65.643715),
+    V3.New(1275.6772, -642.3789, 68.208786),
+    V3.New(1993.1008, 3829.6396, 32.167336),
+    V3.New(-375.47916, 6230.158, 31.490055),
+    V3.New(-1414.4647, 5094.9272, 60.674263),
+    V3.New(-1946.0231, 594.93756, 119.79223),
+    V3.New(-1100.889, -1401.0138, 5.215467),
+    V3.New(-780.418, 877.2859, 203.18001),
+    V3.New(-455.12027, 1130.5625, 325.89175),
+    V3.New(221.46722, -107.01075, 69.763985),
+    V3.New(1560.3787, 6447.053, 23.9866),
+    V3.New(3301.7886, 5149.8853, 18.34274),
+    V3.New(1703.0568, 4671.928, 43.15301),
+    V3.New(224.9161, 3107.3345, 42.18394),
+    V3.New(2360.0037, 2522.7166, 46.66731),
+    V3.New(1510.8555, 1725.0353, 109.89355),
+    V3.New(-48.96374, 1964.4028, 189.87181),
+    V3.New(-1516.2083, 2140.2168, 56.11924),
+    V3.New(-2826.2356, 1424.6211, 100.706116),
+    V3.New(-2957.531, 723.6389, 28.792404),
+    V3.New(1341.4302, -1583.5093, 54.135414),
+    V3.New(178.00232, -895.9712, 30.69326),
 }
 
 -- Snowman location names (numbered 01-25)
@@ -2104,33 +1639,24 @@ end
 snowmen_selected_loc = 0
 
 -- Add the checkbox for enabling snowmen collectibles
-SNOWMENCB = snowmenMenu:add_checkbox("Enable Snowmen Collectibles")
+snowmenMenu:Columns(1)
+snowmenMenu:Box("Event")
+SNOWMENCB = snowmenMenu:Toggle("Enable Snowmen Collectibles", "Enables the Snowmen Collectibles event. This allows you to collect snowmen by blowing them up or driving your car through them during the winter event.")
 
--- Add help marker for the checkbox
-snowmenMenu:add_imgui(function()
-    help_marker(
-        "Enables the Snowmen Collectibles event. This allows you to collect snowmen by blowing them up or driving your car through them during the winter event."
-    )
-end)
 
-script.register_looped("snowmen_collectibles", function(script)
-    script:yield()
-    local want = SNOWMENCB:is_enabled() and 1 or 0
+Script.RegisterLooped(function()
+    Script.Yield()
+    local want = SNOWMENCB:IsToggled() and 1 or 0
     if want ~= _snowmenPrev then
-        tunables.set_bool("COLLECTABLES_SNOWMEN", want == 1)
+        SetTunableBool("COLLECTABLES_SNOWMEN", want == 1)
         _snowmenPrev = want
     end
-    script:sleep(100)
+    Script.Yield(100)
 end)
 
 -- Add ImGui for the snowman teleports
-snowmenMenu:add_imgui(function()
-    ImGui.Separator()
-    ImGui.Text("Snowman Teleports")
-    help_marker(
-        "Teleport to any of the 25 Snowman collectible locations. These are snowmen that spawn during the winter event. You can destroy them by blowing them up or driving through them with your vehicle."
-    )
-    ImGui.Separator()
+snowmenMenu:Box("Teleport")
+snowmenMenu:Custom(function()
 
     ImGui.Text("Select Snowman Location:")
     help_marker("Choose a location from the dropdown list to teleport to.")
@@ -2141,46 +1667,40 @@ snowmenMenu:add_imgui(function()
     ImGui.SameLine()
 
     if ImGui.Button("Teleport to Location") then
-        script.run_in_fiber(function()
+        Script.QueueJob(function()
             local coords = snowmen_locations[snowmen_selected_loc + 1]
-            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
         end)
     end
     help_marker("Teleports you to the selected Snowman location.")
-
-    ImGui.Separator()
-    ImGui.Text("Quick Teleport Buttons:")
-    help_marker(
-        "Quickly teleport to any Snowman location to destroy them by blowing them up or driving through them."
-    )
-
+end)
+snowmenMenu:Box("Quick Teleport")
+snowmenMenu:Custom(function()
     -- Add quick teleport buttons in rows of 5
     for i = 0, 24 do
-        if i % 5 == 0 then
-            ImGui.Text("  ")
-        end
 
         if ImGui.Button(snowmen_names[i + 1]) then
-            script.run_in_fiber(function()
+            Script.QueueJob(function()
                 local coords = snowmen_locations[i + 1]
-                PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+                Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
             end)
         end
 
-        if i % 5 ~= 4 and i < 24 then
+        if i % 4 ~= 3 and i < 24 then
             ImGui.SameLine()
         end
     end
-
-    ImGui.Separator()
+end)
+snowmenMenu:Box("Random")
+snowmenMenu:Custom(function()
     ImGui.Text("Total Snowman Locations: 25")
 
     if ImGui.Button("Teleport to Random Snowman") then
-        script.run_in_fiber(function()
+        Script.QueueJob(function()
             local random_index = math.random(1, 25)
             local coords = snowmen_locations[random_index]
-            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
-            gui.show_message("Snowman", "Teleported to " .. snowmen_names[random_index])
+            Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
+            Toast("Snowman", "Teleported to " .. snowmen_names[random_index])
         end)
     end
     help_marker(
@@ -2189,23 +1709,22 @@ snowmenMenu:add_imgui(function()
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("YetiHuntMenu = EventsMenu:add_tab(Yeti Hunt Menu)", function()
-YetiHuntMenu = EventsMenu:add_tab("Yeti Hunt")
+Section("Yeti Hunt", function()
+YetiHuntMenu = EventsMenu:Tab("Yeti Hunt")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 -- Yeti Hunt locations array
 yeti_locations = {
-    vec3:new(-1562.69, 4699.04, 50.426),
-    vec3:new(-1359.869, 4733.429, 46.919),
-    vec3:new(-1715.398, 4501.203, 0.096),
-    vec3:new(-1282.18, 4487.826, 12.643),
-    vec3:new(-1569.665, 4478.485, 20.215),
-    vec3:new(-1345.828, 4838.062, 137.522),
-    vec3:new(-1507.88, 4730.23, 45.54),
+    V3.New(-1562.69, 4699.04, 50.426),
+    V3.New(-1359.869, 4733.429, 46.919),
+    V3.New(-1715.398, 4501.203, 0.096),
+    V3.New(-1282.18, 4487.826, 12.643),
+    V3.New(-1569.665, 4478.485, 20.215),
+    V3.New(-1345.828, 4838.062, 137.522),
+    V3.New(-1507.88, 4730.23, 45.54),
 }
 
 -- Yeti location names
@@ -2223,31 +1742,24 @@ yeti_names = {
 yeti_selected_loc = 0
 
 -- Add Yeti Hunt checkbox with help marker
-YETIHUNTCB = YetiHuntMenu:add_checkbox("Enable Yeti Hunt Event")
+YetiHuntMenu:Columns(1)
+YetiHuntMenu:Box("Event")
+YETIHUNTCB = YetiHuntMenu:Toggle("Enable Yeti Hunt Event", "Enables the Yeti Hunt event. This allows you to hunt the Yeti and collect clues during the event.")
 
--- Add help marker for the checkbox
-YetiHuntMenu:add_imgui(function()
-    help_marker(
-        "Enables the Yeti Hunt event. This allows you to hunt the Yeti and collect clues during the event."
-    )
-end)
 
-script.register_looped("yeti_hunt", function(script)
-    script:yield()
-    local want = YETIHUNTCB:is_enabled() and 1 or 0
+Script.RegisterLooped(function()
+    Script.Yield()
+    local want = YETIHUNTCB:IsToggled() and 1 or 0
     if want ~= _yetiPrev then
-        tunables.set_bool(1833904680, want == 1)
+        SetTunableBool(1833904680, want == 1)
         _yetiPrev = want
     end
-    script:sleep(100)
+    Script.Yield(100)
 end)
 
 -- Add ImGui for Yeti Hunt teleports
-YetiHuntMenu:add_imgui(function()
-    ImGui.Separator()
-    ImGui.Text("Yeti Hunt Teleports")
-    help_marker("Teleport to any of the Yeti Hunt clue locations or the final Yeti fight locations.")
-    ImGui.Separator()
+YetiHuntMenu:Box("Teleport")
+YetiHuntMenu:Custom(function()
 
     ImGui.Text("Select Yeti Location:")
     help_marker("Choose a location from the dropdown list to teleport to.")
@@ -2258,1295 +1770,1259 @@ YetiHuntMenu:add_imgui(function()
     ImGui.SameLine()
 
     if ImGui.Button("Teleport to Location") then
-        script.run_in_fiber(function()
+        Script.QueueJob(function()
             local coords = yeti_locations[yeti_selected_loc + 1]
-            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
         end)
     end
     help_marker("Teleports you to the selected Yeti location.")
-
-    ImGui.Separator()
-    ImGui.Text("Quick Teleport Buttons:")
-    help_marker("Quickly teleport to any Yeti clue location or the fight locations.")
-
+end)
+YetiHuntMenu:Box("Quick Teleport")
+YetiHuntMenu:Custom(function()
     -- Add quick teleport buttons in rows of 3 (all 7 locations)
     for i = 0, 6 do
-        if i % 3 == 0 then
-            ImGui.Text("  ")
-        end
 
         if ImGui.Button(yeti_names[i + 1]) then
-            script.run_in_fiber(function()
+            Script.QueueJob(function()
                 local coords = yeti_locations[i + 1]
-                PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+                Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
             end)
         end
 
-        if i % 3 ~= 2 and i < 6 then
+        if i % 2 ~= 1 and i < 6 then
             ImGui.SameLine()
         end
     end
-
-    ImGui.Separator()
+end)
+YetiHuntMenu:Box("Random")
+YetiHuntMenu:Custom(function()
     ImGui.Text("Total Yeti Locations: 7 (5 Clues + 2 Fight)")
 
     if ImGui.Button("Teleport to Random Yeti Location") then
-        script.run_in_fiber(function()
+        Script.QueueJob(function()
             local random_index = math.random(1, 7)
             local coords = yeti_locations[random_index]
-            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
-            gui.show_message("Yeti Hunt", "Teleported to " .. yeti_names[random_index])
+            Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
+            Toast("Yeti Hunt", "Teleported to " .. yeti_names[random_index])
         end)
     end
     help_marker("Teleports you to a random Yeti location. Find all the clues to hunt the Yeti!")
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("AUM = RecoveryMenu:add_tab(Awards Unlocker Menu)", function()
-AUM = RecoveryMenu:add_tab("Awards Unlocker")
-AUMMain = AUM:add_tab("Main")
+Section("Awards Unlocker", function()
+AUM = RecoveryMenu:Tab("Awards Unlocker")
+AUMMain = AUM:Tab("Main")
 
-AUMMain:add_button("Victory", function()
-    stats.set_int(MPX() .. "AWD_FM_DM_WINS", 50)
-    stats.set_int(MPX() .. "AWD_FM_TDM_WINS", 50)
-    stats.set_int(MPX() .. "AWD_FM_TDM_MVP", 50)
-    stats.set_int(MPX() .. "AWD_RACES_WON", 50)
-    stats.set_int(MPX() .. "AWD_FMWINAIRRACE", 25)
-    stats.set_int(MPX() .. "AWD_FMWINSEARACE", 25)
-    stats.set_int(MPX() .. "AWD_FM_GTA_RACES_WON", 50)
-    stats.set_bool(MPX() .. "AWD_FMKILL3ANDWINGTARACE", true)
-    stats.set_int(MPX() .. "AWD_FMRALLYWONDRIVE", 25)
-    stats.set_int(MPX() .. "AWD_FMRALLYWONNAV", 25)
-    stats.set_bool(MPX() .. "AWD_FMWINCUSTOMRACE", true)
-    stats.set_int(MPX() .. "AWD_FMWINRACETOPOINTS", 25)
-    stats.set_bool(MPX() .. "CL_RACE_MODDED_CAR", true)
-    stats.set_int(MPX() .. "AWD_FM_RACE_LAST_FIRST", 25)
-    stats.set_bool(MPX() .. "AWD_FMRACEWORLDRECHOLDER", true)
-    stats.set_int(MPX() .. "AWD_FM_RACES_FASTEST_LAP", 50)
-    stats.set_bool(MPX() .. "AWD_FMWINALLRACEMODES", true)
-    stats.set_int(MPX() .. "AWD_FMHORDWAVESSURVIVE", 10)
-    stats.set_int(MPX() .. "NUMBER_SLIPSTREAMS_IN_RACE", 100)
-    stats.set_int(MPX() .. "NUMBER_TURBO_STARTS_IN_RACE", 50)
-    stats.set_int(MPX() .. "AWD_NO_ARMWRESTLING_WINS", 25)
-    stats.set_int(MPX() .. "MOST_ARM_WRESTLING_WINS", 25)
-    stats.set_int(MPX() .. "AWD_WIN_AT_DARTS", 25)
-    stats.set_int(MPX() .. "AWD_FM_GOLF_WON", 25)
-    stats.set_int(MPX() .. "AWD_FM_TENNIS_WON", 25)
-    stats.set_bool(MPX() .. "AWD_FM_TENNIS_5_SET_WINS", true)
-    stats.set_bool(MPX() .. "AWD_FM_TENNIS_STASETWIN", true)
-    stats.set_int(MPX() .. "AWD_FM_SHOOTRANG_CT_WON", 25)
-    stats.set_int(MPX() .. "AWD_FM_SHOOTRANG_RT_WON", 25)
-    stats.set_int(MPX() .. "AWD_FM_SHOOTRANG_TG_WON", 25)
-    stats.set_bool(MPX() .. "AWD_FM_SHOOTRANG_GRAN_WON", true)
-    stats.set_bool(MPX() .. "AWD_FMWINEVERYGAMEMODE", true)
-    stats.set_int(MPX() .. "AWD_WIN_CAPTURES", 50)
-    stats.set_int(MPX() .. "AWD_WIN_CAPTURE_DONT_DYING", 25)
-    stats.set_int(MPX() .. "AWD_WIN_LAST_TEAM_STANDINGS", 50)
-    stats.set_int(MPX() .. "AWD_ONLY_PLAYER_ALIVE_LTS", 50)
-    stats.set_int(MPX() .. "AWD_KILL_TEAM_YOURSELF_LTS", 25)
-    stats.set_int(MPX() .. "AIR_LAUNCHES_OVER_40M", 25)
-    stats.set_int(MPX() .. "AWD_CARS_EXPORTED", 50)
-    stats.set_int(MPX() .. "AWD_LESTERDELIVERVEHICLES", 25)
-    stats.set_int(MPX() .. "TOTAL_RACES_WON", 500)
-    stats.set_int(MPX() .. "TOTAL_RACES_LOST", 250)
-    stats.set_int(MPX() .. "TOTAL_CUSTOM_RACES_WON", 500)
-    stats.set_int(MPX() .. "TOTAL_DEATHMATCH_LOST", 250)
-    stats.set_int(MPX() .. "TOTAL_DEATHMATCH_WON", 500)
-    stats.set_int(MPX() .. "TOTAL_TDEATHMATCH_LOST", 250)
-    stats.set_int(MPX() .. "TOTAL_TDEATHMATCH_WON", 500)
-    stats.set_int(MPX() .. "SHOOTINGRANGE_WINS", 500)
-    stats.set_int(MPX() .. "SHOOTINGRANGE_LOSSES", 250)
-    stats.set_int(MPX() .. "TENNIS_MATCHES_WON", 500)
-    stats.set_int(MPX() .. "TENNIS_MATCHES_LOST", 250)
-    stats.set_int(MPX() .. "GOLF_WINS", 500)
-    stats.set_int(MPX() .. "GOLF_LOSSES", 250)
-    stats.set_int(MPX() .. "DARTS_TOTAL_WINS", 500)
-    stats.set_int(MPX() .. "DARTS_TOTAL_MATCHES", 750)
-    stats.set_int(MPX() .. "SHOOTINGRANGE_TOTAL_MATCH", 800)
-    stats.set_int(MPX() .. "BJ_WINS", 500)
-    stats.set_int(MPX() .. "BJ_LOST", 250)
-    stats.set_int(MPX() .. "RACE_2_POINT_WINS", 500)
-    stats.set_int(MPX() .. "RACE_2_POINT_LOST", 250)
-    stats.set_int(MPX() .. "KILLS_PLAYERS", 3593)
-    stats.set_int(MPX() .. "DEATHS_PLAYER", 1002)
-    stats.set_int(MPX() .. "MISSIONS_CREATED", 500)
-    stats.set_int(MPX() .. "LTS_CREATED", 500)
-    stats.set_int(MPX() .. "FM_MISSION_LIKES", 1500)
+AUMMain:Box("Awards")
+AUMMain:Button("Victory", function()
+    Stats.SetInt(J(MPX() .. "AWD_FM_DM_WINS"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_FM_TDM_WINS"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_FM_TDM_MVP"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_RACES_WON"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_FMWINAIRRACE"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FMWINSEARACE"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FM_GTA_RACES_WON"), 50)
+    Stats.SetBool(J(MPX() .. "AWD_FMKILL3ANDWINGTARACE"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_FMRALLYWONDRIVE"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FMRALLYWONNAV"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_FMWINCUSTOMRACE"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_FMWINRACETOPOINTS"), 25)
+    Stats.SetBool(J(MPX() .. "CL_RACE_MODDED_CAR"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_FM_RACE_LAST_FIRST"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_FMRACEWORLDRECHOLDER"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_FM_RACES_FASTEST_LAP"), 50)
+    Stats.SetBool(J(MPX() .. "AWD_FMWINALLRACEMODES"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_FMHORDWAVESSURVIVE"), 10)
+    Stats.SetInt(J(MPX() .. "NUMBER_SLIPSTREAMS_IN_RACE"), 100)
+    Stats.SetInt(J(MPX() .. "NUMBER_TURBO_STARTS_IN_RACE"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_NO_ARMWRESTLING_WINS"), 25)
+    Stats.SetInt(J(MPX() .. "MOST_ARM_WRESTLING_WINS"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_WIN_AT_DARTS"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FM_GOLF_WON"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FM_TENNIS_WON"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_FM_TENNIS_5_SET_WINS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FM_TENNIS_STASETWIN"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_FM_SHOOTRANG_CT_WON"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FM_SHOOTRANG_RT_WON"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FM_SHOOTRANG_TG_WON"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_FM_SHOOTRANG_GRAN_WON"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FMWINEVERYGAMEMODE"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_WIN_CAPTURES"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_WIN_CAPTURE_DONT_DYING"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_WIN_LAST_TEAM_STANDINGS"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_ONLY_PLAYER_ALIVE_LTS"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_KILL_TEAM_YOURSELF_LTS"), 25)
+    Stats.SetInt(J(MPX() .. "AIR_LAUNCHES_OVER_40M"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_CARS_EXPORTED"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_LESTERDELIVERVEHICLES"), 25)
+    Stats.SetInt(J(MPX() .. "TOTAL_RACES_WON"), 500)
+    Stats.SetInt(J(MPX() .. "TOTAL_RACES_LOST"), 250)
+    Stats.SetInt(J(MPX() .. "TOTAL_CUSTOM_RACES_WON"), 500)
+    Stats.SetInt(J(MPX() .. "TOTAL_DEATHMATCH_LOST"), 250)
+    Stats.SetInt(J(MPX() .. "TOTAL_DEATHMATCH_WON"), 500)
+    Stats.SetInt(J(MPX() .. "TOTAL_TDEATHMATCH_LOST"), 250)
+    Stats.SetInt(J(MPX() .. "TOTAL_TDEATHMATCH_WON"), 500)
+    Stats.SetInt(J(MPX() .. "SHOOTINGRANGE_WINS"), 500)
+    Stats.SetInt(J(MPX() .. "SHOOTINGRANGE_LOSSES"), 250)
+    Stats.SetInt(J(MPX() .. "TENNIS_MATCHES_WON"), 500)
+    Stats.SetInt(J(MPX() .. "TENNIS_MATCHES_LOST"), 250)
+    Stats.SetInt(J(MPX() .. "GOLF_WINS"), 500)
+    Stats.SetInt(J(MPX() .. "GOLF_LOSSES"), 250)
+    Stats.SetInt(J(MPX() .. "DARTS_TOTAL_WINS"), 500)
+    Stats.SetInt(J(MPX() .. "DARTS_TOTAL_MATCHES"), 750)
+    Stats.SetInt(J(MPX() .. "SHOOTINGRANGE_TOTAL_MATCH"), 800)
+    Stats.SetInt(J(MPX() .. "BJ_WINS"), 500)
+    Stats.SetInt(J(MPX() .. "BJ_LOST"), 250)
+    Stats.SetInt(J(MPX() .. "RACE_2_POINT_WINS"), 500)
+    Stats.SetInt(J(MPX() .. "RACE_2_POINT_LOST"), 250)
+    Stats.SetInt(J(MPX() .. "KILLS_PLAYERS"), 3593)
+    Stats.SetInt(J(MPX() .. "DEATHS_PLAYER"), 1002)
+    Stats.SetInt(J(MPX() .. "MISSIONS_CREATED"), 500)
+    Stats.SetInt(J(MPX() .. "LTS_CREATED"), 500)
+    Stats.SetInt(J(MPX() .. "FM_MISSION_LIKES"), 1500)
 end)
 
-AUMMain:add_button("General", function()
-    stats.set_bool(MPX() .. "AWD_FM25DIFFERENTDM", true)
-    stats.set_int(MPX() .. "CR_DIFFERENT_DM", 25)
-    stats.set_bool(MPX() .. "AWD_FM25DIFFERENTRACES", true)
-    stats.set_int(MPX() .. "CR_DIFFERENT_RACES", 25)
-    stats.set_int(MPX() .. "AWD_PARACHUTE_JUMPS_20M", 25)
-    stats.set_int(MPX() .. "AWD_PARACHUTE_JUMPS_50M", 25)
-    stats.set_int(MPX() .. "AWD_FMBASEJMP", 25)
-    stats.set_bool(MPX() .. "AWD_FMATTGANGHQ", true)
-    stats.set_bool(MPX() .. "AWD_FM6DARTCHKOUT", true)
-    stats.set_int(MPX() .. "AWD_FM_GOLF_BIRDIES", 25)
-    stats.set_bool(MPX() .. "AWD_FM_GOLF_HOLE_IN_1", true)
-    stats.set_int(MPX() .. "AWD_FM_TENNIS_ACE", 25)
-    stats.set_int(MPX() .. "AWD_FMBBETWIN", 50000)
-    stats.set_int(MPX() .. "AWD_LAPDANCES", 25)
-    stats.set_int(MPX() .. "AWD_FMCRATEDROPS", 25)
-    stats.set_bool(MPX() .. "AWD_FMPICKUPDLCCRATE1ST", true)
-    stats.set_bool(MPX() .. "AWD_FM25DIFITEMSCLOTHES", true)
-    stats.set_int(MPX() .. "AWD_NO_HAIRCUTS", 25)
-    stats.set_bool(MPX() .. "AWD_BUY_EVERY_GUN", true)
-    stats.set_bool(MPX() .. "AWD_DRIVELESTERCAR5MINS", true)
-    stats.set_bool(MPX() .. "AWD_FMTATTOOALLBODYPARTS", true)
-    stats.set_int(MPX() .. "AWD_DROPOFF_CAP_PACKAGES", 100)
-    stats.set_int(MPX() .. "AWD_PICKUP_CAP_PACKAGES", 100)
-    stats.set_int(MPX() .. "AWD_MENTALSTATE_TO_NORMAL", 50)
-    stats.set_bool(MPX() .. "AWD_STORE_20_CAR_IN_GARAGES", true)
-    stats.set_int(MPX() .. "AWD_TRADE_IN_YOUR_PROPERTY", 25)
-    stats.set_bool(MPX() .. "AWD_DAILYOBJWEEKBONUS", true)
-    stats.set_bool(MPX() .. "AWD_DAILYOBJMONTHBONUS", true)
-    stats.set_int(MPX() .. "AWD_FM_CR_DM_MADE", 25)
-    stats.set_int(MPX() .. "AWD_FM_CR_RACES_MADE", 25)
-    stats.set_int(MPX() .. "AWD_FM_CR_PLAYED_BY_PEEP", 1598)
-    stats.set_int(MPX() .. "AWD_FM_CR_MISSION_SCORE", 100)
-    stats.set_bool(MPX() .. "CL_DRIVE_RALLY", true)
-    stats.set_bool(MPX() .. "CL_PLAY_GTA_RACE", true)
-    stats.set_bool(MPX() .. "CL_PLAY_BOAT_RACE", true)
-    stats.set_bool(MPX() .. "CL_PLAY_FOOT_RACE", true)
-    stats.set_bool(MPX() .. "CL_PLAY_TEAM_DM", true)
-    stats.set_bool(MPX() .. "CL_PLAY_VEHICLE_DM", true)
-    stats.set_bool(MPX() .. "CL_PLAY_MISSION_CONTACT", true)
-    stats.set_bool(MPX() .. "CL_PLAY_A_PLAYLIST", true)
-    stats.set_bool(MPX() .. "CL_PLAY_POINT_TO_POINT", true)
-    stats.set_bool(MPX() .. "CL_PLAY_ONE_ON_ONE_DM", true)
-    stats.set_bool(MPX() .. "CL_PLAY_ONE_ON_ONE_RACE", true)
-    stats.set_bool(MPX() .. "CL_SURV_A_BOUNTY", true)
-    stats.set_bool(MPX() .. "CL_SET_WANTED_LVL_ON_PLAY", true)
-    stats.set_bool(MPX() .. "CL_GANG_BACKUP_GANGS", true)
-    stats.set_bool(MPX() .. "CL_GANG_BACKUP_LOST", true)
-    stats.set_bool(MPX() .. "CL_GANG_BACKUP_VAGOS", true)
-    stats.set_bool(MPX() .. "CL_CALL_MERCENARIES", true)
-    stats.set_bool(MPX() .. "CL_PHONE_MECH_DROP_CAR", true)
-    stats.set_bool(MPX() .. "CL_GONE_OFF_RADAR", true)
-    stats.set_bool(MPX() .. "CL_FILL_TITAN", true)
-    stats.set_bool(MPX() .. "CL_MOD_CAR_USING_APP", true)
-    stats.set_bool(MPX() .. "CL_MOD_CAR_USING_APP", true)
-    stats.set_bool(MPX() .. "CL_BUY_INSURANCE", true)
-    stats.set_bool(MPX() .. "CL_BUY_GARAGE", true)
-    stats.set_bool(MPX() .. "CL_ENTER_FRIENDS_HOUSE", true)
-    stats.set_bool(MPX() .. "CL_CALL_STRIPPER_HOUSE", true)
-    stats.set_bool(MPX() .. "CL_CALL_FRIEND", true)
-    stats.set_bool(MPX() .. "CL_SEND_FRIEND_REQUEST", true)
-    stats.set_bool(MPX() .. "CL_W_WANTED_PLAYER_TV", true)
-    stats.set_bool(MPX() .. "FM_INTRO_CUT_DONE", true)
-    stats.set_bool(MPX() .. "FM_INTRO_MISS_DONE", true)
-    stats.set_bool(MPX() .. "SHOOTINGRANGE_SEEN_TUT", true)
-    stats.set_bool(MPX() .. "TENNIS_SEEN_TUTORIAL", true)
-    stats.set_bool(MPX() .. "DARTS_SEEN_TUTORIAL", true)
-    stats.set_bool(MPX() .. "ARMWRESTLING_SEEN_TUTORIAL", true)
-    stats.set_bool(MPX() .. "HAS_WATCHED_BENNY_CUTSCE", true)
-    stats.set_int(MPX() .. "NO_PHOTOS_TAKEN", 100)
-    stats.set_int(MPX() .. "BOUNTSONU", 200)
-    stats.set_int(MPX() .. "BOUNTPLACED", 500)
-    stats.set_int(MPX() .. "BETAMOUNT", 500)
-    stats.set_int(MPX() .. "CRARMWREST", 500)
-    stats.set_int(MPX() .. "CRBASEJUMP", 500)
-    stats.set_int(MPX() .. "CRDARTS", 500)
-    stats.set_int(MPX() .. "CRDM", 500)
-    stats.set_int(MPX() .. "CRGANGHIDE", 500)
-    stats.set_int(MPX() .. "CRGOLF", 500)
-    stats.set_int(MPX() .. "CRHORDE", 500)
-    stats.set_int(MPX() .. "CRMISSION", 500)
-    stats.set_int(MPX() .. "CRSHOOTRNG", 500)
-    stats.set_int(MPX() .. "CRTENNIS", 500)
-    stats.set_int(MPX() .. "NO_TIMES_CINEMA", 500)
+AUMMain:Button("General", function()
+    Stats.SetBool(J(MPX() .. "AWD_FM25DIFFERENTDM"), 1)
+    Stats.SetInt(J(MPX() .. "CR_DIFFERENT_DM"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_FM25DIFFERENTRACES"), 1)
+    Stats.SetInt(J(MPX() .. "CR_DIFFERENT_RACES"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_PARACHUTE_JUMPS_20M"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_PARACHUTE_JUMPS_50M"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FMBASEJMP"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_FMATTGANGHQ"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FM6DARTCHKOUT"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_FM_GOLF_BIRDIES"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_FM_GOLF_HOLE_IN_1"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_FM_TENNIS_ACE"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FMBBETWIN"), 50000)
+    Stats.SetInt(J(MPX() .. "AWD_LAPDANCES"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FMCRATEDROPS"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_FMPICKUPDLCCRATE1ST"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FM25DIFITEMSCLOTHES"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_NO_HAIRCUTS"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_BUY_EVERY_GUN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_DRIVELESTERCAR5MINS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FMTATTOOALLBODYPARTS"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_DROPOFF_CAP_PACKAGES"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_PICKUP_CAP_PACKAGES"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_MENTALSTATE_TO_NORMAL"), 50)
+    Stats.SetBool(J(MPX() .. "AWD_STORE_20_CAR_IN_GARAGES"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_TRADE_IN_YOUR_PROPERTY"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_DAILYOBJWEEKBONUS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_DAILYOBJMONTHBONUS"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_FM_CR_DM_MADE"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FM_CR_RACES_MADE"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FM_CR_PLAYED_BY_PEEP"), 1598)
+    Stats.SetInt(J(MPX() .. "AWD_FM_CR_MISSION_SCORE"), 100)
+    Stats.SetBool(J(MPX() .. "CL_DRIVE_RALLY"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PLAY_GTA_RACE"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PLAY_BOAT_RACE"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PLAY_FOOT_RACE"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PLAY_TEAM_DM"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PLAY_VEHICLE_DM"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PLAY_MISSION_CONTACT"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PLAY_A_PLAYLIST"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PLAY_POINT_TO_POINT"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PLAY_ONE_ON_ONE_DM"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PLAY_ONE_ON_ONE_RACE"), 1)
+    Stats.SetBool(J(MPX() .. "CL_SURV_A_BOUNTY"), 1)
+    Stats.SetBool(J(MPX() .. "CL_SET_WANTED_LVL_ON_PLAY"), 1)
+    Stats.SetBool(J(MPX() .. "CL_GANG_BACKUP_GANGS"), 1)
+    Stats.SetBool(J(MPX() .. "CL_GANG_BACKUP_LOST"), 1)
+    Stats.SetBool(J(MPX() .. "CL_GANG_BACKUP_VAGOS"), 1)
+    Stats.SetBool(J(MPX() .. "CL_CALL_MERCENARIES"), 1)
+    Stats.SetBool(J(MPX() .. "CL_PHONE_MECH_DROP_CAR"), 1)
+    Stats.SetBool(J(MPX() .. "CL_GONE_OFF_RADAR"), 1)
+    Stats.SetBool(J(MPX() .. "CL_FILL_TITAN"), 1)
+    Stats.SetBool(J(MPX() .. "CL_MOD_CAR_USING_APP"), 1)
+    Stats.SetBool(J(MPX() .. "CL_MOD_CAR_USING_APP"), 1)
+    Stats.SetBool(J(MPX() .. "CL_BUY_INSURANCE"), 1)
+    Stats.SetBool(J(MPX() .. "CL_BUY_GARAGE"), 1)
+    Stats.SetBool(J(MPX() .. "CL_ENTER_FRIENDS_HOUSE"), 1)
+    Stats.SetBool(J(MPX() .. "CL_CALL_STRIPPER_HOUSE"), 1)
+    Stats.SetBool(J(MPX() .. "CL_CALL_FRIEND"), 1)
+    Stats.SetBool(J(MPX() .. "CL_SEND_FRIEND_REQUEST"), 1)
+    Stats.SetBool(J(MPX() .. "CL_W_WANTED_PLAYER_TV"), 1)
+    Stats.SetBool(J(MPX() .. "FM_INTRO_CUT_DONE"), 1)
+    Stats.SetBool(J(MPX() .. "FM_INTRO_MISS_DONE"), 1)
+    Stats.SetBool(J(MPX() .. "SHOOTINGRANGE_SEEN_TUT"), 1)
+    Stats.SetBool(J(MPX() .. "TENNIS_SEEN_TUTORIAL"), 1)
+    Stats.SetBool(J(MPX() .. "DARTS_SEEN_TUTORIAL"), 1)
+    Stats.SetBool(J(MPX() .. "ARMWRESTLING_SEEN_TUTORIAL"), 1)
+    Stats.SetBool(J(MPX() .. "HAS_WATCHED_BENNY_CUTSCE"), 1)
+    Stats.SetInt(J(MPX() .. "NO_PHOTOS_TAKEN"), 100)
+    Stats.SetInt(J(MPX() .. "BOUNTSONU"), 200)
+    Stats.SetInt(J(MPX() .. "BOUNTPLACED"), 500)
+    Stats.SetInt(J(MPX() .. "BETAMOUNT"), 500)
+    Stats.SetInt(J(MPX() .. "CRARMWREST"), 500)
+    Stats.SetInt(J(MPX() .. "CRBASEJUMP"), 500)
+    Stats.SetInt(J(MPX() .. "CRDARTS"), 500)
+    Stats.SetInt(J(MPX() .. "CRDM"), 500)
+    Stats.SetInt(J(MPX() .. "CRGANGHIDE"), 500)
+    Stats.SetInt(J(MPX() .. "CRGOLF"), 500)
+    Stats.SetInt(J(MPX() .. "CRHORDE"), 500)
+    Stats.SetInt(J(MPX() .. "CRMISSION"), 500)
+    Stats.SetInt(J(MPX() .. "CRSHOOTRNG"), 500)
+    Stats.SetInt(J(MPX() .. "CRTENNIS"), 500)
+    Stats.SetInt(J(MPX() .. "NO_TIMES_CINEMA"), 500)
 end)
 
-AUMMain:add_button("Weapons", function()
-    stats.set_int(MPX() .. "CHAR_WEAP_UNLOCKED", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_UNLOCKED2", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_UNLOCKED3", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_UNLOCKED4", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_ADDON_1_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_ADDON_2_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_ADDON_3_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_ADDON_4_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_FREE", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_FREE2", -1)
-    stats.set_int(MPX() .. "CHAR_FM_WEAP_FREE", -1)
-    stats.set_int(MPX() .. "CHAR_FM_WEAP_FREE2", -1)
-    stats.set_int(MPX() .. "CHAR_FM_WEAP_FREE3", -1)
-    stats.set_int(MPX() .. "CHAR_FM_WEAP_FREE4", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_PURCHASED", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_PURCHASED2", -1)
-    stats.set_int(MPX() .. "WEAPON_PICKUP_BITSET", -1)
-    stats.set_int(MPX() .. "WEAPON_PICKUP_BITSET2", -1)
-    stats.set_int(MPX() .. "CHAR_FM_WEAP_UNLOCKED", -1)
-    stats.set_int(MPX() .. "NO_WEAPONS_UNLOCK", -1)
-    stats.set_int(MPX() .. "NO_WEAPON_MODS_UNLOCK", -1)
-    stats.set_int(MPX() .. "NO_WEAPON_CLR_MOD_UNLOCK", -1)
-    stats.set_int(MPX() .. "CHAR_FM_WEAP_UNLOCKED2", -1)
-    stats.set_int(MPX() .. "CHAR_FM_WEAP_UNLOCKED3", -1)
-    stats.set_int(MPX() .. "CHAR_FM_WEAP_UNLOCKED4", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_1_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_2_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_3_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_4_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_5_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_6_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_7_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_8_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_9_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_10_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_11_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_12_FM_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_KIT_FM_PURCHASE", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_FM_PURCHASE", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_FM_PURCHASE2", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_FM_PURCHASE3", -1)
-    stats.set_int(MPX() .. "CHAR_WEAP_FM_PURCHASE4", -1)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_1_WHITE", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_1_RED", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_1_BLUE", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_2_WHITE", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_2_RED", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_2_BLUE", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_3_WHITE", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_3_RED", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_3_BLUE", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_4_WHITE", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_4_RED", 1000)
-    stats.set_int(MPX() .. "FIREWORK_TYPE_4_BLUE", 1000)
-    stats.set_int(MPX() .. "WEAP_FM_ADDON_PURCH", -1)
+AUMMain:Button("Weapons", function()
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_UNLOCKED"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_UNLOCKED2"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_UNLOCKED3"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_UNLOCKED4"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_ADDON_1_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_ADDON_2_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_ADDON_3_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_ADDON_4_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_FREE"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_FREE2"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_FM_WEAP_FREE"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_FM_WEAP_FREE2"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_FM_WEAP_FREE3"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_FM_WEAP_FREE4"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_PURCHASED"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_PURCHASED2"), -1)
+    Stats.SetInt(J(MPX() .. "WEAPON_PICKUP_BITSET"), -1)
+    Stats.SetInt(J(MPX() .. "WEAPON_PICKUP_BITSET2"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_FM_WEAP_UNLOCKED"), -1)
+    Stats.SetInt(J(MPX() .. "NO_WEAPONS_UNLOCK"), -1)
+    Stats.SetInt(J(MPX() .. "NO_WEAPON_MODS_UNLOCK"), -1)
+    Stats.SetInt(J(MPX() .. "NO_WEAPON_CLR_MOD_UNLOCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_FM_WEAP_UNLOCKED2"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_FM_WEAP_UNLOCKED3"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_FM_WEAP_UNLOCKED4"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_1_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_2_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_3_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_4_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_5_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_6_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_7_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_8_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_9_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_10_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_11_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_12_FM_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_KIT_FM_PURCHASE"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_FM_PURCHASE"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_FM_PURCHASE2"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_FM_PURCHASE3"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_WEAP_FM_PURCHASE4"), -1)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_1_WHITE"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_1_RED"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_1_BLUE"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_2_WHITE"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_2_RED"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_2_BLUE"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_3_WHITE"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_3_RED"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_3_BLUE"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_4_WHITE"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_4_RED"), 1000)
+    Stats.SetInt(J(MPX() .. "FIREWORK_TYPE_4_BLUE"), 1000)
+    Stats.SetInt(J(MPX() .. "WEAP_FM_ADDON_PURCH"), -1)
     for i = 2, 19 do
-        stats.set_int(MPX() .. "WEAP_FM_ADDON_PURCH" .. i, -1)
+        Stats.SetInt(J(MPX() .. "WEAP_FM_ADDON_PURCH" .. i), -1)
     end
     for j = 1, 19 do
-        stats.set_int(MPX() .. "CHAR_FM_WEAP_ADDON_" .. j .. "_UNLCK", -1)
+        Stats.SetInt(J(MPX() .. "CHAR_FM_WEAP_ADDON_" .. j .. "_UNLCK"), -1)
     end
     for m = 1, 41 do
-        stats.set_int(MPX() .. "CHAR_KIT_" .. m .. "_FM_UNLCK", -1)
+        Stats.SetInt(J(MPX() .. "CHAR_KIT_" .. m .. "_FM_UNLCK"), -1)
     end
     for l = 2, 41 do
-        stats.set_int(MPX() .. "CHAR_KIT_FM_PURCHASE" .. l, -1)
+        Stats.SetInt(J(MPX() .. "CHAR_KIT_FM_PURCHASE" .. l), -1)
     end
 end)
 
-AUMMain:add_button("Crimes", function()
-    stats.set_int(MPX() .. "AWD_FMTIME5STARWANTED", 120)
-    stats.set_int(MPX() .. "AWD_5STAR_WANTED_AVOIDANCE", 50)
-    stats.set_int(MPX() .. "AWD_FMSHOOTDOWNCOPHELI", 25)
-    stats.set_int(MPX() .. "AWD_VEHICLES_JACKEDR", 500)
-    stats.set_int(MPX() .. "AWD_SECURITY_CARS_ROBBED", 25)
-    stats.set_int(MPX() .. "AWD_HOLD_UP_SHOPS", 20)
-    stats.set_int(MPX() .. "AWD_ODISTRACTCOPSNOEATH", 25)
-    stats.set_int(MPX() .. "AWD_ENEMYDRIVEBYKILLS", 100)
-    stats.set_int(MPX() .. "CHAR_WANTED_LEVEL_TIME5STAR", 18000000)
-    stats.set_int(MPX() .. "CARS_COPS_EXPLODED", 300)
-    stats.set_int(MPX() .. "BIKES_EXPLODED", 100)
-    stats.set_int(MPX() .. "BOATS_EXPLODED", 168)
-    stats.set_int(MPX() .. "HELIS_EXPLODED", 98)
-    stats.set_int(MPX() .. "PLANES_EXPLODED", 138)
-    stats.set_int(MPX() .. "QUADBIKE_EXPLODED", 50)
-    stats.set_int(MPX() .. "BICYCLE_EXPLODED", 48)
-    stats.set_int(MPX() .. "SUBMARINE_EXPLODED", 28)
-    stats.set_int(MPX() .. "TIRES_POPPED_BY_GUNSHOT", 500)
-    stats.set_int(MPX() .. "NUMBER_CRASHES_CARS", 300)
-    stats.set_int(MPX() .. "NUMBER_CRASHES_BIKES", 300)
-    stats.set_int(MPX() .. "BAILED_FROM_VEHICLE", 300)
-    stats.set_int(MPX() .. "NUMBER_CRASHES_QUADBIKES", 300)
-    stats.set_int(MPX() .. "NUMBER_STOLEN_COP_VEHICLE", 300)
-    stats.set_int(MPX() .. "NUMBER_STOLEN_CARS", 300)
-    stats.set_int(MPX() .. "NUMBER_STOLEN_BIKES", 300)
-    stats.set_int(MPX() .. "NUMBER_STOLEN_BOATS", 300)
-    stats.set_int(MPX() .. "NUMBER_STOLEN_HELIS", 300)
-    stats.set_int(MPX() .. "NUMBER_STOLEN_PLANES", 300)
-    stats.set_int(MPX() .. "NUMBER_STOLEN_QUADBIKES", 300)
-    stats.set_int(MPX() .. "NUMBER_STOLEN_BICYCLES", 300)
-    stats.set_int(MPX() .. "MC_CONTRIBUTION_POINTS", 1000)
-    stats.set_int(MPX() .. "MEMBERSMARKEDFORDEATH", 700)
-    stats.set_int(MPX() .. "MCKILLS", 500)
-    stats.set_int(MPX() .. "MCDEATHS", 700)
-    stats.set_int(MPX() .. "RIVALPRESIDENTKILLS", 700)
-    stats.set_int(MPX() .. "RIVALCEOANDVIPKILLS", 700)
-    stats.set_int(MPX() .. "CLUBHOUSECONTRACTSCOMPLETE", 700)
-    stats.set_int(MPX() .. "CLUBHOUSECONTRACTEARNINGS", 32698547)
-    stats.set_int(MPX() .. "CLUBCHALLENGESCOMPLETED", 700)
-    stats.set_int(MPX() .. "MEMBERCHALLENGESCOMPLETED", 700)
-    stats.set_int(MPX() .. "GHKILLS", 500)
-    stats.set_int(MPX() .. "HORDELVL", 10)
-    stats.set_int(MPX() .. "HORDKILLS", 500)
-    stats.set_int(MPX() .. "UNIQUECRATES", 500)
-    stats.set_int(MPX() .. "BJWINS", 500)
-    stats.set_int(MPX() .. "HORDEWINS", 500)
-    stats.set_int(MPX() .. "MCMWINS", 500)
-    stats.set_int(MPX() .. "GANGHIDWINS", 500)
-    stats.set_int(MPX() .. "KILLS", 800)
-    stats.set_int(MPX() .. "HITS_PEDS_VEHICLES", 100)
-    stats.set_int(MPX() .. "SHOTS", 1000)
-    stats.set_int(MPX() .. "HEADSHOTS", 100)
-    stats.set_int(MPX() .. "KILLS_ARMED", 650)
-    stats.set_int(MPX() .. "SUCCESSFUL_COUNTERS", 100)
-    stats.set_int(MPX() .. "KILLS_PLAYERS", 3593)
-    stats.set_int(MPX() .. "DEATHS_PLAYER", 1002)
-    stats.set_int(MPX() .. "KILLS_STEALTH", 100)
-    stats.set_int(MPX() .. "KILLS_INNOCENTS", 500)
-    stats.set_int(MPX() .. "KILLS_ENEMY_GANG_MEMBERS", 500)
-    stats.set_int(MPX() .. "KILLS_FRIENDLY_GANG_MEMBERS", 500)
-    stats.set_int(MPX() .. "KILLS_BY_OTHERS", 100)
-    stats.set_int(MPX() .. "BIGGEST_VICTIM_KILLS", 500)
-    stats.set_int(MPX() .. "ARCHENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "KILLS_COP", 4500)
-    stats.set_int(MPX() .. "KILLS_SWAT", 500)
-    stats.set_int(MPX() .. "STARS_ATTAINED", 5000)
-    stats.set_int(MPX() .. "STARS_EVADED", 4000)
-    stats.set_int(MPX() .. "VEHEXPORTED", 500)
-    stats.set_int(MPX() .. "TOTAL_NO_SHOPS_HELD_UP", 100)
-    stats.set_int(MPX() .. "CR_GANGATTACK_CITY", 1000)
-    stats.set_int(MPX() .. "CR_GANGATTACK_COUNTRY", 1000)
-    stats.set_int(MPX() .. "CR_GANGATTACK_LOST", 1000)
-    stats.set_int(MPX() .. "CR_GANGATTACK_VAGOS", 1000)
-    stats.set_int(MPX() .. "NO_NON_CONTRACT_RACE_WIN", 500)
-    stats.set_int(MPX() .. "DIED_IN_DROWNING", 833)
-    stats.set_int(MPX() .. "DIED_IN_DROWNINGINVEHICLE", 833)
-    stats.set_int(MPX() .. "DIED_IN_EXPLOSION", 833)
-    stats.set_int(MPX() .. "DIED_IN_FALL", 833)
-    stats.set_int(MPX() .. "DIED_IN_FIRE", 833)
-    stats.set_int(MPX() .. "DIED_IN_ROAD", 833)
-    stats.set_int(MPX() .. "GRENADE_ENEMY_KILLS", 50)
-    stats.set_int(MPX() .. "MICROSMG_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "SMG_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "ASLTSMG_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "CRBNRIFLE_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "ADVRIFLE_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "MG_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "CMBTMG_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "ASLTMG_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "RPG_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "PISTOL_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "PLAYER_HEADSHOTS", 500)
-    stats.set_int(MPX() .. "SAWNOFF_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "STKYBMB_ENEMY_KILLS", 50)
-    stats.set_int(MPX() .. "UNARMED_ENEMY_KILLS", 50)
-    stats.set_int(MPX() .. "SNIPERRFL_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "HVYSNIPER_ENEMY_KILLS", 500)
+AUMMain:Button("Crimes", function()
+    Stats.SetInt(J(MPX() .. "AWD_FMTIME5STARWANTED"), 120)
+    Stats.SetInt(J(MPX() .. "AWD_5STAR_WANTED_AVOIDANCE"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_FMSHOOTDOWNCOPHELI"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_VEHICLES_JACKEDR"), 500)
+    Stats.SetInt(J(MPX() .. "AWD_SECURITY_CARS_ROBBED"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_HOLD_UP_SHOPS"), 20)
+    Stats.SetInt(J(MPX() .. "AWD_ODISTRACTCOPSNOEATH"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_ENEMYDRIVEBYKILLS"), 100)
+    Stats.SetInt(J(MPX() .. "CHAR_WANTED_LEVEL_TIME5STAR"), 18000000)
+    Stats.SetInt(J(MPX() .. "CARS_COPS_EXPLODED"), 300)
+    Stats.SetInt(J(MPX() .. "BIKES_EXPLODED"), 100)
+    Stats.SetInt(J(MPX() .. "BOATS_EXPLODED"), 168)
+    Stats.SetInt(J(MPX() .. "HELIS_EXPLODED"), 98)
+    Stats.SetInt(J(MPX() .. "PLANES_EXPLODED"), 138)
+    Stats.SetInt(J(MPX() .. "QUADBIKE_EXPLODED"), 50)
+    Stats.SetInt(J(MPX() .. "BICYCLE_EXPLODED"), 48)
+    Stats.SetInt(J(MPX() .. "SUBMARINE_EXPLODED"), 28)
+    Stats.SetInt(J(MPX() .. "TIRES_POPPED_BY_GUNSHOT"), 500)
+    Stats.SetInt(J(MPX() .. "NUMBER_CRASHES_CARS"), 300)
+    Stats.SetInt(J(MPX() .. "NUMBER_CRASHES_BIKES"), 300)
+    Stats.SetInt(J(MPX() .. "BAILED_FROM_VEHICLE"), 300)
+    Stats.SetInt(J(MPX() .. "NUMBER_CRASHES_QUADBIKES"), 300)
+    Stats.SetInt(J(MPX() .. "NUMBER_STOLEN_COP_VEHICLE"), 300)
+    Stats.SetInt(J(MPX() .. "NUMBER_STOLEN_CARS"), 300)
+    Stats.SetInt(J(MPX() .. "NUMBER_STOLEN_BIKES"), 300)
+    Stats.SetInt(J(MPX() .. "NUMBER_STOLEN_BOATS"), 300)
+    Stats.SetInt(J(MPX() .. "NUMBER_STOLEN_HELIS"), 300)
+    Stats.SetInt(J(MPX() .. "NUMBER_STOLEN_PLANES"), 300)
+    Stats.SetInt(J(MPX() .. "NUMBER_STOLEN_QUADBIKES"), 300)
+    Stats.SetInt(J(MPX() .. "NUMBER_STOLEN_BICYCLES"), 300)
+    Stats.SetInt(J(MPX() .. "MC_CONTRIBUTION_POINTS"), 1000)
+    Stats.SetInt(J(MPX() .. "MEMBERSMARKEDFORDEATH"), 700)
+    Stats.SetInt(J(MPX() .. "MCKILLS"), 500)
+    Stats.SetInt(J(MPX() .. "MCDEATHS"), 700)
+    Stats.SetInt(J(MPX() .. "RIVALPRESIDENTKILLS"), 700)
+    Stats.SetInt(J(MPX() .. "RIVALCEOANDVIPKILLS"), 700)
+    Stats.SetInt(J(MPX() .. "CLUBHOUSECONTRACTSCOMPLETE"), 700)
+    Stats.SetInt(J(MPX() .. "CLUBHOUSECONTRACTEARNINGS"), 32698547)
+    Stats.SetInt(J(MPX() .. "CLUBCHALLENGESCOMPLETED"), 700)
+    Stats.SetInt(J(MPX() .. "MEMBERCHALLENGESCOMPLETED"), 700)
+    Stats.SetInt(J(MPX() .. "GHKILLS"), 500)
+    Stats.SetInt(J(MPX() .. "HORDELVL"), 10)
+    Stats.SetInt(J(MPX() .. "HORDKILLS"), 500)
+    Stats.SetInt(J(MPX() .. "UNIQUECRATES"), 500)
+    Stats.SetInt(J(MPX() .. "BJWINS"), 500)
+    Stats.SetInt(J(MPX() .. "HORDEWINS"), 500)
+    Stats.SetInt(J(MPX() .. "MCMWINS"), 500)
+    Stats.SetInt(J(MPX() .. "GANGHIDWINS"), 500)
+    Stats.SetInt(J(MPX() .. "KILLS"), 800)
+    Stats.SetInt(J(MPX() .. "HITS_PEDS_VEHICLES"), 100)
+    Stats.SetInt(J(MPX() .. "SHOTS"), 1000)
+    Stats.SetInt(J(MPX() .. "HEADSHOTS"), 100)
+    Stats.SetInt(J(MPX() .. "KILLS_ARMED"), 650)
+    Stats.SetInt(J(MPX() .. "SUCCESSFUL_COUNTERS"), 100)
+    Stats.SetInt(J(MPX() .. "KILLS_PLAYERS"), 3593)
+    Stats.SetInt(J(MPX() .. "DEATHS_PLAYER"), 1002)
+    Stats.SetInt(J(MPX() .. "KILLS_STEALTH"), 100)
+    Stats.SetInt(J(MPX() .. "KILLS_INNOCENTS"), 500)
+    Stats.SetInt(J(MPX() .. "KILLS_ENEMY_GANG_MEMBERS"), 500)
+    Stats.SetInt(J(MPX() .. "KILLS_FRIENDLY_GANG_MEMBERS"), 500)
+    Stats.SetInt(J(MPX() .. "KILLS_BY_OTHERS"), 100)
+    Stats.SetInt(J(MPX() .. "BIGGEST_VICTIM_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "ARCHENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "KILLS_COP"), 4500)
+    Stats.SetInt(J(MPX() .. "KILLS_SWAT"), 500)
+    Stats.SetInt(J(MPX() .. "STARS_ATTAINED"), 5000)
+    Stats.SetInt(J(MPX() .. "STARS_EVADED"), 4000)
+    Stats.SetInt(J(MPX() .. "VEHEXPORTED"), 500)
+    Stats.SetInt(J(MPX() .. "TOTAL_NO_SHOPS_HELD_UP"), 100)
+    Stats.SetInt(J(MPX() .. "CR_GANGATTACK_CITY"), 1000)
+    Stats.SetInt(J(MPX() .. "CR_GANGATTACK_COUNTRY"), 1000)
+    Stats.SetInt(J(MPX() .. "CR_GANGATTACK_LOST"), 1000)
+    Stats.SetInt(J(MPX() .. "CR_GANGATTACK_VAGOS"), 1000)
+    Stats.SetInt(J(MPX() .. "NO_NON_CONTRACT_RACE_WIN"), 500)
+    Stats.SetInt(J(MPX() .. "DIED_IN_DROWNING"), 833)
+    Stats.SetInt(J(MPX() .. "DIED_IN_DROWNINGINVEHICLE"), 833)
+    Stats.SetInt(J(MPX() .. "DIED_IN_EXPLOSION"), 833)
+    Stats.SetInt(J(MPX() .. "DIED_IN_FALL"), 833)
+    Stats.SetInt(J(MPX() .. "DIED_IN_FIRE"), 833)
+    Stats.SetInt(J(MPX() .. "DIED_IN_ROAD"), 833)
+    Stats.SetInt(J(MPX() .. "GRENADE_ENEMY_KILLS"), 50)
+    Stats.SetInt(J(MPX() .. "MICROSMG_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "SMG_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "ASLTSMG_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "CRBNRIFLE_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "ADVRIFLE_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "MG_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "CMBTMG_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "ASLTMG_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "RPG_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "PISTOL_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "PLAYER_HEADSHOTS"), 500)
+    Stats.SetInt(J(MPX() .. "SAWNOFF_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "STKYBMB_ENEMY_KILLS"), 50)
+    Stats.SetInt(J(MPX() .. "UNARMED_ENEMY_KILLS"), 50)
+    Stats.SetInt(J(MPX() .. "SNIPERRFL_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "HVYSNIPER_ENEMY_KILLS"), 500)
 end)
 
-AUMMain:add_button("Vehicles", function()
-    stats.set_int(MPX() .. "AWD_50_VEHICLES_BLOWNUP", 500)
-    stats.set_int(MPX() .. "CARS_EXPLODED", 500)
-    stats.set_int(MPX() .. "AWD_CAR_EXPORT", 100)
-    stats.set_int(MPX() .. "AWD_FMDRIVEWITHOUTCRASH", 30)
-    stats.set_int(MPX() .. "AWD_PASSENGERTIME", 4)
-    stats.set_int(MPX() .. "AWD_TIME_IN_HELICOPTER", 4)
-    stats.set_int(MPX() .. "AWD_VEHICLE_JUMP_OVER_40M", 25)
-    stats.set_int(MPX() .. "MOST_FLIPS_IN_ONE_JUMP", 5)
-    stats.set_int(MPX() .. "MOST_SPINS_IN_ONE_JUMP", 5)
-    stats.set_int(MPX() .. "CHAR_FM_VEHICLE_1_UNLCK", -1)
-    stats.set_int(MPX() .. "CHAR_FM_VEHICLE_2_UNLCK", -1)
-    stats.set_int(MPX() .. "NO_CARS_REPAIR", 1000)
-    stats.set_int(MPX() .. "VEHICLES_SPRAYED", 500)
-    stats.set_int(MPX() .. "NUMBER_NEAR_MISS_NOCRASH", 500)
-    stats.set_int(MPX() .. "USJS_FOUND", 50)
-    stats.set_int(MPX() .. "USJS_COMPLETED", 50)
-    stats.set_int(MPX() .. "USJS_TOTAL_COMPLETED", 50)
-    stats.set_int(MPX() .. "CRDEADLINE", 5)
-    stats.set_int(MPX() .. "FAVOUTFITBIKETIMECURRENT", 2069146067)
-    stats.set_int(MPX() .. "FAVOUTFITBIKETIME1ALLTIME", 2069146067)
-    stats.set_int(MPX() .. "FAVOUTFITBIKETYPECURRENT", 2069146067)
-    stats.set_int(MPX() .. "FAVOUTFITBIKETYPEALLTIME", 2069146067)
-    stats.set_int(MPX() .. "LONGEST_WHEELIE_DIST", 1000)
-    stats.set_int(MPX() .. "RACES_WON", 50)
-    stats.set_int(MPX() .. "COUNT_HOTRING_RACE", 20)
-    stats.set_bool(MPX() .. "AWD_FMFURTHESTWHEELIE", true)
-    stats.set_bool(MPX() .. "AWD_FMFULLYMODDEDCAR", true)
+AUMMain:Button("Vehicles", function()
+    Stats.SetInt(J(MPX() .. "AWD_50_VEHICLES_BLOWNUP"), 500)
+    Stats.SetInt(J(MPX() .. "CARS_EXPLODED"), 500)
+    Stats.SetInt(J(MPX() .. "AWD_CAR_EXPORT"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_FMDRIVEWITHOUTCRASH"), 30)
+    Stats.SetInt(J(MPX() .. "AWD_PASSENGERTIME"), 4)
+    Stats.SetInt(J(MPX() .. "AWD_TIME_IN_HELICOPTER"), 4)
+    Stats.SetInt(J(MPX() .. "AWD_VEHICLE_JUMP_OVER_40M"), 25)
+    Stats.SetInt(J(MPX() .. "MOST_FLIPS_IN_ONE_JUMP"), 5)
+    Stats.SetInt(J(MPX() .. "MOST_SPINS_IN_ONE_JUMP"), 5)
+    Stats.SetInt(J(MPX() .. "CHAR_FM_VEHICLE_1_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "CHAR_FM_VEHICLE_2_UNLCK"), -1)
+    Stats.SetInt(J(MPX() .. "NO_CARS_REPAIR"), 1000)
+    Stats.SetInt(J(MPX() .. "VEHICLES_SPRAYED"), 500)
+    Stats.SetInt(J(MPX() .. "NUMBER_NEAR_MISS_NOCRASH"), 500)
+    Stats.SetInt(J(MPX() .. "USJS_FOUND"), 50)
+    Stats.SetInt(J(MPX() .. "USJS_COMPLETED"), 50)
+    Stats.SetInt(J(MPX() .. "USJS_TOTAL_COMPLETED"), 50)
+    Stats.SetInt(J(MPX() .. "CRDEADLINE"), 5)
+    Stats.SetInt(J(MPX() .. "FAVOUTFITBIKETIMECURRENT"), 2069146067)
+    Stats.SetInt(J(MPX() .. "FAVOUTFITBIKETIME1ALLTIME"), 2069146067)
+    Stats.SetInt(J(MPX() .. "FAVOUTFITBIKETYPECURRENT"), 2069146067)
+    Stats.SetInt(J(MPX() .. "FAVOUTFITBIKETYPEALLTIME"), 2069146067)
+    Stats.SetInt(J(MPX() .. "LONGEST_WHEELIE_DIST"), 1000)
+    Stats.SetInt(J(MPX() .. "RACES_WON"), 50)
+    Stats.SetInt(J(MPX() .. "COUNT_HOTRING_RACE"), 20)
+    Stats.SetBool(J(MPX() .. "AWD_FMFURTHESTWHEELIE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FMFULLYMODDEDCAR"), 1)
 end)
 
-AUMMain:add_button("Combat", function()
-    stats.set_int(MPX() .. "AWD_100_HEADSHOTS", 500)
-    stats.set_int(MPX() .. "AWD_FMOVERALLKILLS", 1000)
-    stats.set_int(MPX() .. "AWD_FMKILLBOUNTY", 25)
-    stats.set_int(MPX() .. "AWD_FM_DM_3KILLSAMEGUY", 50)
-    stats.set_int(MPX() .. "AWD_FM_DM_KILLSTREAK", 100)
-    stats.set_int(MPX() .. "AWD_FM_DM_STOLENKILL", 50)
-    stats.set_int(MPX() .. "AWD_FM_DM_TOTALKILLS", 500)
-    stats.set_bool(MPX() .. "AWD_FMKILLSTREAKSDM", true)
-    stats.set_bool(MPX() .. "AWD_FMMOSTKILLSGANGHIDE", true)
-    stats.set_bool(MPX() .. "AWD_FMMOSTKILLSSURVIVE", true)
-    stats.set_int(MPX() .. "AWD_FMREVENGEKILLSDM", 50)
-    stats.set_int(MPX() .. "AWD_KILL_CARRIER_CAPTURE", 100)
-    stats.set_int(MPX() .. "AWD_NIGHTVISION_KILLS", 100)
-    stats.set_int(MPX() .. "AWD_KILL_PSYCHOPATHS", 100)
-    stats.set_int(MPX() .. "AWD_TAKEDOWNSMUGPLANE", 50)
-    stats.set_int(MPX() .. "AWD_100_KILLS_PISTOL", 500)
-    stats.set_int(MPX() .. "AWD_100_KILLS_SMG", 500)
-    stats.set_int(MPX() .. "AWD_100_KILLS_SHOTGUN", 500)
-    stats.set_int(MPX() .. "ASLTRIFLE_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "AWD_100_KILLS_SNIPER", 500)
-    stats.set_int(MPX() .. "MG_ENEMY_KILLS", 500)
-    stats.set_int(MPX() .. "AWD_25_KILLS_STICKYBOMBS", 50)
-    stats.set_int(MPX() .. "AWD_50_KILLS_GRENADES", 50)
-    stats.set_int(MPX() .. "AWD_50_KILLS_ROCKETLAUNCH", 50)
-    stats.set_int(MPX() .. "AWD_20_KILLS_MELEE", 50)
-    stats.set_int(MPX() .. "AWD_CAR_BOMBS_ENEMY_KILLS", 25)
-    stats.set_int(MPX() .. "MELEEKILLS", 700)
-    stats.set_int(MPX() .. "HITS", 10000)
-    stats.set_int(MPX() .. "DEATHS", 499)
-    stats.set_int(MPX() .. "HIGHEST_SKITTLES", 900)
-    stats.set_int(MPX() .. "NUMBER_NEAR_MISS", 1000)
+AUMMain:Button("Combat", function()
+    Stats.SetInt(J(MPX() .. "AWD_100_HEADSHOTS"), 500)
+    Stats.SetInt(J(MPX() .. "AWD_FMOVERALLKILLS"), 1000)
+    Stats.SetInt(J(MPX() .. "AWD_FMKILLBOUNTY"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_FM_DM_3KILLSAMEGUY"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_FM_DM_KILLSTREAK"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_FM_DM_STOLENKILL"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_FM_DM_TOTALKILLS"), 500)
+    Stats.SetBool(J(MPX() .. "AWD_FMKILLSTREAKSDM"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FMMOSTKILLSGANGHIDE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FMMOSTKILLSSURVIVE"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_FMREVENGEKILLSDM"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_KILL_CARRIER_CAPTURE"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_NIGHTVISION_KILLS"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_KILL_PSYCHOPATHS"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_TAKEDOWNSMUGPLANE"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_100_KILLS_PISTOL"), 500)
+    Stats.SetInt(J(MPX() .. "AWD_100_KILLS_SMG"), 500)
+    Stats.SetInt(J(MPX() .. "AWD_100_KILLS_SHOTGUN"), 500)
+    Stats.SetInt(J(MPX() .. "ASLTRIFLE_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "AWD_100_KILLS_SNIPER"), 500)
+    Stats.SetInt(J(MPX() .. "MG_ENEMY_KILLS"), 500)
+    Stats.SetInt(J(MPX() .. "AWD_25_KILLS_STICKYBOMBS"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_50_KILLS_GRENADES"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_50_KILLS_ROCKETLAUNCH"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_20_KILLS_MELEE"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_CAR_BOMBS_ENEMY_KILLS"), 25)
+    Stats.SetInt(J(MPX() .. "MELEEKILLS"), 700)
+    Stats.SetInt(J(MPX() .. "HITS"), 10000)
+    Stats.SetInt(J(MPX() .. "DEATHS"), 499)
+    Stats.SetInt(J(MPX() .. "HIGHEST_SKITTLES"), 900)
+    Stats.SetInt(J(MPX() .. "NUMBER_NEAR_MISS"), 1000)
+end)
 end)
 
+Section("Heist Awards", function()
+HAUM = AUM:Tab("Heist")
 end)
 
-__uml_block("HAUM = AUM:add_tab(Heists Awards Unlocker Menu)", function()
-HAUM = AUM:add_tab("Heist")
-
-end)
-
-__uml_block("APARTMENTAUM = HAUM:add_tab(Apartment Heist Menu)", function()
+Section("Apartment Heist Awards", function()
 APARTMENTAUM = HAUM
 
-APARTMENTAUM:add_button("Unlock All Apartment Heists Awards", function()
-    stats.set_int(MPX() .. "AWD_FINISH_HEISTS", 50)
-    stats.set_int(MPX() .. "AWD_FINISH_HEIST_SETUP_JOB", 50)
-    stats.set_int(MPX() .. "AWD_COMPLETE_HEIST_NOT_DIE", -1)
-    stats.set_bool(MPX() .. "AWD_FINISH_HEIST_NO_DAMAGE", true)
-    stats.set_int(MPX() .. "AWD_WIN_GOLD_MEDAL_HEISTS", 25)
-    stats.set_int(MPX() .. "AWD_DO_HEIST_AS_MEMBER", 25)
-    stats.set_int(MPX() .. "AWD_DO_HEIST_AS_THE_LEADER", 25)
-    stats.set_bool(MPX() .. "AWD_SPLIT_HEIST_TAKE_EVENLY", true)
-    stats.set_bool(MPX() .. "AWD_ACTIVATE_2_PERSON_KEY", true)
-    stats.set_int(MPX() .. "AWD_CONTROL_CROWDS", 25)
-    stats.set_bool(MPX() .. "AWD_ALL_ROLES_HEIST", true)
-    stats.set_int(MPX() .. "HEIST_COMPLETION", 25)
-    stats.set_int(MPX() .. "HEISTS_ORGANISED", -1)
-    stats.set_int(MPX() .. "HEIST_START", -1)
-    stats.set_int(MPX() .. "HEIST_END", -1)
-    stats.set_int(MPX() .. "CUTSCENE_MID_PRISON", -1)
-    stats.set_int(MPX() .. "CUTSCENE_MID_HUMANE", -1)
-    stats.set_int(MPX() .. "CUTSCENE_MID_NARC", -1)
-    stats.set_int(MPX() .. "CUTSCENE_MID_ORNATE", -1)
-    stats.set_int(MPX() .. "CR_FLEECA_PREP_1", -1)
-    stats.set_int(MPX() .. "CR_FLEECA_PREP_2", -1)
-    stats.set_int(MPX() .. "CR_FLEECA_FINALE", -1)
-    stats.set_int(MPX() .. "CR_PRISON_PLANE", -1)
-    stats.set_int(MPX() .. "CR_PRISON_BUS", -1)
-    stats.set_int(MPX() .. "CR_PRISON_STATION", -1)
-    stats.set_int(MPX() .. "CR_PRISON_UNFINISHED_BIZ", -1)
-    stats.set_int(MPX() .. "CR_PRISON_FINALE", -1)
-    stats.set_int(MPX() .. "CR_HUMANE_KEY_CODES", -1)
-    stats.set_int(MPX() .. "CR_HUMANE_ARMORDILLOS", -1)
-    stats.set_int(MPX() .. "CR_HUMANE_EMP", -1)
-    stats.set_int(MPX() .. "CR_HUMANE_VALKYRIE", -1)
-    stats.set_int(MPX() .. "CR_HUMANE_FINALE", -1)
-    stats.set_int(MPX() .. "CR_NARC_COKE", -1)
-    stats.set_int(MPX() .. "CR_NARC_TRASH_TRUCK", -1)
-    stats.set_int(MPX() .. "CR_NARC_BIKERS", -1)
-    stats.set_int(MPX() .. "CR_NARC_WEED", -1)
-    stats.set_int(MPX() .. "CR_NARC_STEAL_METH", -1)
-    stats.set_int(MPX() .. "CR_NARC_FINALE", -1)
-    stats.set_int(MPX() .. "CR_PACIFIC_TRUCKS", -1)
-    stats.set_int(MPX() .. "CR_PACIFIC_WITSEC", -1)
-    stats.set_int(MPX() .. "CR_PACIFIC_HACK", -1)
-    stats.set_int(MPX() .. "CR_PACIFIC_BIKES", -1)
-    stats.set_int(MPX() .. "CR_PACIFIC_CONVOY", -1)
-    stats.set_int(MPX() .. "CR_PACIFIC_FINALE", -1)
-    stats.set_int("MPPLY_HEIST_ACH_TRACKER", -1)
-    stats.set_int("MPPLY_WIN_GOLD_MEDAL_HEISTS", 25)
-    stats.set_bool("MPPLY_AWD_FLEECA_FIN", true)
-    stats.set_bool("MPPLY_AWD_PRISON_FIN", true)
-    stats.set_bool("MPPLY_AWD_HUMANE_FIN", true)
-    stats.set_bool("MPPLY_AWD_SERIESA_FIN", true)
-    stats.set_bool("MPPLY_AWD_PACIFIC_FIN", true)
-    stats.set_bool("MPPLY_AWD_HST_ORDER", true)
-    stats.set_bool("MPPLY_AWD_COMPLET_HEIST_MEM", true)
-    stats.set_bool("MPPLY_AWD_COMPLET_HEIST_1STPER", true)
-    stats.set_bool("MPPLY_AWD_HST_SAME_TEAM", true)
-    stats.set_bool("MPPLY_AWD_HST_ULT_CHAL", true)
-    stats.set_bool(MPX() .. "AWD_MATCHING_OUTFIT_HEIST", true)
-    stats.set_bool(MPX() .. "HEIST_PLANNING_DONE_PRINT", true)
-    stats.set_bool(MPX() .. "HEIST_PLANNING_DONE_HELP_0", true)
-    stats.set_bool(MPX() .. "HEIST_PLANNING_DONE_HELP_1", true)
-    stats.set_bool(MPX() .. "HEIST_PRE_PLAN_DONE_HELP_0", true)
-    stats.set_bool(MPX() .. "HEIST_CUTS_DONE_FINALE", true)
-    stats.set_bool(MPX() .. "HEIST_IS_TUTORIAL", true)
-    stats.set_bool(MPX() .. "HEIST_STRAND_INTRO_DONE", true)
-    stats.set_bool(MPX() .. "HEIST_CUTS_DONE_ORNATE", true)
-    stats.set_bool(MPX() .. "HEIST_CUTS_DONE_PRISON", true)
-    stats.set_bool(MPX() .. "HEIST_CUTS_DONE_BIOLAB", true)
-    stats.set_bool(MPX() .. "HEIST_CUTS_DONE_NARCOTIC", true)
-    stats.set_bool(MPX() .. "HEIST_CUTS_DONE_TUTORIAL", true)
-    stats.set_bool(MPX() .. "HEIST_AWARD_DONE_PREP", true)
-    stats.set_bool(MPX() .. "HEIST_AWARD_BOUGHT_IN", true)
-    stats.set_int(MPX() .. "HEIST_PLANNING_STAGE", -1)
+APARTMENTAUM:Box("Heist Awards")
+APARTMENTAUM:Button("Unlock All Apartment Heists Awards", function()
+    Stats.SetInt(J(MPX() .. "AWD_FINISH_HEISTS"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_FINISH_HEIST_SETUP_JOB"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_COMPLETE_HEIST_NOT_DIE"), -1)
+    Stats.SetBool(J(MPX() .. "AWD_FINISH_HEIST_NO_DAMAGE"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_WIN_GOLD_MEDAL_HEISTS"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_DO_HEIST_AS_MEMBER"), 25)
+    Stats.SetInt(J(MPX() .. "AWD_DO_HEIST_AS_THE_LEADER"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_SPLIT_HEIST_TAKE_EVENLY"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ACTIVATE_2_PERSON_KEY"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_CONTROL_CROWDS"), 25)
+    Stats.SetBool(J(MPX() .. "AWD_ALL_ROLES_HEIST"), 1)
+    Stats.SetInt(J(MPX() .. "HEIST_COMPLETION"), 25)
+    Stats.SetInt(J(MPX() .. "HEISTS_ORGANISED"), -1)
+    Stats.SetInt(J(MPX() .. "HEIST_START"), -1)
+    Stats.SetInt(J(MPX() .. "HEIST_END"), -1)
+    Stats.SetInt(J(MPX() .. "CUTSCENE_MID_PRISON"), -1)
+    Stats.SetInt(J(MPX() .. "CUTSCENE_MID_HUMANE"), -1)
+    Stats.SetInt(J(MPX() .. "CUTSCENE_MID_NARC"), -1)
+    Stats.SetInt(J(MPX() .. "CUTSCENE_MID_ORNATE"), -1)
+    Stats.SetInt(J(MPX() .. "CR_FLEECA_PREP_1"), -1)
+    Stats.SetInt(J(MPX() .. "CR_FLEECA_PREP_2"), -1)
+    Stats.SetInt(J(MPX() .. "CR_FLEECA_FINALE"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PRISON_PLANE"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PRISON_BUS"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PRISON_STATION"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PRISON_UNFINISHED_BIZ"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PRISON_FINALE"), -1)
+    Stats.SetInt(J(MPX() .. "CR_HUMANE_KEY_CODES"), -1)
+    Stats.SetInt(J(MPX() .. "CR_HUMANE_ARMORDILLOS"), -1)
+    Stats.SetInt(J(MPX() .. "CR_HUMANE_EMP"), -1)
+    Stats.SetInt(J(MPX() .. "CR_HUMANE_VALKYRIE"), -1)
+    Stats.SetInt(J(MPX() .. "CR_HUMANE_FINALE"), -1)
+    Stats.SetInt(J(MPX() .. "CR_NARC_COKE"), -1)
+    Stats.SetInt(J(MPX() .. "CR_NARC_TRASH_TRUCK"), -1)
+    Stats.SetInt(J(MPX() .. "CR_NARC_BIKERS"), -1)
+    Stats.SetInt(J(MPX() .. "CR_NARC_WEED"), -1)
+    Stats.SetInt(J(MPX() .. "CR_NARC_STEAL_METH"), -1)
+    Stats.SetInt(J(MPX() .. "CR_NARC_FINALE"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PACIFIC_TRUCKS"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PACIFIC_WITSEC"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PACIFIC_HACK"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PACIFIC_BIKES"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PACIFIC_CONVOY"), -1)
+    Stats.SetInt(J(MPX() .. "CR_PACIFIC_FINALE"), -1)
+    Stats.SetInt(J("MPPLY_HEIST_ACH_TRACKER"), -1)
+    Stats.SetInt(J("MPPLY_WIN_GOLD_MEDAL_HEISTS"), 25)
+    Stats.SetBool(J("MPPLY_AWD_FLEECA_FIN"), 1)
+    Stats.SetBool(J("MPPLY_AWD_PRISON_FIN"), 1)
+    Stats.SetBool(J("MPPLY_AWD_HUMANE_FIN"), 1)
+    Stats.SetBool(J("MPPLY_AWD_SERIESA_FIN"), 1)
+    Stats.SetBool(J("MPPLY_AWD_PACIFIC_FIN"), 1)
+    Stats.SetBool(J("MPPLY_AWD_HST_ORDER"), 1)
+    Stats.SetBool(J("MPPLY_AWD_COMPLET_HEIST_MEM"), 1)
+    Stats.SetBool(J("MPPLY_AWD_COMPLET_HEIST_1STPER"), 1)
+    Stats.SetBool(J("MPPLY_AWD_HST_SAME_TEAM"), 1)
+    Stats.SetBool(J("MPPLY_AWD_HST_ULT_CHAL"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MATCHING_OUTFIT_HEIST"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_PLANNING_DONE_PRINT"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_PLANNING_DONE_HELP_0"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_PLANNING_DONE_HELP_1"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_PRE_PLAN_DONE_HELP_0"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_CUTS_DONE_FINALE"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_IS_TUTORIAL"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_STRAND_INTRO_DONE"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_CUTS_DONE_ORNATE"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_CUTS_DONE_PRISON"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_CUTS_DONE_BIOLAB"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_CUTS_DONE_NARCOTIC"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_CUTS_DONE_TUTORIAL"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_AWARD_DONE_PREP"), 1)
+    Stats.SetBool(J(MPX() .. "HEIST_AWARD_BOUGHT_IN"), 1)
+    Stats.SetInt(J(MPX() .. "HEIST_PLANNING_STAGE"), -1)
+end)
 end)
 
-end)
-
-__uml_block("DIAMONHDAUM = HAUM:add_tab(Diamond Casino Heist)", function()
+Section("Diamond Casino Heist Awards", function()
 DIAMONHDAUM = HAUM
-DIAMONHDAUM:add_separator()
 
-DIAMONHDAUM:add_button("Unlock All Diamond Casino Heist Awards", function()
-    stats.set_int(MPX() .. "CAS_HEIST_NOTS", -1)
-    stats.set_int(MPX() .. "CAS_HEIST_FLOW", -1)
-    stats.set_int(MPX() .. "SIGNAL_JAMMERS_COLLECTED", 50)
-    stats.set_int(MPX() .. "AWD_PREPARATION", 40)
-    stats.set_int(MPX() .. "AWD_ASLEEPONJOB", 20)
-    stats.set_int(MPX() .. "AWD_DAICASHCRAB", 100000)
-    stats.set_int(MPX() .. "AWD_BIGBRO", 40)
-    stats.set_int(MPX() .. "AWD_SHARPSHOOTER", 40)
-    stats.set_int(MPX() .. "AWD_RACECHAMP", 40)
-    stats.set_int(MPX() .. "AWD_BATSWORD", 1000000)
-    stats.set_int(MPX() .. "AWD_COINPURSE", 950000)
-    stats.set_int(MPX() .. "AWD_ASTROCHIMP", 3000000)
-    stats.set_int(MPX() .. "AWD_MASTERFUL", 40000)
-    stats.set_int(MPX() .. "H3_BOARD_DIALOGUE0", -1)
-    stats.set_int(MPX() .. "H3_BOARD_DIALOGUE1", -1)
-    stats.set_int(MPX() .. "H3_BOARD_DIALOGUE2", -1)
-    stats.set_int(MPX() .. "H3_VEHICLESUSED", -1)
-    stats.set_int(MPX() .. "H3_CR_STEALTH_1A", 100)
-    stats.set_int(MPX() .. "H3_CR_STEALTH_2B_RAPP", 100)
-    stats.set_int(MPX() .. "H3_CR_STEALTH_2C_SIDE", 100)
-    stats.set_int(MPX() .. "H3_CR_STEALTH_3A", 100)
-    stats.set_int(MPX() .. "H3_CR_STEALTH_4A", 100)
-    stats.set_int(MPX() .. "H3_CR_STEALTH_5A", 100)
-    stats.set_int(MPX() .. "H3_CR_SUBTERFUGE_1A", 100)
-    stats.set_int(MPX() .. "H3_CR_SUBTERFUGE_2A", 100)
-    stats.set_int(MPX() .. "H3_CR_SUBTERFUGE_2B", 100)
-    stats.set_int(MPX() .. "H3_CR_SUBTERFUGE_3A", 100)
-    stats.set_int(MPX() .. "H3_CR_SUBTERFUGE_3B", 100)
-    stats.set_int(MPX() .. "H3_CR_SUBTERFUGE_4A", 100)
-    stats.set_int(MPX() .. "H3_CR_SUBTERFUGE_5A", 100)
-    stats.set_int(MPX() .. "H3_CR_DIRECT_1A", 100)
-    stats.set_int(MPX() .. "H3_CR_DIRECT_2A1", 100)
-    stats.set_int(MPX() .. "H3_CR_DIRECT_2A2", 100)
-    stats.set_int(MPX() .. "H3_CR_DIRECT_2BP", 100)
-    stats.set_int(MPX() .. "H3_CR_DIRECT_2C", 100)
-    stats.set_int(MPX() .. "H3_CR_DIRECT_3A", 100)
-    stats.set_int(MPX() .. "H3_CR_DIRECT_4A", 100)
-    stats.set_int(MPX() .. "H3_CR_DIRECT_5A", 100)
-    stats.set_int(MPX() .. "CR_ORDER", 100)
-    stats.set_bool(MPX() .. "AWD_SCOPEOUT", true)
-    stats.set_bool(MPX() .. "AWD_CREWEDUP", true)
-    stats.set_bool(MPX() .. "AWD_MOVINGON", true)
-    stats.set_bool(MPX() .. "AWD_PROMOCAMP", true)
-    stats.set_bool(MPX() .. "AWD_GUNMAN", true)
-    stats.set_bool(MPX() .. "AWD_SMASHNGRAB", true)
-    stats.set_bool(MPX() .. "AWD_INPLAINSI", true)
-    stats.set_bool(MPX() .. "AWD_UNDETECTED", true)
-    stats.set_bool(MPX() .. "AWD_ALLROUND", true)
-    stats.set_bool(MPX() .. "AWD_ELITETHEIF", true)
-    stats.set_bool(MPX() .. "AWD_PRO", true)
-    stats.set_bool(MPX() .. "AWD_SUPPORTACT", true)
-    stats.set_bool(MPX() .. "AWD_SHAFTED", true)
-    stats.set_bool(MPX() .. "AWD_COLLECTOR", true)
-    stats.set_bool(MPX() .. "AWD_DEADEYE", true)
-    stats.set_bool(MPX() .. "AWD_PISTOLSATDAWN", true)
-    stats.set_bool(MPX() .. "AWD_TRAFFICAVOI", true)
-    stats.set_bool(MPX() .. "AWD_CANTCATCHBRA", true)
-    stats.set_bool(MPX() .. "AWD_WIZHARD", true)
-    stats.set_bool(MPX() .. "AWD_APEESCAPE", true)
-    stats.set_bool(MPX() .. "AWD_MONKEYKIND", true)
-    stats.set_bool(MPX() .. "AWD_AQUAAPE", true)
-    stats.set_bool(MPX() .. "AWD_KEEPFAITH", true)
-    stats.set_bool(MPX() .. "AWD_TRUELOVE", true)
-    stats.set_bool(MPX() .. "AWD_NEMESIS", true)
-    stats.set_bool(MPX() .. "AWD_FRIENDZONED", true)
-    stats.set_bool(MPX() .. "VCM_FLOW_CS_RSC_SEEN", true)
-    stats.set_bool(MPX() .. "VCM_FLOW_CS_BWL_SEEN", true)
-    stats.set_bool(MPX() .. "VCM_FLOW_CS_MTG_SEEN", true)
-    stats.set_bool(MPX() .. "VCM_FLOW_CS_OIL_SEEN", true)
-    stats.set_bool(MPX() .. "VCM_FLOW_CS_DEF_SEEN", true)
-    stats.set_bool(MPX() .. "VCM_FLOW_CS_FIN_SEEN", true)
-    stats.set_bool(MPX() .. "HELP_FURIA", true)
-    stats.set_bool(MPX() .. "HELP_MINITAN", true)
-    stats.set_bool(MPX() .. "HELP_YOSEMITE2", true)
-    stats.set_bool(MPX() .. "HELP_ZHABA", true)
-    stats.set_bool(MPX() .. "HELP_IMORGEN", true)
-    stats.set_bool(MPX() .. "HELP_SULTAN2", true)
-    stats.set_bool(MPX() .. "HELP_VAGRANT", true)
-    stats.set_bool(MPX() .. "HELP_VSTR", true)
-    stats.set_bool(MPX() .. "HELP_STRYDER", true)
-    stats.set_bool(MPX() .. "HELP_SUGOI", true)
-    stats.set_bool(MPX() .. "HELP_KANJO", true)
-    stats.set_bool(MPX() .. "HELP_FORMULA", true)
-    stats.set_bool(MPX() .. "HELP_FORMULA2", true)
-    stats.set_bool(MPX() .. "HELP_JB7002", true)
+DIAMONHDAUM:Button("Unlock All Diamond Casino Heist Awards", function()
+    Stats.SetInt(J(MPX() .. "CAS_HEIST_NOTS"), -1)
+    Stats.SetInt(J(MPX() .. "CAS_HEIST_FLOW"), -1)
+    Stats.SetInt(J(MPX() .. "SIGNAL_JAMMERS_COLLECTED"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_PREPARATION"), 40)
+    Stats.SetInt(J(MPX() .. "AWD_ASLEEPONJOB"), 20)
+    Stats.SetInt(J(MPX() .. "AWD_DAICASHCRAB"), 100000)
+    Stats.SetInt(J(MPX() .. "AWD_BIGBRO"), 40)
+    Stats.SetInt(J(MPX() .. "AWD_SHARPSHOOTER"), 40)
+    Stats.SetInt(J(MPX() .. "AWD_RACECHAMP"), 40)
+    Stats.SetInt(J(MPX() .. "AWD_BATSWORD"), 1000000)
+    Stats.SetInt(J(MPX() .. "AWD_COINPURSE"), 950000)
+    Stats.SetInt(J(MPX() .. "AWD_ASTROCHIMP"), 3000000)
+    Stats.SetInt(J(MPX() .. "AWD_MASTERFUL"), 40000)
+    Stats.SetInt(J(MPX() .. "H3_BOARD_DIALOGUE0"), -1)
+    Stats.SetInt(J(MPX() .. "H3_BOARD_DIALOGUE1"), -1)
+    Stats.SetInt(J(MPX() .. "H3_BOARD_DIALOGUE2"), -1)
+    Stats.SetInt(J(MPX() .. "H3_VEHICLESUSED"), -1)
+    Stats.SetInt(J(MPX() .. "H3_CR_STEALTH_1A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_STEALTH_2B_RAPP"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_STEALTH_2C_SIDE"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_STEALTH_3A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_STEALTH_4A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_STEALTH_5A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_SUBTERFUGE_1A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_SUBTERFUGE_2A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_SUBTERFUGE_2B"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_SUBTERFUGE_3A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_SUBTERFUGE_3B"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_SUBTERFUGE_4A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_SUBTERFUGE_5A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_DIRECT_1A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_DIRECT_2A1"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_DIRECT_2A2"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_DIRECT_2BP"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_DIRECT_2C"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_DIRECT_3A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_DIRECT_4A"), 100)
+    Stats.SetInt(J(MPX() .. "H3_CR_DIRECT_5A"), 100)
+    Stats.SetInt(J(MPX() .. "CR_ORDER"), 100)
+    Stats.SetBool(J(MPX() .. "AWD_SCOPEOUT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_CREWEDUP"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MOVINGON"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PROMOCAMP"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_GUNMAN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SMASHNGRAB"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_INPLAINSI"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_UNDETECTED"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ALLROUND"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ELITETHEIF"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PRO"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SUPPORTACT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SHAFTED"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_COLLECTOR"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_DEADEYE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PISTOLSATDAWN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_TRAFFICAVOI"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_CANTCATCHBRA"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_WIZHARD"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_APEESCAPE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MONKEYKIND"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_AQUAAPE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_KEEPFAITH"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_TRUELOVE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_NEMESIS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FRIENDZONED"), 1)
+    Stats.SetBool(J(MPX() .. "VCM_FLOW_CS_RSC_SEEN"), 1)
+    Stats.SetBool(J(MPX() .. "VCM_FLOW_CS_BWL_SEEN"), 1)
+    Stats.SetBool(J(MPX() .. "VCM_FLOW_CS_MTG_SEEN"), 1)
+    Stats.SetBool(J(MPX() .. "VCM_FLOW_CS_OIL_SEEN"), 1)
+    Stats.SetBool(J(MPX() .. "VCM_FLOW_CS_DEF_SEEN"), 1)
+    Stats.SetBool(J(MPX() .. "VCM_FLOW_CS_FIN_SEEN"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_FURIA"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_MINITAN"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_YOSEMITE2"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_ZHABA"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_IMORGEN"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_SULTAN2"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_VAGRANT"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_VSTR"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_STRYDER"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_SUGOI"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_KANJO"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_FORMULA"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_FORMULA2"), 1)
+    Stats.SetBool(J(MPX() .. "HELP_JB7002"), 1)
     for i = 0, 4 do
         for j = 0, 63 do
-            stats.set_bool_masked(MPX() .. "CASINOHSTPSTAT_BOOL" .. i, true, j)
+            Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "CASINOHSTPSTAT_BOOL" .. i), true, j, true)
         end
     end
 end)
-
 end)
 
-__uml_block("CAYOAUM = HAUM:add_tab(Cayo Heist Menu)", function()
+Section("Cayo Perico Heist Awards", function()
 CAYOAUM = HAUM
-CAYOAUM:add_separator()
 
-CAYOAUM:add_button("Unlock All Cayo Heist Awards", function()
-    stats.set_bool(MPX() .. "AWD_INTELGATHER", true)
-    stats.set_bool(MPX() .. "AWD_COMPOUNDINFILT", true)
-    stats.set_bool(MPX() .. "AWD_LOOT_FINDER", true)
-    stats.set_bool(MPX() .. "AWD_MAX_DISRUPT", true)
-    stats.set_bool(MPX() .. "AWD_THE_ISLAND_HEIST", true)
-    stats.set_bool(MPX() .. "AWD_GOING_ALONE", true)
-    stats.set_bool(MPX() .. "AWD_TEAM_WORK", true)
-    stats.set_bool(MPX() .. "AWD_MIXING_UP", true)
-    stats.set_bool(MPX() .. "AWD_TEAM_WORK", true)
-    stats.set_bool(MPX() .. "AWD_MIXING_UP", true)
-    stats.set_bool(MPX() .. "AWD_PRO_THIEF", true)
-    stats.set_bool(MPX() .. "AWD_CAT_BURGLAR", true)
-    stats.set_bool(MPX() .. "AWD_ONE_OF_THEM", true)
-    stats.set_bool(MPX() .. "AWD_GOLDEN_GUN", true)
-    stats.set_bool(MPX() .. "AWD_ELITE_THIEF", true)
-    stats.set_bool(MPX() .. "AWD_PROFESSIONAL", true)
-    stats.set_bool(MPX() .. "AWD_HELPING_OUT", true)
-    stats.set_bool(MPX() .. "AWD_COURIER", true)
-    stats.set_bool(MPX() .. "AWD_PARTY_VIBES", true)
-    stats.set_bool(MPX() .. "AWD_HELPING_HAND", true)
-    stats.set_bool(MPX() .. "AWD_ELEVENELEVEN", true)
-    stats.set_bool(MPX() .. "COMPLETE_H4_F_USING_VETIR", true)
-    stats.set_bool(MPX() .. "COMPLETE_H4_F_USING_LONGFIN", true)
-    stats.set_bool(MPX() .. "COMPLETE_H4_F_USING_ANNIH", true)
-    stats.set_bool(MPX() .. "COMPLETE_H4_F_USING_ALKONOS", true)
-    stats.set_bool(MPX() .. "COMPLETE_H4_F_USING_PATROLB", true)
-    stats.set_int(MPX() .. "AWD_LOSTANDFOUND", 500000)
-    stats.set_int(MPX() .. "AWD_SUNSET", 1800000)
-    stats.set_int(MPX() .. "AWD_TREASURE_HUNTER", 1000000)
-    stats.set_int(MPX() .. "AWD_WRECK_DIVING", 1000000)
-    stats.set_int(MPX() .. "AWD_KEINEMUSIK", 1800000)
-    stats.set_int(MPX() .. "AWD_PALMS_TRAX", 1800000)
-    stats.set_int(MPX() .. "AWD_MOODYMANN", 1800000)
-    stats.set_int(MPX() .. "AWD_FILL_YOUR_BAGS", 1000000000)
-    stats.set_int(MPX() .. "AWD_WELL_PREPARED", 80)
-    stats.set_int(MPX() .. "H4_H4_DJ_MISSIONS", -1)
-    stats.set_int(MPX() .. "H4CNF_APPROACH", -1)
-    stats.set_int(MPX() .. "H4_MISSIONS", -1)
-    stats.set_int(MPX() .. "H4_PLAYTHROUGH_STATUS", 100)
+CAYOAUM:Button("Unlock All Cayo Heist Awards", function()
+    Stats.SetBool(J(MPX() .. "AWD_INTELGATHER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_COMPOUNDINFILT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_LOOT_FINDER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MAX_DISRUPT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_THE_ISLAND_HEIST"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_GOING_ALONE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_TEAM_WORK"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MIXING_UP"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_TEAM_WORK"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MIXING_UP"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PRO_THIEF"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_CAT_BURGLAR"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ONE_OF_THEM"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_GOLDEN_GUN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ELITE_THIEF"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PROFESSIONAL"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_HELPING_OUT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_COURIER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PARTY_VIBES"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_HELPING_HAND"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ELEVENELEVEN"), 1)
+    Stats.SetBool(J(MPX() .. "COMPLETE_H4_F_USING_VETIR"), 1)
+    Stats.SetBool(J(MPX() .. "COMPLETE_H4_F_USING_LONGFIN"), 1)
+    Stats.SetBool(J(MPX() .. "COMPLETE_H4_F_USING_ANNIH"), 1)
+    Stats.SetBool(J(MPX() .. "COMPLETE_H4_F_USING_ALKONOS"), 1)
+    Stats.SetBool(J(MPX() .. "COMPLETE_H4_F_USING_PATROLB"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_LOSTANDFOUND"), 500000)
+    Stats.SetInt(J(MPX() .. "AWD_SUNSET"), 1800000)
+    Stats.SetInt(J(MPX() .. "AWD_TREASURE_HUNTER"), 1000000)
+    Stats.SetInt(J(MPX() .. "AWD_WRECK_DIVING"), 1000000)
+    Stats.SetInt(J(MPX() .. "AWD_KEINEMUSIK"), 1800000)
+    Stats.SetInt(J(MPX() .. "AWD_PALMS_TRAX"), 1800000)
+    Stats.SetInt(J(MPX() .. "AWD_MOODYMANN"), 1800000)
+    Stats.SetInt(J(MPX() .. "AWD_FILL_YOUR_BAGS"), 1000000000)
+    Stats.SetInt(J(MPX() .. "AWD_WELL_PREPARED"), 80)
+    Stats.SetInt(J(MPX() .. "H4_H4_DJ_MISSIONS"), -1)
+    Stats.SetInt(J(MPX() .. "H4CNF_APPROACH"), -1)
+    Stats.SetInt(J(MPX() .. "H4_MISSIONS"), -1)
+    Stats.SetInt(J(MPX() .. "H4_PLAYTHROUGH_STATUS"), 100)
     for i = 0, 2 do
         for j = 0, 63 do
-            stats.set_bool_masked(MPX() .. "HISLANDPSTAT_BOOL" .. i, true, j)
+            Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "HISLANDPSTAT_BOOL" .. i), true, j, true)
         end
     end
 end)
-
 end)
 
-__uml_block("DOOMSDAYAUM = HAUM:add_tab(Doomsday Heist Awards Menu)", function()
+Section("Doomsday Heist Awards", function()
 DOOMSDAYAUM = HAUM
-DOOMSDAYAUM:add_separator()
 
-DOOMSDAYAUM:add_button("Unlock All Doomsday Heist Awards", function()
-    stats.set_int(MPX() .. "GANGOPS_HEIST_STATUS", -1)
-    stats.set_int(MPX() .. "GANGOPS_HEIST_STATUS", -229384)
-    stats.set_int(MPX() .. "GANGOPS_FM_MISSION_PROG", -1)
-    stats.set_int(MPX() .. "GANGOPS_FLOW_MISSION_PROG", -1)
-    stats.set_int("MPPLY_GANGOPS_ALLINORDER", 100)
-    stats.set_int("MPPLY_GANGOPS_LOYALTY", 100)
-    stats.set_int("MPPLY_GANGOPS_CRIMMASMD", 100)
-    stats.set_int("MPPLY_GANGOPS_LOYALTY2", 100)
-    stats.set_int("MPPLY_GANGOPS_LOYALTY3", 100)
-    stats.set_int("MPPLY_GANGOPS_CRIMMASMD2", 100)
-    stats.set_int("MPPLY_GANGOPS_CRIMMASMD3", 100)
-    stats.set_int("MPPLY_GANGOPS_SUPPORT", 100)
-    stats.set_int(MPX() .. "CR_GANGOP_MORGUE", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_DELUXO", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_SERVERFARM", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_IAABASE_FIN", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_STEALOSPREY", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_FOUNDRY", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_RIOTVAN", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_SUBMARINECAR", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_SUBMARINE_FIN", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_PREDATOR", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_BMLAUNCHER", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_BCCUSTOM", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_STEALTHTANKS", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_SPYPLANE", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_FINALE", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_FINALE_P2", 10)
-    stats.set_int(MPX() .. "CR_GANGOP_FINALE_P3", 10)
-    stats.set_bool("MPPLY_AWD_GANGOPS_IAA", true)
-    stats.set_bool("MPPLY_AWD_GANGOPS_SUBMARINE", true)
-    stats.set_bool("MPPLY_AWD_GANGOPS_MISSILE", true)
-    stats.set_bool("MPPLY_AWD_GANGOPS_ALLINORDER", true)
-    stats.set_bool("MPPLY_AWD_GANGOPS_LOYALTY", true)
-    stats.set_bool("MPPLY_AWD_GANGOPS_LOYALTY2", true)
-    stats.set_bool("MPPLY_AWD_GANGOPS_LOYALTY3", true)
-    stats.set_bool("MPPLY_AWD_GANGOPS_CRIMMASMD", true)
-    stats.set_bool("MPPLY_AWD_GANGOPS_CRIMMASMD2", true)
-    stats.set_bool("MPPLY_AWD_GANGOPS_CRIMMASMD3", true)
-    stats.set_bool("MPPLY_AWD_GANGOPS_SUPPORT", true)
+DOOMSDAYAUM:Button("Unlock All Doomsday Heist Awards", function()
+    Stats.SetInt(J(MPX() .. "GANGOPS_HEIST_STATUS"), -1)
+    Stats.SetInt(J(MPX() .. "GANGOPS_HEIST_STATUS"), -229384)
+    Stats.SetInt(J(MPX() .. "GANGOPS_FM_MISSION_PROG"), -1)
+    Stats.SetInt(J(MPX() .. "GANGOPS_FLOW_MISSION_PROG"), -1)
+    Stats.SetInt(J("MPPLY_GANGOPS_ALLINORDER"), 100)
+    Stats.SetInt(J("MPPLY_GANGOPS_LOYALTY"), 100)
+    Stats.SetInt(J("MPPLY_GANGOPS_CRIMMASMD"), 100)
+    Stats.SetInt(J("MPPLY_GANGOPS_LOYALTY2"), 100)
+    Stats.SetInt(J("MPPLY_GANGOPS_LOYALTY3"), 100)
+    Stats.SetInt(J("MPPLY_GANGOPS_CRIMMASMD2"), 100)
+    Stats.SetInt(J("MPPLY_GANGOPS_CRIMMASMD3"), 100)
+    Stats.SetInt(J("MPPLY_GANGOPS_SUPPORT"), 100)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_MORGUE"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_DELUXO"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_SERVERFARM"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_IAABASE_FIN"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_STEALOSPREY"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_FOUNDRY"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_RIOTVAN"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_SUBMARINECAR"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_SUBMARINE_FIN"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_PREDATOR"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_BMLAUNCHER"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_BCCUSTOM"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_STEALTHTANKS"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_SPYPLANE"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_FINALE"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_FINALE_P2"), 10)
+    Stats.SetInt(J(MPX() .. "CR_GANGOP_FINALE_P3"), 10)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_IAA"), 1)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_SUBMARINE"), 1)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_MISSILE"), 1)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_ALLINORDER"), 1)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_LOYALTY"), 1)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_LOYALTY2"), 1)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_LOYALTY3"), 1)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_CRIMMASMD"), 1)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_CRIMMASMD2"), 1)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_CRIMMASMD3"), 1)
+    Stats.SetBool(J("MPPLY_AWD_GANGOPS_SUPPORT"), 1)
     for j = 0, 63 do
-        stats.set_bool_masked(MPX() .. "GANGOPSPSTAT_BOOL0", true, j)
+        Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "GANGOPSPSTAT_BOOL0"), true, j, true)
     end
-    stats.set_masked_int(MPX() .. "DLCSMUGCHARPSTAT_INT260", 3, 16, 8)
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT260", 3, 24, 8)
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT260", 3, 32, 8)
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT260", 3, 40, 8)
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT260", 3, 48, 8)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "DLCSMUGCHARPSTAT_INT260"), 3, 16, 8, true)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT260"), 3, 24, 8, true)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT260"), 3, 32, 8, true)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT260"), 3, 40, 8, true)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT260"), 3, 48, 8, true)
+end)
 end)
 
+Section("DLC Awards", function()
+DLCAUM = AUM:Tab("DLC Awards")
+
+DLCAUM:Box("DLC Awards")
+DLCAUM:Button("The Kortz Center Heist", function()
+    Stats.SetBool(J(MPX() .. "AWD_SCOPING"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_PREPPER"), 20)
+    Stats.SetBool(J(MPX() .. "AWD_ADAPTABLE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_KORTZCENTERHEIST"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FINDSAWAY"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_WHOSTHERE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ELITETHIEF"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_NOLIFER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SOLITUDE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_COORDINATION"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FLEXIBLETHIEF"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_REPEATOFFENDER"), 20)
+    Stats.SetInt(J(MPX() .. "AWD_FULLBAGS"), 5000000)
+    Stats.SetBool(J(MPX() .. "AWD_HIDDENINPLAINSIGHT"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_CURATOR"), 5)
+    Stats.SetInt(J(MPX() .. "AWD_LAPIDARY"), 5)
+    Stats.SetBool(J(MPX() .. "AWD_PACIFIST"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PUTRIDPILFERING"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_METEORITICS"), 1)
 end)
 
-__uml_block("DLCAUM = AUM:add_tab(DLC Awards Menu)", function()
-DLCAUM = AUM:add_tab("DLC Awards")
-
-DLCAUM:add_button("The Kortz Center Heist", function()
-    stats.set_bool(MPX() .. "AWD_SCOPING", true)
-    stats.set_int(MPX() .. "AWD_PREPPER", 20)
-    stats.set_bool(MPX() .. "AWD_ADAPTABLE", true)
-    stats.set_bool(MPX() .. "AWD_KORTZCENTERHEIST", true)
-    stats.set_bool(MPX() .. "AWD_FINDSAWAY", true)
-    stats.set_bool(MPX() .. "AWD_WHOSTHERE", true)
-    stats.set_bool(MPX() .. "AWD_ELITETHIEF", true)
-    stats.set_bool(MPX() .. "AWD_NOLIFER", true)
-    stats.set_bool(MPX() .. "AWD_SOLITUDE", true)
-    stats.set_bool(MPX() .. "AWD_COORDINATION", true)
-    stats.set_bool(MPX() .. "AWD_FLEXIBLETHIEF", true)
-    stats.set_int(MPX() .. "AWD_REPEATOFFENDER", 20)
-    stats.set_int(MPX() .. "AWD_FULLBAGS", 5000000)
-    stats.set_bool(MPX() .. "AWD_HIDDENINPLAINSIGHT", true)
-    stats.set_int(MPX() .. "AWD_CURATOR", 5)
-    stats.set_int(MPX() .. "AWD_LAPIDARY", 5)
-    stats.set_bool(MPX() .. "AWD_PACIFIST", true)
-    stats.set_bool(MPX() .. "AWD_PUTRIDPILFERING", true)
-    stats.set_bool(MPX() .. "AWD_METEORITICS", true)
+DLCAUM:Button("A Safehouse In The Hills", function()
+    Stats.SetBool(J(MPX() .. "AWD_NEGATIVEPRESS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_USESELFDRIVINGVEH"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_LIONSDEN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_TAKEOUTLEADEXPLO"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SUBWAYTRAIN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SUBWAYSTUNTJUMP"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_TRASHCOLLECTORS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ALLTRASHCOLLECTED"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FIBFINALE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_HELPER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FIBFINALECHALLENGE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MANSIONDEFEND"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_DEFLOWMOTIONKILLS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_YOUVEMADEIT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ANIMALLOVER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MANSADVERSARYWIN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ONTHECLOCK"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_TAXIDESTRUCTION"), 20)
+    Stats.SetInt(J(MPX() .. "AWD_YOGA"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_JUICEDUP"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_MANADVERSARYDEFUSE"), 10)
+    Stats.SetInt(J(MPX() .. "AWD_FIREFIGHTER"), 20)
+    Stats.SetInt(J(MPX() .. "AWD_ALPHAMAIL"), 20)
+    Stats.SetInt(J(MPX() .. "AWD_LOSSANTOSMETEOR"), 20)
 end)
 
-DLCAUM:add_button("A Safehouse In The Hills", function()
-    stats.set_bool(MPX() .. "AWD_NEGATIVEPRESS", true)
-    stats.set_bool(MPX() .. "AWD_USESELFDRIVINGVEH", true)
-    stats.set_bool(MPX() .. "AWD_LIONSDEN", true)
-    stats.set_bool(MPX() .. "AWD_TAKEOUTLEADEXPLO", true)
-    stats.set_bool(MPX() .. "AWD_SUBWAYTRAIN", true)
-    stats.set_bool(MPX() .. "AWD_SUBWAYSTUNTJUMP", true)
-    stats.set_bool(MPX() .. "AWD_TRASHCOLLECTORS", true)
-    stats.set_bool(MPX() .. "AWD_ALLTRASHCOLLECTED", true)
-    stats.set_bool(MPX() .. "AWD_FIBFINALE", true)
-    stats.set_bool(MPX() .. "AWD_HELPER", true)
-    stats.set_bool(MPX() .. "AWD_FIBFINALECHALLENGE", true)
-    stats.set_bool(MPX() .. "AWD_MANSIONDEFEND", true)
-    stats.set_bool(MPX() .. "AWD_DEFLOWMOTIONKILLS", true)
-    stats.set_bool(MPX() .. "AWD_YOUVEMADEIT", true)
-    stats.set_bool(MPX() .. "AWD_ANIMALLOVER", true)
-    stats.set_bool(MPX() .. "AWD_MANSADVERSARYWIN", true)
-    stats.set_bool(MPX() .. "AWD_ONTHECLOCK", true)
-    stats.set_int(MPX() .. "AWD_TAXIDESTRUCTION", 20)
-    stats.set_int(MPX() .. "AWD_YOGA", 50)
-    stats.set_int(MPX() .. "AWD_JUICEDUP", 100)
-    stats.set_int(MPX() .. "AWD_MANADVERSARYDEFUSE", 10)
-    stats.set_int(MPX() .. "AWD_FIREFIGHTER", 20)
-    stats.set_int(MPX() .. "AWD_ALPHAMAIL", 20)
-    stats.set_int(MPX() .. "AWD_LOSSANTOSMETEOR", 20)
-end)
-
-DLCAUM:add_button("Agents of Sabotage", function()
+DLCAUM:Button("Agents of Sabotage", function()
     for i = 9542, 9546 do
-        stats.set_packed_stat_bool(i, true)
+        Natives.InvokeVoid(N.SET_PACKED_STAT_BOOL_CODE, i, true, CharSlot())
     end
-    stats.set_packed_stat_bool(9549, true)
-    stats.set_packed_stat_int(24903, 25)
-    stats.set_packed_stat_int(24904, 2)
-    stats.set_int(MPX() .. "HACKER24_GEN_BS", 8160)
-    stats.set_bool(MPX() .. "AWD_FINEART", true)
-    stats.set_bool(MPX() .. "AWD_BRUTEFORCE", true)
-    stats.set_bool(MPX() .. "AWD_PROJECTBREAK", true)
-    stats.set_bool(MPX() .. "AWD_BLACKBOXFILE", true)
-    stats.set_bool(MPX() .. "AWD_BONUSPOINTS", true)
-    stats.set_int(MPX() .. "AWD_DARNELLBROSINC", 50)
-    stats.set_int(MPX() .. "AWD_GET_READY", 50)
+    Natives.InvokeVoid(N.SET_PACKED_STAT_BOOL_CODE, 9549, true, CharSlot())
+    Natives.InvokeVoid(N.SET_PACKED_STAT_INT_CODE, 24903, 25, CharSlot())
+    Natives.InvokeVoid(N.SET_PACKED_STAT_INT_CODE, 24904, 2, CharSlot())
+    Stats.SetInt(J(MPX() .. "HACKER24_GEN_BS"), 8160)
+    Stats.SetBool(J(MPX() .. "AWD_FINEART"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_BRUTEFORCE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PROJECTBREAK"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_BLACKBOXFILE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_BONUSPOINTS"), 1)
+    Stats.SetInt(J(MPX() .. "AWD_DARNELLBROSINC"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_GET_READY"), 50)
 end)
 
-DLCAUM:add_button("After Hours", function()
-    stats.set_int(MPX() .. "AWD_DANCE_TO_SOLOMUN", 120)
-    stats.set_int(MPX() .. "AWD_DANCE_TO_TALEOFUS", 120)
-    stats.set_int(MPX() .. "AWD_DANCE_TO_DIXON", 120)
-    stats.set_int(MPX() .. "AWD_DANCE_TO_BLKMAD", 120)
-    stats.set_int(MPX() .. "AWD_CLUB_DRUNK", 200)
-    stats.set_int(MPX() .. "NIGHTCLUB_VIP_APPEAR", 700)
-    stats.set_int(MPX() .. "NIGHTCLUB_JOBS_DONE", 700)
-    stats.set_int(MPX() .. "NIGHTCLUB_EARNINGS", 5721002)
-    stats.set_int(MPX() .. "HUB_SALES_COMPLETED", 1001)
-    stats.set_int(MPX() .. "HUB_EARNINGS", 20721002)
-    stats.set_int(MPX() .. "DANCE_COMBO_DURATION_MINS", 3600000)
-    stats.set_int(MPX() .. "NIGHTCLUB_PLAYER_APPEAR", 100)
-    stats.set_int(MPX() .. "LIFETIME_HUB_GOODS_SOLD", 784672)
-    stats.set_int(MPX() .. "LIFETIME_HUB_GOODS_MADE", 507822)
-    stats.set_int(MPX() .. "DANCEPERFECTOWNCLUB", 120)
-    stats.set_int(MPX() .. "NUMUNIQUEPLYSINCLUB", 120)
-    stats.set_int(MPX() .. "DANCETODIFFDJS", 4)
-    stats.set_int(MPX() .. "NIGHTCLUB_HOTSPOT_TIME_MS", 3600000)
-    stats.set_int(MPX() .. "NIGHTCLUB_CONT_TOTAL", 20)
-    stats.set_int(MPX() .. "NIGHTCLUB_CONT_MISSION", -1)
-    stats.set_int(MPX() .. "CLUB_CONTRABAND_MISSION", 1000)
-    stats.set_int(MPX() .. "HUB_CONTRABAND_MISSION", 1000)
-    stats.set_bool(MPX() .. "AWD_CLUB_HOTSPOT", true)
-    stats.set_bool(MPX() .. "AWD_CLUB_CLUBBER", true)
-    stats.set_bool(MPX() .. "AWD_CLUB_COORD", true)
+DLCAUM:Button("After Hours", function()
+    Stats.SetInt(J(MPX() .. "AWD_DANCE_TO_SOLOMUN"), 120)
+    Stats.SetInt(J(MPX() .. "AWD_DANCE_TO_TALEOFUS"), 120)
+    Stats.SetInt(J(MPX() .. "AWD_DANCE_TO_DIXON"), 120)
+    Stats.SetInt(J(MPX() .. "AWD_DANCE_TO_BLKMAD"), 120)
+    Stats.SetInt(J(MPX() .. "AWD_CLUB_DRUNK"), 200)
+    Stats.SetInt(J(MPX() .. "NIGHTCLUB_VIP_APPEAR"), 700)
+    Stats.SetInt(J(MPX() .. "NIGHTCLUB_JOBS_DONE"), 700)
+    Stats.SetInt(J(MPX() .. "NIGHTCLUB_EARNINGS"), 5721002)
+    Stats.SetInt(J(MPX() .. "HUB_SALES_COMPLETED"), 1001)
+    Stats.SetInt(J(MPX() .. "HUB_EARNINGS"), 20721002)
+    Stats.SetInt(J(MPX() .. "DANCE_COMBO_DURATION_MINS"), 3600000)
+    Stats.SetInt(J(MPX() .. "NIGHTCLUB_PLAYER_APPEAR"), 100)
+    Stats.SetInt(J(MPX() .. "LIFETIME_HUB_GOODS_SOLD"), 784672)
+    Stats.SetInt(J(MPX() .. "LIFETIME_HUB_GOODS_MADE"), 507822)
+    Stats.SetInt(J(MPX() .. "DANCEPERFECTOWNCLUB"), 120)
+    Stats.SetInt(J(MPX() .. "NUMUNIQUEPLYSINCLUB"), 120)
+    Stats.SetInt(J(MPX() .. "DANCETODIFFDJS"), 4)
+    Stats.SetInt(J(MPX() .. "NIGHTCLUB_HOTSPOT_TIME_MS"), 3600000)
+    Stats.SetInt(J(MPX() .. "NIGHTCLUB_CONT_TOTAL"), 20)
+    Stats.SetInt(J(MPX() .. "NIGHTCLUB_CONT_MISSION"), -1)
+    Stats.SetInt(J(MPX() .. "CLUB_CONTRABAND_MISSION"), 1000)
+    Stats.SetInt(J(MPX() .. "HUB_CONTRABAND_MISSION"), 1000)
+    Stats.SetBool(J(MPX() .. "AWD_CLUB_HOTSPOT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_CLUB_CLUBBER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_CLUB_COORD"), 1)
     for j = 0, 63 do
-        stats.set_bool_masked(MPX() .. "BUSINESSBATPSTAT_BOOL0", true, j)
-        stats.set_bool_masked(MPX() .. "BUSINESSBATPSTAT_BOOL1", true, j)
+        Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "BUSINESSBATPSTAT_BOOL0"), true, j, true)
+        Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "BUSINESSBATPSTAT_BOOL1"), true, j, true)
     end
-    if stats.get_masked_int(MPX() .. "BUSINESSBATPSTAT_INT380", 0, 8) < 20 then
-        stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT380", 20, 0, 8)
+    if GetStatMaskedInt(MPX() .. "BUSINESSBATPSTAT_INT380", 0, 8) < 20 then
+        Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT380"), 20, 0, 8, true)
     end
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT379", 50, 8, 8)
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT379", 100, 16, 8)
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT379", 20, 24, 8)
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT379", 80, 32, 8)
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT379", 60, 40, 8)
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT379", 40, 48, 8)
-    stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT379", 10, 56, 8)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT379"), 50, 8, 8, true)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT379"), 100, 16, 8, true)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT379"), 20, 24, 8, true)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT379"), 80, 32, 8, true)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT379"), 60, 40, 8, true)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT379"), 40, 48, 8, true)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "BUSINESSBATPSTAT_INT379"), 10, 56, 8, true)
 end)
 
-DLCAUM:add_button("Arena War", function()
-    stats.set_int(MPX() .. "ARN_BS_TRINKET_TICKERS", -1)
-    stats.set_int(MPX() .. "ARN_BS_TRINKET_SAVED", -1)
-    stats.set_int(MPX() .. "AWD_WATCH_YOUR_STEP", 50)
-    stats.set_int(MPX() .. "AWD_TOWER_OFFENSE", 50)
-    stats.set_int(MPX() .. "AWD_READY_FOR_WAR", 50)
-    stats.set_int(MPX() .. "AWD_THROUGH_A_LENS", 50)
-    stats.set_int(MPX() .. "AWD_SPINNER", 50)
-    stats.set_int(MPX() .. "AWD_YOUMEANBOOBYTRAPS", 50)
-    stats.set_int(MPX() .. "AWD_MASTER_BANDITO", 50)
-    stats.set_int(MPX() .. "AWD_SITTING_DUCK", 50)
-    stats.set_int(MPX() .. "AWD_CROWDPARTICIPATION", 50)
-    stats.set_int(MPX() .. "AWD_KILL_OR_BE_KILLED", 50)
-    stats.set_int(MPX() .. "AWD_MASSIVE_SHUNT", 50)
-    stats.set_int(MPX() .. "AWD_YOURE_OUTTA_HERE", 200)
-    stats.set_int(MPX() .. "AWD_WEVE_GOT_ONE", 50)
-    stats.set_int(MPX() .. "AWD_ARENA_WAGEWORKER", 1000000)
-    stats.set_int(MPX() .. "AWD_TIME_SERVED", 1000)
-    stats.set_int(MPX() .. "AWD_TOP_SCORE", 55000)
-    stats.set_int(MPX() .. "AWD_CAREER_WINNER", 1000)
-    stats.set_int(MPX() .. "ARENAWARS_SP", 0)
-    stats.set_int(MPX() .. "ARENAWARS_SKILL_LEVEL", 20)
-    stats.set_int(MPX() .. "ARENAWARS_SP_LIFETIME", 100)
-    stats.set_int(MPX() .. "ARENAWARS_AP", 0)
-    stats.set_int(MPX() .. "ARENAWARS_AP_TIER", 1000)
-    stats.set_int(MPX() .. "ARENAWARS_AP_LIFETIME", 5055000)
-    stats.set_int(MPX() .. "ARENAWARS_CARRER_UNLK", -1)
-    stats.set_int(MPX() .. "ARN_W_THEME_SCIFI", 1000)
-    stats.set_int(MPX() .. "ARN_W_THEME_APOC", 1000)
-    stats.set_int(MPX() .. "ARN_W_THEME_CONS", 1000)
-    stats.set_int(MPX() .. "ARN_W_PASS_THE_BOMB", 1000)
-    stats.set_int(MPX() .. "ARN_W_DETONATION", 1000)
-    stats.set_int(MPX() .. "ARN_W_ARCADE_RACE", 1000)
-    stats.set_int(MPX() .. "ARN_W_CTF", 1000)
-    stats.set_int(MPX() .. "ARN_W_TAG_TEAM", 1000)
-    stats.set_int(MPX() .. "ARN_W_DESTR_DERBY", 1000)
-    stats.set_int(MPX() .. "ARN_W_CARNAGE", 1000)
-    stats.set_int(MPX() .. "ARN_W_MONSTER_JAM", 1000)
-    stats.set_int(MPX() .. "ARN_W_GAMES_MASTERS", 1000)
-    stats.set_int(MPX() .. "ARN_L_PASS_THE_BOMB", 500)
-    stats.set_int(MPX() .. "ARN_L_DETONATION", 500)
-    stats.set_int(MPX() .. "ARN_L_ARCADE_RACE", 500)
-    stats.set_int(MPX() .. "ARN_L_CTF", 500)
-    stats.set_int(MPX() .. "ARN_L_TAG_TEAM", 500)
-    stats.set_int(MPX() .. "ARN_L_DESTR_DERBY", 500)
-    stats.set_int(MPX() .. "ARN_L_CARNAGE", 500)
-    stats.set_int(MPX() .. "ARN_L_MONSTER_JAM", 500)
-    stats.set_int(MPX() .. "ARN_L_GAMES_MASTERS", 500)
-    stats.set_int(MPX() .. "NUMBER_OF_CHAMP_BOUGHT", 1000)
-    stats.set_int(MPX() .. "ARN_SPECTATOR_KILLS", 1000)
-    stats.set_int(MPX() .. "ARN_LIFETIME_KILLS", 1000)
-    stats.set_int(MPX() .. "ARN_LIFETIME_DEATHS", 500)
-    stats.set_int(MPX() .. "ARENAWARS_CARRER_WINS", 1000)
-    stats.set_int(MPX() .. "ARENAWARS_CARRER_WINT", 1000)
-    stats.set_int(MPX() .. "ARENAWARS_MATCHES_PLYD", 1000)
-    stats.set_int(MPX() .. "ARENAWARS_MATCHES_PLYDT", 1000)
-    stats.set_int(MPX() .. "ARN_SPEC_BOX_TIME_MS", 86400000)
-    stats.set_int(MPX() .. "ARN_SPECTATOR_DRONE", 1000)
-    stats.set_int(MPX() .. "ARN_SPECTATOR_CAMS", 1000)
-    stats.set_int(MPX() .. "ARN_SMOKE", 1000)
-    stats.set_int(MPX() .. "ARN_DRINK", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_MONSTER", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_MONSTER", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_MONSTER", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_CERBERUS", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_CERBERUS2", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_CERBERUS3", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_BRUISER", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_BRUISER2", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_BRUISER3", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_SLAMVAN4", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_SLAMVAN5", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_SLAMVAN6", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_BRUTUS", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_BRUTUS2", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_BRUTUS3", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_SCARAB", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_SCARAB2", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_SCARAB3", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_DOMINATOR4", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_DOMINATOR5", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_DOMINATOR6", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_IMPALER2", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_IMPALER3", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_IMPALER4", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_ISSI4", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_ISSI5", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_ISSI", 61000)
-    stats.set_int(MPX() .. "ARN_VEH_IMPERATOR", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_IMPERATOR2", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_IMPERATOR3", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_ZR380", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_ZR3802", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_ZR3803", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_DEATHBIKE", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_DEATHBIKE2", 1000)
-    stats.set_int(MPX() .. "ARN_VEH_DEATHBIKE3", 1000)
-    stats.set_bool(MPX() .. "AWD_BEGINNER", true)
-    stats.set_bool(MPX() .. "AWD_FIELD_FILLER", true)
-    stats.set_bool(MPX() .. "AWD_ARMCHAIR_RACER", true)
-    stats.set_bool(MPX() .. "AWD_LEARNER", true)
-    stats.set_bool(MPX() .. "AWD_SUNDAY_DRIVER", true)
-    stats.set_bool(MPX() .. "AWD_THE_ROOKIE", true)
-    stats.set_bool(MPX() .. "AWD_BUMP_AND_RUN", true)
-    stats.set_bool(MPX() .. "AWD_GEAR_HEAD", true)
-    stats.set_bool(MPX() .. "AWD_DOOR_SLAMMER", true)
-    stats.set_bool(MPX() .. "AWD_HOT_LAP", true)
-    stats.set_bool(MPX() .. "AWD_ARENA_AMATEUR", true)
-    stats.set_bool(MPX() .. "AWD_PAINT_TRADER", true)
-    stats.set_bool(MPX() .. "AWD_SHUNTER", true)
-    stats.set_bool(MPX() .. "AWD_JOCK", true)
-    stats.set_bool(MPX() .. "AWD_WARRIOR", true)
-    stats.set_bool(MPX() .. "AWD_T_BONE", true)
-    stats.set_bool(MPX() .. "AWD_MAYHEM", true)
-    stats.set_bool(MPX() .. "AWD_WRECKER", true)
-    stats.set_bool(MPX() .. "AWD_CRASH_COURSE", true)
-    stats.set_bool(MPX() .. "AWD_ARENA_LEGEND", true)
-    stats.set_bool(MPX() .. "AWD_PEGASUS", true)
-    stats.set_bool(MPX() .. "AWD_UNSTOPPABLE", true)
-    stats.set_bool(MPX() .. "AWD_CONTACT_SPORT", true)
-    stats.set_masked_int(MPX() .. "ARENAWARSPSTAT_INT", 1, 35, 8)
+DLCAUM:Button("Arena War", function()
+    Stats.SetInt(J(MPX() .. "ARN_BS_TRINKET_TICKERS"), -1)
+    Stats.SetInt(J(MPX() .. "ARN_BS_TRINKET_SAVED"), -1)
+    Stats.SetInt(J(MPX() .. "AWD_WATCH_YOUR_STEP"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_TOWER_OFFENSE"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_READY_FOR_WAR"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_THROUGH_A_LENS"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_SPINNER"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_YOUMEANBOOBYTRAPS"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_MASTER_BANDITO"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_SITTING_DUCK"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_CROWDPARTICIPATION"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_KILL_OR_BE_KILLED"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_MASSIVE_SHUNT"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_YOURE_OUTTA_HERE"), 200)
+    Stats.SetInt(J(MPX() .. "AWD_WEVE_GOT_ONE"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_ARENA_WAGEWORKER"), 1000000)
+    Stats.SetInt(J(MPX() .. "AWD_TIME_SERVED"), 1000)
+    Stats.SetInt(J(MPX() .. "AWD_TOP_SCORE"), 55000)
+    Stats.SetInt(J(MPX() .. "AWD_CAREER_WINNER"), 1000)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_SP"), 0)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_SKILL_LEVEL"), 20)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_SP_LIFETIME"), 100)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_AP"), 0)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_AP_TIER"), 1000)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_AP_LIFETIME"), 5055000)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_CARRER_UNLK"), -1)
+    Stats.SetInt(J(MPX() .. "ARN_W_THEME_SCIFI"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_THEME_APOC"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_THEME_CONS"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_PASS_THE_BOMB"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_DETONATION"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_ARCADE_RACE"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_CTF"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_TAG_TEAM"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_DESTR_DERBY"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_CARNAGE"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_MONSTER_JAM"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_W_GAMES_MASTERS"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_L_PASS_THE_BOMB"), 500)
+    Stats.SetInt(J(MPX() .. "ARN_L_DETONATION"), 500)
+    Stats.SetInt(J(MPX() .. "ARN_L_ARCADE_RACE"), 500)
+    Stats.SetInt(J(MPX() .. "ARN_L_CTF"), 500)
+    Stats.SetInt(J(MPX() .. "ARN_L_TAG_TEAM"), 500)
+    Stats.SetInt(J(MPX() .. "ARN_L_DESTR_DERBY"), 500)
+    Stats.SetInt(J(MPX() .. "ARN_L_CARNAGE"), 500)
+    Stats.SetInt(J(MPX() .. "ARN_L_MONSTER_JAM"), 500)
+    Stats.SetInt(J(MPX() .. "ARN_L_GAMES_MASTERS"), 500)
+    Stats.SetInt(J(MPX() .. "NUMBER_OF_CHAMP_BOUGHT"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_SPECTATOR_KILLS"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_LIFETIME_KILLS"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_LIFETIME_DEATHS"), 500)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_CARRER_WINS"), 1000)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_CARRER_WINT"), 1000)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_MATCHES_PLYD"), 1000)
+    Stats.SetInt(J(MPX() .. "ARENAWARS_MATCHES_PLYDT"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_SPEC_BOX_TIME_MS"), 86400000)
+    Stats.SetInt(J(MPX() .. "ARN_SPECTATOR_DRONE"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_SPECTATOR_CAMS"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_SMOKE"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_DRINK"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_MONSTER"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_MONSTER"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_MONSTER"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_CERBERUS"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_CERBERUS2"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_CERBERUS3"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_BRUISER"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_BRUISER2"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_BRUISER3"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_SLAMVAN4"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_SLAMVAN5"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_SLAMVAN6"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_BRUTUS"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_BRUTUS2"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_BRUTUS3"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_SCARAB"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_SCARAB2"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_SCARAB3"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_DOMINATOR4"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_DOMINATOR5"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_DOMINATOR6"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_IMPALER2"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_IMPALER3"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_IMPALER4"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_ISSI4"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_ISSI5"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_ISSI"), 61000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_IMPERATOR"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_IMPERATOR2"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_IMPERATOR3"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_ZR380"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_ZR3802"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_ZR3803"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_DEATHBIKE"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_DEATHBIKE2"), 1000)
+    Stats.SetInt(J(MPX() .. "ARN_VEH_DEATHBIKE3"), 1000)
+    Stats.SetBool(J(MPX() .. "AWD_BEGINNER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FIELD_FILLER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ARMCHAIR_RACER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_LEARNER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SUNDAY_DRIVER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_THE_ROOKIE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_BUMP_AND_RUN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_GEAR_HEAD"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_DOOR_SLAMMER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_HOT_LAP"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ARENA_AMATEUR"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PAINT_TRADER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SHUNTER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_JOCK"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_WARRIOR"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_T_BONE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MAYHEM"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_WRECKER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_CRASH_COURSE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ARENA_LEGEND"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PEGASUS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_UNSTOPPABLE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_CONTACT_SPORT"), 1)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "ARENAWARSPSTAT_INT"), 1, 35, 8, true)
     for i = 0, 8 do
         for j = 0, 63 do
-            stats.set_bool_masked(MPX() .. "ARENAWARSPSTAT_BOOL" .. i, true, j)
+            Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "ARENAWARSPSTAT_BOOL" .. i), true, j, true)
         end
     end
 end)
 
-DLCAUM:add_button("Diamond Casino n Resort", function()
-    stats.set_int(MPX() .. "AWD_ODD_JOBS", 50)
-    stats.set_int(MPX() .. "VCM_FLOW_PROGRESS", -1)
-    stats.set_int(MPX() .. "VCM_STORY_PROGRESS", 5)
-    stats.set_bool(MPX() .. "AWD_FIRST_TIME1", true)
-    stats.set_bool(MPX() .. "AWD_FIRST_TIME2", true)
-    stats.set_bool(MPX() .. "AWD_FIRST_TIME3", true)
-    stats.set_bool(MPX() .. "AWD_FIRST_TIME4", true)
-    stats.set_bool(MPX() .. "AWD_FIRST_TIME5", true)
-    stats.set_bool(MPX() .. "AWD_FIRST_TIME6", true)
-    stats.set_bool(MPX() .. "AWD_ALL_IN_ORDER", true)
-    stats.set_bool(MPX() .. "AWD_SUPPORTING_ROLE", true)
-    stats.set_bool(MPX() .. "AWD_LEADER", true)
-    stats.set_bool(MPX() .. "AWD_SURVIVALIST", true)
-    Paragon = stats.get_bool(MPX() .. "CAS_VEHICLE_REWARD")
+DLCAUM:Button("Diamond Casino n Resort", function()
+    Stats.SetInt(J(MPX() .. "AWD_ODD_JOBS"), 50)
+    Stats.SetInt(J(MPX() .. "VCM_FLOW_PROGRESS"), -1)
+    Stats.SetInt(J(MPX() .. "VCM_STORY_PROGRESS"), 5)
+    Stats.SetBool(J(MPX() .. "AWD_FIRST_TIME1"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FIRST_TIME2"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FIRST_TIME3"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FIRST_TIME4"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FIRST_TIME5"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FIRST_TIME6"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ALL_IN_ORDER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SUPPORTING_ROLE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_LEADER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SURVIVALIST"), 1)
+    Paragon = GetStatBool(MPX() .. "CAS_VEHICLE_REWARD")
     if Paragon == true then
-        stats.set_bool(MPX() .. "CAS_VEHICLE_REWARD", true)
+        Stats.SetBool(J(MPX() .. "CAS_VEHICLE_REWARD"), 1)
     else
-        stats.set_bool(MPX() .. "CAS_VEHICLE_REWARD", false)
+        Stats.SetBool(J(MPX() .. "CAS_VEHICLE_REWARD"), 0)
     end
     for i = 0, 6 do
         for j = 0, 63 do
-            stats.set_bool_masked(MPX() .. "CASINOPSTAT_BOOL" .. i, true, j)
+            Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "CASINOPSTAT_BOOL" .. i), true, j, true)
         end
     end
 end)
 
-DLCAUM:add_button("Arcade", function()
-    stats.set_int(MPX() .. "AWD_PREPARATION", 50)
-    stats.set_int(MPX() .. "AWD_ASLEEPONJOB", 20)
-    stats.set_int(MPX() .. "AWD_DAICASHCRAB", 100000)
-    stats.set_int(MPX() .. "AWD_BIGBRO", 40)
-    stats.set_int(MPX() .. "AWD_SHARPSHOOTER", 40)
-    stats.set_int(MPX() .. "AWD_RACECHAMP", 40)
-    stats.set_int(MPX() .. "AWD_BATSWORD", 1000000)
-    stats.set_int(MPX() .. "AWD_COINPURSE", 950000)
-    stats.set_int(MPX() .. "AWD_ASTROCHIMP", 3000000)
-    stats.set_int(MPX() .. "AWD_MASTERFUL", 40000)
-    stats.set_int(MPX() .. "SCGW_NUM_WINS_GANG_0", 50)
-    stats.set_int(MPX() .. "SCGW_NUM_WINS_GANG_1", 50)
-    stats.set_int(MPX() .. "SCGW_NUM_WINS_GANG_2", 50)
-    stats.set_int(MPX() .. "SCGW_NUM_WINS_GANG_3", 50)
-    stats.set_int(MPX() .. "CH_ARC_CAB_CLAW_TROPHY", -1)
-    stats.set_int(MPX() .. "CH_ARC_CAB_LOVE_TROPHY", -1)
-    stats.set_int(MPX() .. "IAP_MAX_MOON_DIST", 2147483647)
-    stats.set_int(MPX() .. "SCGW_INITIALS_0", 69644)
-    stats.set_int(MPX() .. "SCGW_INITIALS_1", 50333)
-    stats.set_int(MPX() .. "SCGW_INITIALS_2", 63512)
-    stats.set_int(MPX() .. "SCGW_INITIALS_3", 46136)
-    stats.set_int(MPX() .. "SCGW_INITIALS_4", 21638)
-    stats.set_int(MPX() .. "SCGW_INITIALS_5", 2133)
-    stats.set_int(MPX() .. "SCGW_INITIALS_6", 1215)
-    stats.set_int(MPX() .. "SCGW_INITIALS_7", 2444)
-    stats.set_int(MPX() .. "SCGW_INITIALS_8", 38023)
-    stats.set_int(MPX() .. "SCGW_INITIALS_9", 2233)
-    stats.set_int(MPX() .. "FOOTAGE_INITIALS_0", 0)
-    stats.set_int(MPX() .. "FOOTAGE_INITIALS_1", 64)
-    stats.set_int(MPX() .. "FOOTAGE_INITIALS_2", 8457)
-    stats.set_int(MPX() .. "FOOTAGE_INITIALS_3", 91275)
-    stats.set_int(MPX() .. "FOOTAGE_INITIALS_4", 53260)
-    stats.set_int(MPX() .. "FOOTAGE_INITIALS_5", 78663)
-    stats.set_int(MPX() .. "FOOTAGE_INITIALS_6", 25103)
-    stats.set_int(MPX() .. "FOOTAGE_INITIALS_7", 102401)
-    stats.set_int(MPX() .. "FOOTAGE_INITIALS_8", 12672)
-    stats.set_int(MPX() .. "FOOTAGE_INITIALS_9", 74380)
-    stats.set_int(MPX() .. "FOOTAGE_SCORE_0", 284544)
-    stats.set_int(MPX() .. "FOOTAGE_SCORE_1", 275758)
-    stats.set_int(MPX() .. "FOOTAGE_SCORE_2", 100000)
-    stats.set_int(MPX() .. "FOOTAGE_SCORE_3", 90000)
-    stats.set_int(MPX() .. "FOOTAGE_SCORE_4", 80000)
-    stats.set_int(MPX() .. "FOOTAGE_SCORE_5", 70000)
-    stats.set_int(MPX() .. "FOOTAGE_SCORE_6", 60000)
-    stats.set_int(MPX() .. "FOOTAGE_SCORE_7", 50000)
-    stats.set_int(MPX() .. "FOOTAGE_SCORE_8", 40000)
-    stats.set_int(MPX() .. "FOOTAGE_SCORE_9", 30000)
+DLCAUM:Button("Arcade", function()
+    Stats.SetInt(J(MPX() .. "AWD_PREPARATION"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_ASLEEPONJOB"), 20)
+    Stats.SetInt(J(MPX() .. "AWD_DAICASHCRAB"), 100000)
+    Stats.SetInt(J(MPX() .. "AWD_BIGBRO"), 40)
+    Stats.SetInt(J(MPX() .. "AWD_SHARPSHOOTER"), 40)
+    Stats.SetInt(J(MPX() .. "AWD_RACECHAMP"), 40)
+    Stats.SetInt(J(MPX() .. "AWD_BATSWORD"), 1000000)
+    Stats.SetInt(J(MPX() .. "AWD_COINPURSE"), 950000)
+    Stats.SetInt(J(MPX() .. "AWD_ASTROCHIMP"), 3000000)
+    Stats.SetInt(J(MPX() .. "AWD_MASTERFUL"), 40000)
+    Stats.SetInt(J(MPX() .. "SCGW_NUM_WINS_GANG_0"), 50)
+    Stats.SetInt(J(MPX() .. "SCGW_NUM_WINS_GANG_1"), 50)
+    Stats.SetInt(J(MPX() .. "SCGW_NUM_WINS_GANG_2"), 50)
+    Stats.SetInt(J(MPX() .. "SCGW_NUM_WINS_GANG_3"), 50)
+    Stats.SetInt(J(MPX() .. "CH_ARC_CAB_CLAW_TROPHY"), -1)
+    Stats.SetInt(J(MPX() .. "CH_ARC_CAB_LOVE_TROPHY"), -1)
+    Stats.SetInt(J(MPX() .. "IAP_MAX_MOON_DIST"), 2147483647)
+    Stats.SetInt(J(MPX() .. "SCGW_INITIALS_0"), 69644)
+    Stats.SetInt(J(MPX() .. "SCGW_INITIALS_1"), 50333)
+    Stats.SetInt(J(MPX() .. "SCGW_INITIALS_2"), 63512)
+    Stats.SetInt(J(MPX() .. "SCGW_INITIALS_3"), 46136)
+    Stats.SetInt(J(MPX() .. "SCGW_INITIALS_4"), 21638)
+    Stats.SetInt(J(MPX() .. "SCGW_INITIALS_5"), 2133)
+    Stats.SetInt(J(MPX() .. "SCGW_INITIALS_6"), 1215)
+    Stats.SetInt(J(MPX() .. "SCGW_INITIALS_7"), 2444)
+    Stats.SetInt(J(MPX() .. "SCGW_INITIALS_8"), 38023)
+    Stats.SetInt(J(MPX() .. "SCGW_INITIALS_9"), 2233)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_INITIALS_0"), 0)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_INITIALS_1"), 64)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_INITIALS_2"), 8457)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_INITIALS_3"), 91275)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_INITIALS_4"), 53260)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_INITIALS_5"), 78663)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_INITIALS_6"), 25103)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_INITIALS_7"), 102401)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_INITIALS_8"), 12672)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_INITIALS_9"), 74380)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_SCORE_0"), 284544)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_SCORE_1"), 275758)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_SCORE_2"), 100000)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_SCORE_3"), 90000)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_SCORE_4"), 80000)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_SCORE_5"), 70000)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_SCORE_6"), 60000)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_SCORE_7"), 50000)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_SCORE_8"), 40000)
+    Stats.SetInt(J(MPX() .. "FOOTAGE_SCORE_9"), 30000)
     for i = 0, 9 do
-        stats.set_int(MPX() .. "IAP_INITIALS_" .. i, 50)
-        stats.set_int(MPX() .. "IAP_SCORE_" .. i, 50)
-        stats.set_int(MPX() .. "IAP_SCORE_" .. i, 50)
-        stats.set_int(MPX() .. "SCGW_SCORE_" .. i, 50)
-        stats.set_int(MPX() .. "DG_DEFENDER_INITIALS_" .. i, 69644)
-        stats.set_int(MPX() .. "DG_DEFENDER_SCORE_" .. i, 50)
-        stats.set_int(MPX() .. "DG_MONKEY_INITIALS_" .. i, 69644)
-        stats.set_int(MPX() .. "DG_MONKEY_SCORE_" .. i, 50)
-        stats.set_int(MPX() .. "DG_PENETRATOR_INITIALS_" .. i, 69644)
-        stats.set_int(MPX() .. "DG_PENETRATOR_SCORE_" .. i, 50)
-        stats.set_int(MPX() .. "GGSM_INITIALS_" .. i, 69644)
-        stats.set_int(MPX() .. "GGSM_SCORE_" .. i, 50)
-        stats.set_int(MPX() .. "TWR_INITIALS_" .. i, 69644)
-        stats.set_int(MPX() .. "TWR_SCORE_" .. i, 50)
+        Stats.SetInt(J(MPX() .. "IAP_INITIALS_" .. i), 50)
+        Stats.SetInt(J(MPX() .. "IAP_SCORE_" .. i), 50)
+        Stats.SetInt(J(MPX() .. "IAP_SCORE_" .. i), 50)
+        Stats.SetInt(J(MPX() .. "SCGW_SCORE_" .. i), 50)
+        Stats.SetInt(J(MPX() .. "DG_DEFENDER_INITIALS_" .. i), 69644)
+        Stats.SetInt(J(MPX() .. "DG_DEFENDER_SCORE_" .. i), 50)
+        Stats.SetInt(J(MPX() .. "DG_MONKEY_INITIALS_" .. i), 69644)
+        Stats.SetInt(J(MPX() .. "DG_MONKEY_SCORE_" .. i), 50)
+        Stats.SetInt(J(MPX() .. "DG_PENETRATOR_INITIALS_" .. i), 69644)
+        Stats.SetInt(J(MPX() .. "DG_PENETRATOR_SCORE_" .. i), 50)
+        Stats.SetInt(J(MPX() .. "GGSM_INITIALS_" .. i), 69644)
+        Stats.SetInt(J(MPX() .. "GGSM_SCORE_" .. i), 50)
+        Stats.SetInt(J(MPX() .. "TWR_INITIALS_" .. i), 69644)
+        Stats.SetInt(J(MPX() .. "TWR_SCORE_" .. i), 50)
     end
-    stats.set_bool(MPX() .. "AWD_SCOPEOUT", true)
-    stats.set_bool(MPX() .. "AWD_CREWEDUP", true)
-    stats.set_bool(MPX() .. "AWD_MOVINGON", true)
-    stats.set_bool(MPX() .. "AWD_PROMOCAMP", true)
-    stats.set_bool(MPX() .. "AWD_GUNMAN", true)
-    stats.set_bool(MPX() .. "AWD_SMASHNGRAB", true)
-    stats.set_bool(MPX() .. "AWD_INPLAINSI", true)
-    stats.set_bool(MPX() .. "AWD_UNDETECTED", true)
-    stats.set_bool(MPX() .. "AWD_ALLROUND", true)
-    stats.set_bool(MPX() .. "AWD_ELITETHEIF", true)
-    stats.set_bool(MPX() .. "AWD_PRO", true)
-    stats.set_bool(MPX() .. "AWD_SUPPORTACT", true)
-    stats.set_bool(MPX() .. "AWD_SHAFTED", true)
-    stats.set_bool(MPX() .. "AWD_COLLECTOR", true)
-    stats.set_bool(MPX() .. "AWD_DEADEYE", true)
-    stats.set_bool(MPX() .. "AWD_PISTOLSATDAWN", true)
-    stats.set_bool(MPX() .. "AWD_TRAFFICAVOI", true)
-    stats.set_bool(MPX() .. "AWD_CANTCATCHBRA", true)
-    stats.set_bool(MPX() .. "AWD_WIZHARD", true)
-    stats.set_bool(MPX() .. "AWD_APEESCAP", true)
-    stats.set_bool(MPX() .. "AWD_MONKEYKIND", true)
-    stats.set_bool(MPX() .. "AWD_AQUAAPE", true)
-    stats.set_bool(MPX() .. "AWD_KEEPFAITH", true)
-    stats.set_bool(MPX() .. "AWD_TRUELOVE", true)
-    stats.set_bool(MPX() .. "AWD_NEMESIS", true)
-    stats.set_bool(MPX() .. "AWD_FRIENDZONED", true)
-    stats.set_bool(MPX() .. "IAP_CHALLENGE_0", true)
-    stats.set_bool(MPX() .. "IAP_CHALLENGE_1", true)
-    stats.set_bool(MPX() .. "IAP_CHALLENGE_2", true)
-    stats.set_bool(MPX() .. "IAP_CHALLENGE_3", true)
-    stats.set_bool(MPX() .. "IAP_CHALLENGE_4", true)
-    stats.set_bool(MPX() .. "IAP_GOLD_TANK", true)
-    stats.set_bool(MPX() .. "SCGW_WON_NO_DEATHS", true)
+    Stats.SetBool(J(MPX() .. "AWD_SCOPEOUT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_CREWEDUP"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MOVINGON"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PROMOCAMP"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_GUNMAN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SMASHNGRAB"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_INPLAINSI"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_UNDETECTED"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ALLROUND"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ELITETHEIF"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PRO"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SUPPORTACT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SHAFTED"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_COLLECTOR"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_DEADEYE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PISTOLSATDAWN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_TRAFFICAVOI"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_CANTCATCHBRA"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_WIZHARD"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_APEESCAP"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MONKEYKIND"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_AQUAAPE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_KEEPFAITH"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_TRUELOVE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_NEMESIS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FRIENDZONED"), 1)
+    Stats.SetBool(J(MPX() .. "IAP_CHALLENGE_0"), 1)
+    Stats.SetBool(J(MPX() .. "IAP_CHALLENGE_1"), 1)
+    Stats.SetBool(J(MPX() .. "IAP_CHALLENGE_2"), 1)
+    Stats.SetBool(J(MPX() .. "IAP_CHALLENGE_3"), 1)
+    Stats.SetBool(J(MPX() .. "IAP_CHALLENGE_4"), 1)
+    Stats.SetBool(J(MPX() .. "IAP_GOLD_TANK"), 1)
+    Stats.SetBool(J(MPX() .. "SCGW_WON_NO_DEATHS"), 1)
     for i = 0, 4 do
         for j = 0, 63 do
-            stats.set_bool_masked(MPX() .. "CASINOHSTPSTAT_BOOL" .. i, true, j)
+            Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "CASINOHSTPSTAT_BOOL" .. i), true, j, true)
         end
     end
     for i = 0, 6 do
         for j = 0, 63 do
-            stats.set_bool_masked(MPX() .. "CASINOPSTAT_BOOL" .. i, true, j)
+            Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "CASINOPSTAT_BOOL" .. i), true, j, true)
         end
     end
 end)
 
-DLCAUM:add_button("LS Summer Special", function()
-    stats.set_bool(MPX() .. "AWD_KINGOFQUB3D", true)
-    stats.set_bool(MPX() .. "AWD_QUBISM", true)
-    stats.set_bool(MPX() .. "AWD_QUIBITS", true)
-    stats.set_bool(MPX() .. "AWD_GODOFQUB3D", true)
-    stats.set_bool(MPX() .. "AWD_ELEVENELEVEN", true)
-    stats.set_bool(MPX() .. "AWD_GOFOR11TH", true)
-    stats.set_masked_int(MPX() .. "SU20PSTAT_INT", 1, 35, 8)
+DLCAUM:Button("LS Summer Special", function()
+    Stats.SetBool(J(MPX() .. "AWD_KINGOFQUB3D"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_QUBISM"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_QUIBITS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_GODOFQUB3D"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_ELEVENELEVEN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_GOFOR11TH"), 1)
+    Natives.InvokeBool(N.STAT_SET_MASKED_INT, J(MPX() .. "SU20PSTAT_INT"), 1, 35, 8, true)
     for i = 0, 1 do
         for j = 0, 63 do
-            stats.set_bool_masked(MPX() .. "SU20PSTAT_BOOL" .. i, true, j)
-            stats.set_bool_masked(MPX() .. "SU20TATTOOSTAT_BOOL" .. i, true, j)
+            Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "SU20PSTAT_BOOL" .. i), true, j, true)
+            Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "SU20TATTOOSTAT_BOOL" .. i), true, j, true)
         end
     end
 end)
 
-DLCAUM:add_button("LS Tuners", function()
-    stats.set_int(MPX() .. "AWD_CAR_CLUB_MEM", 100)
-    stats.set_int(MPX() .. "AWD_SPRINTRACER", 50)
-    stats.set_int(MPX() .. "AWD_STREETRACER", 50)
-    stats.set_int(MPX() .. "AWD_PURSUITRACER", 50)
-    stats.set_int(MPX() .. "AWD_TEST_CAR", 240)
-    stats.set_int(MPX() .. "AWD_AUTO_SHOP", 50)
-    stats.set_int(MPX() .. "AWD_GROUNDWORK", 40)
-    stats.set_int(MPX() .. "AWD_CAR_EXPORT", 100)
-    stats.set_int(MPX() .. "AWD_ROBBERY_CONTRACT", 100)
-    stats.set_int(MPX() .. "AWD_FACES_OF_DEATH", 100)
-    stats.set_bool(MPX() .. "AWD_CAR_CLUB", true)
-    stats.set_bool(MPX() .. "AWD_PRO_CAR_EXPORT", true)
-    stats.set_bool(MPX() .. "AWD_UNION_DEPOSITORY", true)
-    stats.set_bool(MPX() .. "AWD_MILITARY_CONVOY", true)
-    stats.set_bool(MPX() .. "AWD_FLEECA_BANK", true)
-    stats.set_bool(MPX() .. "AWD_FREIGHT_TRAIN", true)
-    stats.set_bool(MPX() .. "AWD_BOLINGBROKE_ASS", true)
-    stats.set_bool(MPX() .. "AWD_IAA_RAID", true)
-    stats.set_bool(MPX() .. "AWD_METH_JOB", true)
-    stats.set_bool(MPX() .. "AWD_BUNKER_RAID", true)
-    stats.set_bool(MPX() .. "AWD_STRAIGHT_TO_VIDEO", true)
-    stats.set_bool(MPX() .. "AWD_MONKEY_C_MONKEY_DO", true)
-    stats.set_bool(MPX() .. "AWD_TRAINED_TO_KILL", true)
-    stats.set_bool(MPX() .. "AWD_DIRECTOR", true)
+DLCAUM:Button("LS Tuners", function()
+    Stats.SetInt(J(MPX() .. "AWD_CAR_CLUB_MEM"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_SPRINTRACER"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_STREETRACER"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_PURSUITRACER"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_TEST_CAR"), 240)
+    Stats.SetInt(J(MPX() .. "AWD_AUTO_SHOP"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_GROUNDWORK"), 40)
+    Stats.SetInt(J(MPX() .. "AWD_CAR_EXPORT"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_ROBBERY_CONTRACT"), 100)
+    Stats.SetInt(J(MPX() .. "AWD_FACES_OF_DEATH"), 100)
+    Stats.SetBool(J(MPX() .. "AWD_CAR_CLUB"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PRO_CAR_EXPORT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_UNION_DEPOSITORY"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MILITARY_CONVOY"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FLEECA_BANK"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_FREIGHT_TRAIN"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_BOLINGBROKE_ASS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_IAA_RAID"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_METH_JOB"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_BUNKER_RAID"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_STRAIGHT_TO_VIDEO"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MONKEY_C_MONKEY_DO"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_TRAINED_TO_KILL"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_DIRECTOR"), 1)
     for i = 0, 8 do
         for j = 0, 63 do
-            stats.set_bool_masked(MPX() .. "TUNERPSTAT_BOOL" .. i, true, j)
+            Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "TUNERPSTAT_BOOL" .. i), true, j, true)
         end
     end
 end)
 
-DLCAUM:add_button("Contract", function()
-    stats.set_int(MPX() .. "AWD_CONTRACTOR", 50)
-    stats.set_int(MPX() .. "AWD_COLD_CALLER", 50)
-    stats.set_int(MPX() .. "AWD_PRODUCER", 60)
-    stats.set_int(MPX() .. "FIXERTELEPHONEHITSCOMPL", 10)
-    stats.set_int(MPX() .. "PAYPHONE_BONUS_KILL_METHOD", 10)
-    stats.set_int(MPX() .. "PAYPHONE_BONUS_KILL_METHOD", -1)
-    stats.set_int(MPX() .. "FIXER_GENERAL_BS", -1)
-    stats.set_int(MPX() .. "FIXER_COMPLETED_BS", -1)
-    stats.set_int(MPX() .. "FIXER_STORY_BS", -1)
-    stats.set_int(MPX() .. "FIXER_STORY_STRAND", -1)
-    stats.set_int(MPX() .. "FIXER_STORY_COOLDOWN", -1)
-    stats.set_int(MPX() .. "FIXER_COUNT", 510)
-    stats.set_int(MPX() .. "FIXER_SC_VEH_RECOVERED", 85)
-    stats.set_int(MPX() .. "FIXER_SC_VAL_RECOVERED", 85)
-    stats.set_int(MPX() .. "FIXER_SC_GANG_TERMINATED", 85)
-    stats.set_int(MPX() .. "FIXER_SC_VIP_RESCUED", 85)
-    stats.set_int(MPX() .. "FIXER_SC_ASSETS_PROTECTED", 85)
-    stats.set_int(MPX() .. "FIXER_SC_EQ_DESTROYED", 85)
-    stats.set_int(MPX() .. "FIXER_EARNINGS", 19734860)
-    stats.set_bool(MPX() .. "AWD_TEEING_OFF", true)
-    stats.set_bool(MPX() .. "AWD_PARTY_NIGHT", true)
-    stats.set_bool(MPX() .. "AWD_BILLIONAIRE_GAMES", true)
-    stats.set_bool(MPX() .. "AWD_HOOD_PASS", true)
-    stats.set_bool(MPX() .. "AWD_STUDIO_TOUR", true)
-    stats.set_bool(MPX() .. "AWD_DONT_MESS_DRE", true)
-    stats.set_bool(MPX() .. "AWD_BACKUP", true)
-    stats.set_bool(MPX() .. "AWD_SHORTFRANK_1", true)
-    stats.set_bool(MPX() .. "AWD_SHORTFRANK_2", true)
-    stats.set_bool(MPX() .. "AWD_SHORTFRANK_3", true)
-    stats.set_bool(MPX() .. "AWD_CONTR_KILLER", true)
-    stats.set_bool(MPX() .. "AWD_DOGS_BEST_FRIEND", true)
-    stats.set_bool(MPX() .. "AWD_MUSIC_STUDIO", true)
-    stats.set_bool(MPX() .. "AWD_SHORTLAMAR_1", true)
-    stats.set_bool(MPX() .. "AWD_SHORTLAMAR_2", true)
-    stats.set_bool(MPX() .. "AWD_SHORTLAMAR_3", true)
-    stats.set_bool(MPX() .. "BS_FRANKLIN_DIALOGUE_0", true)
-    stats.set_bool(MPX() .. "BS_FRANKLIN_DIALOGUE_1", true)
-    stats.set_bool(MPX() .. "BS_FRANKLIN_DIALOGUE_2", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_SETUP", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_STRAND", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_PARTY", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_PARTY_2", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_PARTY_F", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_BILL", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_BILL_2", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_BILL_F", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_HOOD", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_HOOD_2", true)
-    stats.set_bool(MPX() .. "BS_IMANI_D_APP_HOOD_F", true)
+DLCAUM:Button("Contract", function()
+    Stats.SetInt(J(MPX() .. "AWD_CONTRACTOR"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_COLD_CALLER"), 50)
+    Stats.SetInt(J(MPX() .. "AWD_PRODUCER"), 60)
+    Stats.SetInt(J(MPX() .. "FIXERTELEPHONEHITSCOMPL"), 10)
+    Stats.SetInt(J(MPX() .. "PAYPHONE_BONUS_KILL_METHOD"), 10)
+    Stats.SetInt(J(MPX() .. "PAYPHONE_BONUS_KILL_METHOD"), -1)
+    Stats.SetInt(J(MPX() .. "FIXER_GENERAL_BS"), -1)
+    Stats.SetInt(J(MPX() .. "FIXER_COMPLETED_BS"), -1)
+    Stats.SetInt(J(MPX() .. "FIXER_STORY_BS"), -1)
+    Stats.SetInt(J(MPX() .. "FIXER_STORY_STRAND"), -1)
+    Stats.SetInt(J(MPX() .. "FIXER_STORY_COOLDOWN"), -1)
+    Stats.SetInt(J(MPX() .. "FIXER_COUNT"), 510)
+    Stats.SetInt(J(MPX() .. "FIXER_SC_VEH_RECOVERED"), 85)
+    Stats.SetInt(J(MPX() .. "FIXER_SC_VAL_RECOVERED"), 85)
+    Stats.SetInt(J(MPX() .. "FIXER_SC_GANG_TERMINATED"), 85)
+    Stats.SetInt(J(MPX() .. "FIXER_SC_VIP_RESCUED"), 85)
+    Stats.SetInt(J(MPX() .. "FIXER_SC_ASSETS_PROTECTED"), 85)
+    Stats.SetInt(J(MPX() .. "FIXER_SC_EQ_DESTROYED"), 85)
+    Stats.SetInt(J(MPX() .. "FIXER_EARNINGS"), 19734860)
+    Stats.SetBool(J(MPX() .. "AWD_TEEING_OFF"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_PARTY_NIGHT"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_BILLIONAIRE_GAMES"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_HOOD_PASS"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_STUDIO_TOUR"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_DONT_MESS_DRE"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_BACKUP"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SHORTFRANK_1"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SHORTFRANK_2"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SHORTFRANK_3"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_CONTR_KILLER"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_DOGS_BEST_FRIEND"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_MUSIC_STUDIO"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SHORTLAMAR_1"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SHORTLAMAR_2"), 1)
+    Stats.SetBool(J(MPX() .. "AWD_SHORTLAMAR_3"), 1)
+    Stats.SetBool(J(MPX() .. "BS_FRANKLIN_DIALOGUE_0"), 1)
+    Stats.SetBool(J(MPX() .. "BS_FRANKLIN_DIALOGUE_1"), 1)
+    Stats.SetBool(J(MPX() .. "BS_FRANKLIN_DIALOGUE_2"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_SETUP"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_STRAND"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_PARTY"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_PARTY_2"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_PARTY_F"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_BILL"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_BILL_2"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_BILL_F"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_HOOD"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_HOOD_2"), 1)
+    Stats.SetBool(J(MPX() .. "BS_IMANI_D_APP_HOOD_F"), 1)
     for j = 0, 63 do
-        stats.set_bool_masked(MPX() .. "FIXERPSTAT_BOOL0", true, j)
-        stats.set_bool_masked(MPX() .. "FIXERPSTAT_BOOL1", true, j)
-        stats.set_bool_masked(MPX() .. "FIXERTATTOOSTAT_BOOL0", true, j)
+        Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "FIXERPSTAT_BOOL0"), true, j, true)
+        Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "FIXERPSTAT_BOOL1"), true, j, true)
+        Natives.InvokeBool(N.STAT_SET_BOOL_MASKED, J(MPX() .. "FIXERTATTOOSTAT_BOOL0"), true, j, true)
     end
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("FAUT = RecoveryMenu:add_tab(Full Account Unlock Menu)", function()
-FAUT = RecoveryMenu:add_tab("Account Unlocker")
-FAUTMain = FAUT:add_tab("Main")
+Section("Account Unlocker", function()
+FAUT = RecoveryMenu:Tab("Account Unlocker")
+FAUTMain = FAUT:Tab("Main")
 
-FAUTMain:add_imgui(function()
-    if isOffline() then
-        return
-    end
-
+FAUTMain:Box("Weapons")
+FAUTMain:Custom(function()
     if ImGui.Button("Unlock WM 29 Pistol") then
-        script.run_in_fiber(function(WM29)
-            script.execute_as_script("shop_controller", function()
-                if NETSHOPPING.NET_GAMESERVER_BASKET_IS_ACTIVE() then
-                    NETSHOPPING.NET_GAMESERVER_BASKET_END()
+        Script.QueueJob(function()
+            Script.ExecuteAsScript("shop_controller", function()
+                if Natives.InvokeBool(N.NET_GAMESERVER_BASKET_IS_ACTIVE) then
+                    Natives.InvokeBool(N.NET_GAMESERVER_BASKET_END)
                 end
-                local state, id = NETSHOPPING.NET_GAMESERVER_BEGIN_SERVICE(
-                    -1,
-                    joaat("CATEGORY_WEAPON"),
-                    joaat("WP_WT_PISTOLXM3_t0_v0"),
-                    joaat("NET_SHOP_ACTION_SPEND"),
-                    0,
-                    4
-                )
+                local state, id = GTA.BeginService(NET_SHOP_TTYPE_SERVICE, J("CATEGORY_WEAPON"), J("WP_WT_PISTOLXM3_t0_v0"), J("NET_SHOP_ACTION_SPEND"), 0, 4)
                 if state then
-                    NETSHOPPING.NET_GAMESERVER_CHECKOUT_START(id)
-                    gui.show_message("WM29", "WM29 is now Unlocked Change Session To Apply Changes.")
+                    GTA.CheckoutStart(id)
+                    Toast("WM29", "WM29 is now Unlocked Change Session To Apply Changes.")
                 end
             end)
         end)
     end
 
     if ImGui.Button("Unlock The Shocker") then
-        script.run_in_fiber(function(THESHOCKER)
-            script.execute_as_script("shop_controller", function()
-                if NETSHOPPING.NET_GAMESERVER_BASKET_IS_ACTIVE() then
-                    NETSHOPPING.NET_GAMESERVER_BASKET_END()
+        Script.QueueJob(function()
+            Script.ExecuteAsScript("shop_controller", function()
+                if Natives.InvokeBool(N.NET_GAMESERVER_BASKET_IS_ACTIVE) then
+                    Natives.InvokeBool(N.NET_GAMESERVER_BASKET_END)
                 end
-                local state, id = NETSHOPPING.NET_GAMESERVER_BEGIN_SERVICE(
-                    -1,
-                    joaat("CATEGORY_WEAPON"),
-                    joaat("WP_WT_STUNROD_t1_v1"),
-                    joaat("NET_SHOP_ACTION_SPEND"),
-                    0,
-                    4
-                )
+                local state, id = GTA.BeginService(NET_SHOP_TTYPE_SERVICE, J("CATEGORY_WEAPON"), J("WP_WT_STUNROD_t1_v1"), J("NET_SHOP_ACTION_SPEND"), 0, 4)
                 if state then
-                    NETSHOPPING.NET_GAMESERVER_CHECKOUT_START(id)
-                    gui.show_message("The Shocker", "The Shocker is now Unlocked Change Session To Apply Changes.")
+                    GTA.CheckoutStart(id)
+                    Toast("The Shocker", "The Shocker is now Unlocked Change Session To Apply Changes.")
                 end
             end)
         end)
     end
 
     if ImGui.Button("Unlock The Snowball Launcher") then
-        script.run_in_fiber(function(SNOWBALLLAUNCHER)
-            script.execute_as_script("shop_controller", function()
-                if NETSHOPPING.NET_GAMESERVER_BASKET_IS_ACTIVE() then
-                    NETSHOPPING.NET_GAMESERVER_BASKET_END()
+        Script.QueueJob(function()
+            Script.ExecuteAsScript("shop_controller", function()
+                if Natives.InvokeBool(N.NET_GAMESERVER_BASKET_IS_ACTIVE) then
+                    Natives.InvokeBool(N.NET_GAMESERVER_BASKET_END)
                 end
-                local state, id = NETSHOPPING.NET_GAMESERVER_BEGIN_SERVICE(
-                    -1,
-                    joaat("CATEGORY_WEAPON"),
-                    joaat("WP_WT_SNOWLAUNCHER_t0_v0"),
-                    joaat("NET_SHOP_ACTION_SPEND"),
-                    0,
-                    4
-                )
+                local state, id = GTA.BeginService(NET_SHOP_TTYPE_SERVICE, J("CATEGORY_WEAPON"), J("WP_WT_SNOWLAUNCHER_t0_v0"), J("NET_SHOP_ACTION_SPEND"), 0, 4)
                 if state then
-                    NETSHOPPING.NET_GAMESERVER_CHECKOUT_START(id)
-                    gui.show_message(
+                    GTA.CheckoutStart(id)
+                    Toast(
                         "Snowball Launcher",
                         "Snowball Launcher is now Unlocked Change Session To Apply Changes."
                     )
@@ -3557,271 +3033,267 @@ FAUTMain:add_imgui(function()
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("AcMenu = CSU:add_tab(Achievements)", function()
-AcMenu = FAUT:add_tab("Achievements")
+Section("Achievements", function()
+AcMenu = FAUT:Tab("Achievements")
 
 Acv0 = false
 AG = 4525223 + 1 --("CHEAT_ACHIEVE")
 
-AcMenu:add_imgui(function()
-    if isOffline() then
-        return
-    end
+AcMenu:Columns(3)
+AcMenu:Box("All Achievements")
+AcMenu:Custom(function()
     if ImGui.Button("Unlock All Achievements") then
-        script.run_in_fiber(function(script)
+        Script.QueueJob(function()
             for i = 0, 77 do
-                script:sleep(200)
-                globals.set_int(AG, i)
+                Script.Yield(200)
+                ScriptGlobal.SetInt(AG, i)
                 if i == 77 then
-                    gui.show_message("Achievements", "Unlocked 77 Achievements")
+                    Toast("Achievements", "Unlocked 77 Achievements")
                 end
             end
         end)
     end
 end)
-
 end)
 
-__uml_block("AcMMenu = AcMenu:add_tab(One By One Menu)", function()
+Section("Achievements One By One", function()
 AcMMenu = AcMenu
-AcMMenu:add_imgui(function()
-    ImGui.Separator()
-    ImGui.Text("Unlock Achievements one by one")
-end)
 
-AcMMenu:add_button("Welcome to Los Santos", function()
-    globals.set_int(AG, 1)
+AcMMenu:Box("One By One (1-26)")
+AcMMenu:Button("Welcome to Los Santos", function()
+    ScriptGlobal.SetInt(AG, 1)
 end)
-AcMMenu:add_button("A Friendship Resurrected", function()
-    globals.set_int(AG, 2)
+AcMMenu:Button("A Friendship Resurrected", function()
+    ScriptGlobal.SetInt(AG, 2)
 end)
-AcMMenu:add_button("A Fair Day's Pay", function()
-    globals.set_int(AG, 3)
+AcMMenu:Button("A Fair Day's Pay", function()
+    ScriptGlobal.SetInt(AG, 3)
 end)
-AcMMenu:add_button("The Moment of Truth", function()
-    globals.set_int(AG, 4)
+AcMMenu:Button("The Moment of Truth", function()
+    ScriptGlobal.SetInt(AG, 4)
 end)
-AcMMenu:add_button("To Live or Die in Los Santos", function()
-    globals.set_int(AG, 5)
+AcMMenu:Button("To Live or Die in Los Santos", function()
+    ScriptGlobal.SetInt(AG, 5)
 end)
-AcMMenu:add_button("Diamond Hard", function()
-    globals.set_int(AG, 6)
+AcMMenu:Button("Diamond Hard", function()
+    ScriptGlobal.SetInt(AG, 6)
 end)
-AcMMenu:add_button("Subversive", function()
-    globals.set_int(AG, 7)
+AcMMenu:Button("Subversive", function()
+    ScriptGlobal.SetInt(AG, 7)
 end)
-AcMMenu:add_button("Blitzed", function()
-    globals.set_int(AG, 8)
+AcMMenu:Button("Blitzed", function()
+    ScriptGlobal.SetInt(AG, 8)
 end)
-AcMMenu:add_button("Small Town, Big Job", function()
-    globals.set_int(AG, 9)
+AcMMenu:Button("Small Town, Big Job", function()
+    ScriptGlobal.SetInt(AG, 9)
 end)
-AcMMenu:add_button("The Government Gimps", function()
-    globals.set_int(AG, 10)
+AcMMenu:Button("The Government Gimps", function()
+    ScriptGlobal.SetInt(AG, 10)
 end)
-AcMMenu:add_button("The Big One!", function()
-    globals.set_int(AG, 11)
+AcMMenu:Button("The Big One!", function()
+    ScriptGlobal.SetInt(AG, 11)
 end)
-AcMMenu:add_button("Solid Gold, Baby!", function()
-    globals.set_int(AG, 12)
+AcMMenu:Button("Solid Gold, Baby!", function()
+    ScriptGlobal.SetInt(AG, 12)
 end)
-AcMMenu:add_button("Career Criminal", function()
-    globals.set_int(AG, 13)
+AcMMenu:Button("Career Criminal", function()
+    ScriptGlobal.SetInt(AG, 13)
 end)
-AcMMenu:add_button("San Andreas Sightseer", function()
-    globals.set_int(AG, 14)
+AcMMenu:Button("San Andreas Sightseer", function()
+    ScriptGlobal.SetInt(AG, 14)
 end)
-AcMMenu:add_button("All's Fare in Love and War", function()
-    globals.set_int(AG, 15)
+AcMMenu:Button("All's Fare in Love and War", function()
+    ScriptGlobal.SetInt(AG, 15)
 end)
-AcMMenu:add_button("TP Industries Arms Race", function()
-    globals.set_int(AG, 16)
+AcMMenu:Button("TP Industries Arms Race", function()
+    ScriptGlobal.SetInt(AG, 16)
 end)
-AcMMenu:add_button("Multi-Disciplined", function()
-    globals.set_int(AG, 17)
+AcMMenu:Button("Multi-Disciplined", function()
+    ScriptGlobal.SetInt(AG, 17)
 end)
-AcMMenu:add_button("From Beyond the Stars", function()
-    globals.set_int(AG, 18)
+AcMMenu:Button("From Beyond the Stars", function()
+    ScriptGlobal.SetInt(AG, 18)
 end)
-AcMMenu:add_button("A Mystery, Solved", function()
-    globals.set_int(AG, 19)
+AcMMenu:Button("A Mystery, Solved", function()
+    ScriptGlobal.SetInt(AG, 19)
 end)
-AcMMenu:add_button("Waste Management", function()
-    globals.set_int(AG, 20)
+AcMMenu:Button("Waste Management", function()
+    ScriptGlobal.SetInt(AG, 20)
 end)
-AcMMenu:add_button("Red Mist", function()
-    globals.set_int(AG, 21)
+AcMMenu:Button("Red Mist", function()
+    ScriptGlobal.SetInt(AG, 21)
 end)
-AcMMenu:add_button("Show Off", function()
-    globals.set_int(AG, 22)
+AcMMenu:Button("Show Off", function()
+    ScriptGlobal.SetInt(AG, 22)
 end)
-AcMMenu:add_button("Kifflom!", function()
-    globals.set_int(AG, 23)
+AcMMenu:Button("Kifflom!", function()
+    ScriptGlobal.SetInt(AG, 23)
 end)
-AcMMenu:add_button("Three Man Army", function()
-    globals.set_int(AG, 24)
+AcMMenu:Button("Three Man Army", function()
+    ScriptGlobal.SetInt(AG, 24)
 end)
-AcMMenu:add_button("Out of Your Depth", function()
-    globals.set_int(AG, 25)
+AcMMenu:Button("Out of Your Depth", function()
+    ScriptGlobal.SetInt(AG, 25)
 end)
-AcMMenu:add_button("Altruist Acolyte", function()
-    globals.set_int(AG, 26)
+AcMMenu:Button("Altruist Acolyte", function()
+    ScriptGlobal.SetInt(AG, 26)
 end)
-AcMMenu:add_button("A Lot of Cheddar", function()
-    globals.set_int(AG, 27)
+AcMMenu:Box("One By One (27-52)")
+AcMMenu:Button("A Lot of Cheddar", function()
+    ScriptGlobal.SetInt(AG, 27)
 end)
-AcMMenu:add_button("Trading Pure Alpha", function()
-    globals.set_int(AG, 28)
+AcMMenu:Button("Trading Pure Alpha", function()
+    ScriptGlobal.SetInt(AG, 28)
 end)
-AcMMenu:add_button("Pimp My Sidearm", function()
-    globals.set_int(AG, 29)
+AcMMenu:Button("Pimp My Sidearm", function()
+    ScriptGlobal.SetInt(AG, 29)
 end)
-AcMMenu:add_button("Wanted: Alive Or Alive", function()
-    globals.set_int(AG, 30)
+AcMMenu:Button("Wanted: Alive Or Alive", function()
+    ScriptGlobal.SetInt(AG, 30)
 end)
-AcMMenu:add_button("Los Santos Customs", function()
-    globals.set_int(AG, 31)
+AcMMenu:Button("Los Santos Customs", function()
+    ScriptGlobal.SetInt(AG, 31)
 end)
-AcMMenu:add_button("Close Shave", function()
-    globals.set_int(AG, 32)
+AcMMenu:Button("Close Shave", function()
+    ScriptGlobal.SetInt(AG, 32)
 end)
-AcMMenu:add_button("Off the Plane", function()
-    globals.set_int(AG, 33)
+AcMMenu:Button("Off the Plane", function()
+    ScriptGlobal.SetInt(AG, 33)
 end)
-AcMMenu:add_button("Three-Bit Gangster", function()
-    globals.set_int(AG, 34)
+AcMMenu:Button("Three-Bit Gangster", function()
+    ScriptGlobal.SetInt(AG, 34)
 end)
-AcMMenu:add_button("Making Moves", function()
-    globals.set_int(AG, 35)
+AcMMenu:Button("Making Moves", function()
+    ScriptGlobal.SetInt(AG, 35)
 end)
-AcMMenu:add_button("Above the Law", function()
-    globals.set_int(AG, 36)
+AcMMenu:Button("Above the Law", function()
+    ScriptGlobal.SetInt(AG, 36)
 end)
-AcMMenu:add_button("Numero Uno", function()
-    globals.set_int(AG, 37)
+AcMMenu:Button("Numero Uno", function()
+    ScriptGlobal.SetInt(AG, 37)
 end)
-AcMMenu:add_button("The Midnight Club", function()
-    globals.set_int(AG, 38)
+AcMMenu:Button("The Midnight Club", function()
+    ScriptGlobal.SetInt(AG, 38)
 end)
-AcMMenu:add_button("Unnatural Selection", function()
-    globals.set_int(AG, 39)
+AcMMenu:Button("Unnatural Selection", function()
+    ScriptGlobal.SetInt(AG, 39)
 end)
-AcMMenu:add_button("Backseat Driver", function()
-    globals.set_int(AG, 40)
+AcMMenu:Button("Backseat Driver", function()
+    ScriptGlobal.SetInt(AG, 40)
 end)
-AcMMenu:add_button("Run Like The Wind", function()
-    globals.set_int(AG, 41)
+AcMMenu:Button("Run Like The Wind", function()
+    ScriptGlobal.SetInt(AG, 41)
 end)
-AcMMenu:add_button("Clean Sweep", function()
-    globals.set_int(AG, 42)
+AcMMenu:Button("Clean Sweep", function()
+    ScriptGlobal.SetInt(AG, 42)
 end)
-AcMMenu:add_button("Decorated", function()
-    globals.set_int(AG, 43)
+AcMMenu:Button("Decorated", function()
+    ScriptGlobal.SetInt(AG, 43)
 end)
-AcMMenu:add_button("Stick Up Kid", function()
-    globals.set_int(AG, 44)
+AcMMenu:Button("Stick Up Kid", function()
+    ScriptGlobal.SetInt(AG, 44)
 end)
-AcMMenu:add_button("Enjoy Your Stay", function()
-    globals.set_int(AG, 45)
+AcMMenu:Button("Enjoy Your Stay", function()
+    ScriptGlobal.SetInt(AG, 45)
 end)
-AcMMenu:add_button("Crew Cut", function()
-    globals.set_int(AG, 46)
+AcMMenu:Button("Crew Cut", function()
+    ScriptGlobal.SetInt(AG, 46)
 end)
-AcMMenu:add_button("Full Refund", function()
-    globals.set_int(AG, 47)
+AcMMenu:Button("Full Refund", function()
+    ScriptGlobal.SetInt(AG, 47)
 end)
-AcMMenu:add_button("Dialling Digits", function()
-    globals.set_int(AG, 48)
+AcMMenu:Button("Dialling Digits", function()
+    ScriptGlobal.SetInt(AG, 48)
 end)
-AcMMenu:add_button("American Dream", function()
-    globals.set_int(AG, 49)
+AcMMenu:Button("American Dream", function()
+    ScriptGlobal.SetInt(AG, 49)
 end)
-AcMMenu:add_button("A New Perspective", function()
-    globals.set_int(AG, 50)
+AcMMenu:Button("A New Perspective", function()
+    ScriptGlobal.SetInt(AG, 50)
 end)
-AcMMenu:add_button("Be Prepared", function()
-    globals.set_int(AG, 51)
+AcMMenu:Button("Be Prepared", function()
+    ScriptGlobal.SetInt(AG, 51)
 end)
-AcMMenu:add_button("In the Name of Science", function()
-    globals.set_int(AG, 52)
+AcMMenu:Button("In the Name of Science", function()
+    ScriptGlobal.SetInt(AG, 52)
 end)
-AcMMenu:add_button("Dead Presidents", function()
-    globals.set_int(AG, 53)
+AcMMenu:Box("One By One (53-77)")
+AcMMenu:Button("Dead Presidents", function()
+    ScriptGlobal.SetInt(AG, 53)
 end)
-AcMMenu:add_button("Parole Day", function()
-    globals.set_int(AG, 54)
+AcMMenu:Button("Parole Day", function()
+    ScriptGlobal.SetInt(AG, 54)
 end)
-AcMMenu:add_button("Shot Caller", function()
-    globals.set_int(AG, 55)
+AcMMenu:Button("Shot Caller", function()
+    ScriptGlobal.SetInt(AG, 55)
 end)
-AcMMenu:add_button("Four Way", function()
-    globals.set_int(AG, 56)
+AcMMenu:Button("Four Way", function()
+    ScriptGlobal.SetInt(AG, 56)
 end)
-AcMMenu:add_button("Live a Little", function()
-    globals.set_int(AG, 57)
+AcMMenu:Button("Live a Little", function()
+    ScriptGlobal.SetInt(AG, 57)
 end)
-AcMMenu:add_button("Can't Touch This", function()
-    globals.set_int(AG, 58)
+AcMMenu:Button("Can't Touch This", function()
+    ScriptGlobal.SetInt(AG, 58)
 end)
-AcMMenu:add_button("Mastermind", function()
-    globals.set_int(AG, 59)
+AcMMenu:Button("Mastermind", function()
+    ScriptGlobal.SetInt(AG, 59)
 end)
-AcMMenu:add_button("Vinewood Visionary", function()
-    globals.set_int(AG, 60)
+AcMMenu:Button("Vinewood Visionary", function()
+    ScriptGlobal.SetInt(AG, 60)
 end)
-AcMMenu:add_button("Majestic", function()
-    globals.set_int(AG, 61)
+AcMMenu:Button("Majestic", function()
+    ScriptGlobal.SetInt(AG, 61)
 end)
-AcMMenu:add_button("Humans of Los Santos", function()
-    globals.set_int(AG, 62)
+AcMMenu:Button("Humans of Los Santos", function()
+    ScriptGlobal.SetInt(AG, 62)
 end)
-AcMMenu:add_button("First Time Director", function()
-    globals.set_int(AG, 63)
+AcMMenu:Button("First Time Director", function()
+    ScriptGlobal.SetInt(AG, 63)
 end)
-AcMMenu:add_button("Animal Lover", function()
-    globals.set_int(AG, 64)
+AcMMenu:Button("Animal Lover", function()
+    ScriptGlobal.SetInt(AG, 64)
 end)
-AcMMenu:add_button("Ensemble Piece", function()
-    globals.set_int(AG, 65)
+AcMMenu:Button("Ensemble Piece", function()
+    ScriptGlobal.SetInt(AG, 65)
 end)
-AcMMenu:add_button("Cult Movie", function()
-    globals.set_int(AG, 66)
+AcMMenu:Button("Cult Movie", function()
+    ScriptGlobal.SetInt(AG, 66)
 end)
-AcMMenu:add_button("Location Scout", function()
-    globals.set_int(AG, 67)
+AcMMenu:Button("Location Scout", function()
+    ScriptGlobal.SetInt(AG, 67)
 end)
-AcMMenu:add_button("Method Actor", function()
-    globals.set_int(AG, 68)
+AcMMenu:Button("Method Actor", function()
+    ScriptGlobal.SetInt(AG, 68)
 end)
-AcMMenu:add_button("Cryptozoologist", function()
-    globals.set_int(AG, 69)
+AcMMenu:Button("Cryptozoologist", function()
+    ScriptGlobal.SetInt(AG, 69)
 end)
-AcMMenu:add_button("Getting Started", function()
-    globals.set_int(AG, 70)
+AcMMenu:Button("Getting Started", function()
+    ScriptGlobal.SetInt(AG, 70)
 end)
-AcMMenu:add_button("The Data Breaches", function()
-    globals.set_int(AG, 71)
+AcMMenu:Button("The Data Breaches", function()
+    ScriptGlobal.SetInt(AG, 71)
 end)
-AcMMenu:add_button("The Bogdan Problem", function()
-    globals.set_int(AG, 72)
+AcMMenu:Button("The Bogdan Problem", function()
+    ScriptGlobal.SetInt(AG, 72)
 end)
-AcMMenu:add_button("The Doomsday Scenario", function()
-    globals.set_int(AG, 73)
+AcMMenu:Button("The Doomsday Scenario", function()
+    ScriptGlobal.SetInt(AG, 73)
 end)
-AcMMenu:add_button("A World Worth Saving", function()
-    globals.set_int(AG, 74)
+AcMMenu:Button("A World Worth Saving", function()
+    ScriptGlobal.SetInt(AG, 74)
 end)
-AcMMenu:add_button("Orbital Obliteration", function()
-    globals.set_int(AG, 75)
+AcMMenu:Button("Orbital Obliteration", function()
+    ScriptGlobal.SetInt(AG, 75)
 end)
-AcMMenu:add_button("Elitist", function()
-    globals.set_int(AG, 76)
+AcMMenu:Button("Elitist", function()
+    ScriptGlobal.SetInt(AG, 76)
 end)
-AcMMenu:add_button("Masterminds", function()
-    globals.set_int(AG, 77)
+AcMMenu:Button("Masterminds", function()
+    ScriptGlobal.SetInt(AG, 77)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3830,198 +3302,188 @@ local current_objectives_global = 2359296 --("am_challenges")
 local weekly_objectives_global = 2732111 --("am_challenges")
 local objectives_state_global = 1574746 --("am_challenges")
 
-FAUTMain:add_imgui(function()
-    if isOffline() then
-        return
-    end
+FAUTMain:Box("Challenges")
+FAUTMain:Custom(function()
     if ImGui.Button("Complete All Daily & Weekly Challenges") then
-        script.run_in_fiber(function(script)
+        Script.QueueJob(function()
             for i = 0, 2 do --Unlock all daily rewards.
                 local objective =
-                    globals.get_int(current_objectives_global + (1 + (0 * 5574)) + 681 + 4248 + (1 + (i * 3)))
-                globals.set_int(objectives_state_global + 1 + (1 + (i * 1)), objective)
+                    ScriptGlobal.GetInt(current_objectives_global + (1 + (0 * 5574)) + 681 + 4248 + (1 + (i * 3)))
+                ScriptGlobal.SetInt(objectives_state_global + 1 + (1 + (i * 1)), objective)
             end
-            globals.set_int(objectives_state_global, 1)
-            globals.set_int(
+            ScriptGlobal.SetInt(objectives_state_global, 1)
+            ScriptGlobal.SetInt(
                 weekly_objectives_global + (1 + (0 * 6)) + 1,
-                globals.get_int(weekly_objectives_global + (1 + (0 * 6)) + 2)
+                ScriptGlobal.GetInt(weekly_objectives_global + (1 + (0 * 6)) + 2)
             ) --Unlock Weekly Objective
-            gui.show_message("Challenges", "All Daily And Weekly Challenges Are Now Completed.")
+            Toast("Challenges", "All Daily And Weekly Challenges Are Now Completed.")
         end)
     end
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("LSCMUnlockeRecoveryMenu = RecoveryMenu:add_tab(LSCM Unlocker", function()
-LSCMUnlockeRecoveryMenu = RecoveryMenu:add_tab("LSCM Unlocker")
+Section("LSCM Unlocker", function()
+LSCMUnlockeRecoveryMenu = RecoveryMenu:Tab("LSCM Unlocker")
 
-LSCMUnlockeRecoveryMenu:add_button("Unlock All Rep Lvl 1000", function()
+LSCMUnlockeRecoveryMenu:Box("Unlocks")
+LSCMUnlockeRecoveryMenu:Button("Unlock All Rep Lvl 1000", function()
     for i = FMg + 31047, FMg + 31076 do
-        globals.set_float(i, 100000)
+        ScriptGlobal.SetFloat(i, 100000.0)
     end
-    gui.show_message(
+    Toast(
         "LSCM",
         "LVL 1000 Activated Just Sit In The Test Drive Vehicle And Enter LSCM Track To See The Changes."
     )
 end)
 
-LSCMUnlockeRecoveryMenu:add_button("LSCM Prize Ride Unlock", function()
-    stats.set_bool(MPX() .. "CARMEET_PV_CHLLGE_CMPLT", true)
-    stats.set_bool(MPX() .. "CARMEET_PV_CLMED", false)
-    gui.show_message("LSCM", "Your Prize Car Is Now Unlocked.")
+LSCMUnlockeRecoveryMenu:Button("LSCM Prize Ride Unlock", function()
+    Stats.SetBool(J(MPX() .. "CARMEET_PV_CHLLGE_CMPLT"), 1)
+    Stats.SetBool(J(MPX() .. "CARMEET_PV_CLMED"), 0)
+    Toast("LSCM", "Your Prize Car Is Now Unlocked.")
 end)
 
-LSCMUnlockeRecoveryMenu:add_button("Unlock Trade Prices for Headlights", function()
+LSCMUnlockeRecoveryMenu:Button("Unlock Trade Prices for Headlights", function()
     stats_set_packed_bools(24980, 24991, true)
-    gui.show_message("LSCM", "Trade Prices For Headlights Are Now Unlocked.")
+    Toast("LSCM", "Trade Prices For Headlights Are Now Unlocked.")
+end)
 end)
 
-end)
-
-__uml_block("LSCMNote = LSCMUnlockeRecoveryMenu:add_tab(Read Me Tutorial)", function()
+Section("LSCM Tutorial", function()
 LSCMNote = LSCMUnlockeRecoveryMenu
-LSCMNote:add_separator()
-LSCMNote:add_text("Tutorial")
+LSCMNote:Box("Tutorial")
 
-LSCMNote:add_text("Buy a membership, activate, sit in")
-LSCMNote:add_text("a test car and go to the track")
-LSCMNote:add_text("If your level is not 1, then activate")
-LSCMNote:add_text("and buy something in the LSCM store")
-LSCMNote:add_text("If you've used LS Tuner awards unlock")
-LSCMNote:add_text("before, all unlocks will be temporary only")
-LSCMNote:add_text("--- Manual Online Override ---")
-LSCMNote:add_text("To manually set/bypass the online state,")
-LSCMNote:add_text("toggle 'Bypass Online Check' in Settings.")
+LSCMNote:Text("Buy a membership, activate, sit in")
+LSCMNote:Text("a test car and go to the track")
+LSCMNote:Text("If your level is not 1, then activate")
+LSCMNote:Text("and buy something in the LSCM store")
+LSCMNote:Text("If you've used LS Tuner awards unlock")
+LSCMNote:Text("before, all unlocks will be temporary only")
+LSCMNote:Text("--- Manual Online Override ---")
+LSCMNote:Text("To manually set/bypass the online state,")
+LSCMNote:Text("toggle 'Bypass Online Check' in Settings.")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("L7NEG7 = makeOnlineTab(L7NEG:add_tab(Ultimate Money Methods ", function()
-L7NEG7 = makeOnlineTab(L7NEG:add_tab("Money Methods"))
+Section("Money Methods", function()
+L7NEG7 = Menu:Tab("Money Methods"):RequireOnline()
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("BusinessesMenu = L7NEG7:add_tab(Businesses Menu)", function()
-BusinessesMenu = L7NEG7:add_tab("Businesses")
+Section("Businesses", function()
+BusinessesMenu = L7NEG7:Tab("Businesses")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("AirCargoMenu = BusinessesMenu:add_tab(Air Cargo Menu)", function()
-AirCargoMenu = BusinessesMenu:add_tab("Air Cargo")
+Section("Air Cargo", function()
+AirCargoMenu = BusinessesMenu:Tab("Air Cargo")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-local hanvalue = AirCargoMenu:add_input_int("Crate Value")
+AirCargoMenu:Box("Crate Value")
+local hanvalue = AirCargoMenu:InputInt("Crate Value")
 
-AirCargoMenu:add_button("Set Value", function()
-    local HangarCrateVlaue = hanvalue:get_value()
+AirCargoMenu:Button("Set Value", function()
+    local HangarCrateVlaue = hanvalue:GetIntValue()
     if HangarCrateVlaue < 0 or HangarCrateVlaue > 6000000 then
-        gui.show_error("Crate Value Setter", "Value must be 0-6000000.")
+        Toast("Crate Value Setter", "Value must be 0-6000000.")
         return
     end
-    tunables.set_int("SMUG_SELL_PRICE_PER_CRATE_MIXED", HangarCrateVlaue)
-    tunables.set_int("SMUG_SELL_PRICE_PER_CRATE_ANIMAL_MATERIALS", HangarCrateVlaue)
-    tunables.set_int("SMUG_SELL_PRICE_PER_CRATE_ART_AND_ANTIQUES", HangarCrateVlaue)
-    tunables.set_int("SMUG_SELL_PRICE_PER_CRATE_CHEMICALS", HangarCrateVlaue)
-    tunables.set_int("SMUG_SELL_PRICE_PER_CRATE_COUNTERFEIT_GOODS", HangarCrateVlaue)
-    tunables.set_int("SMUG_SELL_PRICE_PER_CRATE_JEWELRY_AND_GEMSTONES", HangarCrateVlaue)
-    tunables.set_int("SMUG_SELL_PRICE_PER_CRATE_MEDICAL_SUPPLIES", HangarCrateVlaue)
-    tunables.set_int("SMUG_SELL_PRICE_PER_CRATE_NARCOTICS", HangarCrateVlaue)
-    tunables.set_int("SMUG_SELL_PRICE_PER_CRATE_TOBACCO_AND_ALCOHOL", HangarCrateVlaue)
-    gui.show_message("Crate Value Setter", "Your Crate Value was set to " .. HangarCrateVlaue .. ".")
+    SetTunableInt("SMUG_SELL_PRICE_PER_CRATE_MIXED", HangarCrateVlaue)
+    SetTunableInt("SMUG_SELL_PRICE_PER_CRATE_ANIMAL_MATERIALS", HangarCrateVlaue)
+    SetTunableInt("SMUG_SELL_PRICE_PER_CRATE_ART_AND_ANTIQUES", HangarCrateVlaue)
+    SetTunableInt("SMUG_SELL_PRICE_PER_CRATE_CHEMICALS", HangarCrateVlaue)
+    SetTunableInt("SMUG_SELL_PRICE_PER_CRATE_COUNTERFEIT_GOODS", HangarCrateVlaue)
+    SetTunableInt("SMUG_SELL_PRICE_PER_CRATE_JEWELRY_AND_GEMSTONES", HangarCrateVlaue)
+    SetTunableInt("SMUG_SELL_PRICE_PER_CRATE_MEDICAL_SUPPLIES", HangarCrateVlaue)
+    SetTunableInt("SMUG_SELL_PRICE_PER_CRATE_NARCOTICS", HangarCrateVlaue)
+    SetTunableInt("SMUG_SELL_PRICE_PER_CRATE_TOBACCO_AND_ALCOHOL", HangarCrateVlaue)
+    Toast("Crate Value Setter", "Your Crate Value was set to " .. HangarCrateVlaue .. ".")
 end)
 
-AirCargoMenu:add_separator()
 
-RCRT = AirCargoMenu:add_checkbox("Remove Ron's Cut")
-script.register_looped("RonCutRemover", function(script)
-    script:yield()
+AirCargoMenu:Box("Options")
+RCRT = AirCargoMenu:Toggle("Remove Ron's Cut")
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
-        script:sleep(500)
+        Script.Yield(500)
         return
     end
-    local want = RCRT:is_enabled() and 0 or 0.025
+    local want = RCRT:IsToggled() and 0 or 0.025
     if want ~= _ronPrev then
-        tunables.set_float("SMUG_SELL_RONS_CUT", want)
+        SetTunableFloat("SMUG_SELL_RONS_CUT", want)
         _ronPrev = want
     end
-    script:sleep(500)
+    Script.Yield(500)
 end)
 
-AirCargoMenu:add_separator()
 
-PRPGD = AirCargoMenu:add_checkbox("Disable Player RP Gain")
-script.register_looped("PlayerRPGainDisabler", function(script)
-    script:yield()
+PRPGD = AirCargoMenu:Toggle("Disable Player RP Gain")
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
-        script:sleep(500)
+        Script.Yield(500)
         return
     end
-    local want = PRPGD:is_enabled() and 0 or 1
+    local want = PRPGD:IsToggled() and 0 or 1
     if want ~= _prpgdPrev then
-        tunables.set_float("XP_MULTIPLIER", want)
+        SetTunableFloat("XP_MULTIPLIER", want)
         _prpgdPrev = want
     end
-    script:sleep(500)
+    Script.Yield(500)
 end)
 
-AirCargoMenu:add_separator()
 
-AirCargoMenu:add_button("Open Hangar Screen", function()
-    SCRIPT.REQUEST_SCRIPT("apparcadebusinesshub")
-    SYSTEM.START_NEW_SCRIPT("apparcadebusinesshub", 8344)
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-end)
-
-__uml_block("AirCargoEditorMenu = AirCargoMenu:add_tab(Air Cargo Data Edi", function()
-AirCargoEditorMenu = AirCargoMenu:add_tab("Air Cargo Data Editor")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-AirCargoEditorMenu:add_button("Reset Crate Sell Stats-0/0 Sales", function()
-    stats.set_int(MPX() .. "LFETIME_HANGAR_BUY_COMPLET", 0)
-    stats.set_int(MPX() .. "LFETIME_HANGAR_BUY_UNDERTAK", 0)
-    stats.set_int(MPX() .. "LFETIME_HANGAR_SEL_COMPLET", 0)
-    stats.set_int(MPX() .. "LFETIME_HANGAR_SEL_UNDERTAK", 0)
-    stats.set_int(MPX() .. "LFETIME_HANGAR_EARNINGS", 0)
-    stats.set_int(MPX() .. "HANGAR_CONTRABAND_TOTAL", 0)
-    stats.set_int(MPX() .. "LFETIME_HANGAR_EARN_BONUS", 0)
-    stats.set_int(MPX() .. "RIVAL_HANGAR_CRATES_STOLEN", 0)
-    globals.set_int(CSg1, 11)
-    globals.set_int(CSg2, 1)
-    globals.set_int(CSg2, 0)
+AirCargoMenu:Button("Open Hangar Screen", function()
+    Natives.InvokeVoid(N.REQUEST_SCRIPT, "apparcadebusinesshub")
+    Natives.InvokeInt(N.START_NEW_SCRIPT, "apparcadebusinesshub", 8344)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("UseAtYourOwnRiskMenu = L7NEG7:add_tab(Use At Your Own Risk M", function()
-UseAtYourOwnRiskMenu = L7NEG7:add_tab("Use At Your Own Risk")
+Section("Air Cargo Data Editor", function()
+AirCargoEditorMenu = AirCargoMenu:Tab("Air Cargo Data Editor")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+AirCargoEditorMenu:Box("Stats")
+AirCargoEditorMenu:Button("Reset Crate Sell Stats-0/0 Sales", function()
+    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_BUY_COMPLET"), 0)
+    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_BUY_UNDERTAK"), 0)
+    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_SEL_COMPLET"), 0)
+    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_SEL_UNDERTAK"), 0)
+    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_EARNINGS"), 0)
+    Stats.SetInt(J(MPX() .. "HANGAR_CONTRABAND_TOTAL"), 0)
+    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_EARN_BONUS"), 0)
+    Stats.SetInt(J(MPX() .. "RIVAL_HANGAR_CRATES_STOLEN"), 0)
+    ScriptGlobal.SetInt(CSg1, 11)
+    ScriptGlobal.SetInt(CSg2, 1)
+    ScriptGlobal.SetInt(CSg2, 0)
 end)
 
-__uml_block("CeoManagerMenu = UseAtYourOwnRiskMenu:add_tab(Ceo Manager Me", function()
-CeoManagerMenu = UseAtYourOwnRiskMenu:add_tab("Ceo Manager")
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+end)
+
+Section("Use At Your Own Risk", function()
+UseAtYourOwnRiskMenu = L7NEG7:Tab("Use At Your Own Risk")
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+end)
+
+Section("Ceo Manager", function()
+CeoManagerMenu = UseAtYourOwnRiskMenu:Tab("Ceo Manager")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -4049,176 +3511,172 @@ local am = "am_mp_warehouse"
 local am2 = "am_mp_peds"
 
 cratevalue = 0
-CeoManagerMenu:add_imgui(function()
-    if isOffline() then
-        return
-    end
-    cratevalue, used = ImGui.DragInt("Crate Value", cratevalue, 10000, 0, 6000000)
+CeoManagerMenu:Box("Ceo Manager")
+CeoManagerMenu:Custom(function()
+    cratevalue, used = ImGui.DragInt("Crate Value", cratevalue, 10000.0, 0, 6000000)
     if used then
-        tunables.set_int("EXEC_CONTRABAND_SALE_VALUE_THRESHOLD1", cratevalue)
+        SetTunableInt("EXEC_CONTRABAND_SALE_VALUE_THRESHOLD1", cratevalue)
     end
 end)
 
-checkbox = CeoManagerMenu:add_checkbox("Start Ceo Manager")
+checkbox = CeoManagerMenu:Toggle("Start Ceo Manager")
 
-PRPGD2 = CeoManagerMenu:add_checkbox("Disable Player RP Gain")
-script.register_looped("PlayerRPGainDisabler2", function(script)
-    script:yield()
+PRPGD2 = CeoManagerMenu:Toggle("Disable Player RP Gain")
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
-        script:sleep(500)
+        Script.Yield(500)
         return
     end
-    local want = PRPGD2:is_enabled() and 0 or 1
+    local want = PRPGD2:IsToggled() and 0 or 1
     if want ~= _prpgd2Prev then
-        tunables.set_float("XP_MULTIPLIER", want)
+        SetTunableFloat("XP_MULTIPLIER", want)
         _prpgd2Prev = want
     end
-    script:sleep(500)
+    Script.Yield(500)
 end)
 
-CeoManagerMenu:add_button("Open Warehouse Screen", function()
-    SCRIPT.REQUEST_SCRIPT("apparcadebusinesshub")
-    SYSTEM.START_NEW_SCRIPT("apparcadebusinesshub", 8344)
+CeoManagerMenu:Button("Open Warehouse Screen", function()
+    Natives.InvokeVoid(N.REQUEST_SCRIPT, "apparcadebusinesshub")
+    Natives.InvokeInt(N.START_NEW_SCRIPT, "apparcadebusinesshub", 8344)
 end)
 
-script.register_looped("yimceoloop", function(script)
-    script:yield()
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
         return
     end
     -- removed useless call
-    tunables.set_int("EXEC_BUY_COOLDOWN", 0)
-    tunables.set_int("EXEC_SELL_COOLDOWN", 0)
+    SetTunableInt("EXEC_BUY_COOLDOWN", 0)
+    SetTunableInt("EXEC_SELL_COOLDOWN", 0)
 
-    if checkbox:is_enabled() == true then
-        if locals.get_int(ci, 2) == 1 then
-            locals.set_int(ci, SMC5, 1)
-            locals.set_int(ci, SMC4, 0)
-            locals.set_int(ci, SMC3, 0)
-            locals.set_int(ci, SMC2, 7)
-            script:sleep(500)
-            locals.set_int(ci, SMC1, 99999)
+    if checkbox:IsToggled() == true then
+        if ScriptLocal.GetInt(J(ci), 2) == 1 then
+            ScriptLocal.SetInt(J(ci), SMC5, 1)
+            ScriptLocal.SetInt(J(ci), SMC4, 0)
+            ScriptLocal.SetInt(J(ci), SMC3, 0)
+            ScriptLocal.SetInt(J(ci), SMC2, 7)
+            Script.Yield(500)
+            ScriptLocal.SetInt(J(ci), SMC1, 99999)
         end
-        if locals.get_int(cs, 2) == 1 then
-            script:sleep(500)
-            locals.set_int(cs, SMC8, 1)
-            script:sleep(200)
-            locals.set_int(cs, SMC7, 1)
-            script:sleep(200)
-            locals.set_int(cs, SMC6, 3012)
-            script:sleep(1000)
+        if ScriptLocal.GetInt(J(cs), 2) == 1 then
+            Script.Yield(500)
+            ScriptLocal.SetInt(J(cs), SMC8, 1)
+            Script.Yield(200)
+            ScriptLocal.SetInt(J(cs), SMC7, 1)
+            Script.Yield(200)
+            ScriptLocal.SetInt(J(cs), SMC6, 3012)
+            Script.Yield(1000)
         end
-        if locals.get_int(cb, 2) == 1 then
-            locals.set_int(cb, SMC9, 1)
-            locals.set_int(cb, SMC10, 111)
-            locals.set_int(cb, SMC11, 6)
-            locals.set_int(cb, SMC12, 4)
-            gui.show_message("Your Warehouse is now full! 111/111 Crates")
+        if ScriptLocal.GetInt(J(cb), 2) == 1 then
+            ScriptLocal.SetInt(J(cb), SMC9, 1)
+            ScriptLocal.SetInt(J(cb), SMC10, 111)
+            ScriptLocal.SetInt(J(cb), SMC11, 6)
+            ScriptLocal.SetInt(J(cb), SMC12, 4)
+            Toast("Your Warehouse is now full! 111/111 Crates")
         end
-        if locals.get_int(ci, 2) ~= 1 then
-            script:sleep(500)
-            if locals.get_int(am, 2) == 1 then
-                SCRIPT.REQUEST_SCRIPT("appsecuroserv")
-                SYSTEM.START_NEW_SCRIPT("appsecuroserv", 8344)
-                SCRIPT.SET_SCRIPT_AS_NO_LONGER_NEEDED("appsecuroserv")
+        if ScriptLocal.GetInt(J(ci), 2) ~= 1 then
+            Script.Yield(500)
+            if ScriptLocal.GetInt(J(am), 2) == 1 then
+                Natives.InvokeVoid(N.REQUEST_SCRIPT, "appsecuroserv")
+                Natives.InvokeInt(N.START_NEW_SCRIPT, "appsecuroserv", 8344)
+                Natives.InvokeVoid(N.SET_SCRIPT_AS_NO_LONGER_NEEDED, "appsecuroserv")
             end
         end
     end
-    script:sleep(500)
+    Script.Yield(500)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("NightClubSafeMenu = UseAtYourOwnRiskMenu:add_tab(NightClub S", function()
-NightClubSafeMenu = UseAtYourOwnRiskMenu:add_tab("NightClub Safe Loop")
+Section("NightClub Safe Loop", function()
+NightClubSafeMenu = UseAtYourOwnRiskMenu:Tab("NightClub Safe Loop")
 
 SafeAmount = 300000
 SafeCapacity = 23769 --NIGHTCLUBMAXSAFEVALUE
 IncomeStart = 23746 --NIGHTCLUBINCOMEUPTOPOP5
 IncomeEnd = 23765 --NIGHTCLUBINCOMEUPTOPOP100
 
-NCRSCB = NightClubSafeMenu:add_checkbox("Enable Nightclub $300k/5s (Safe Remote AFK)")
-script.register_looped("nightclubremotelooptest", function(script)
-    script:yield()
+NightClubSafeMenu:Box("Safe Loop")
+NCRSCB = NightClubSafeMenu:Toggle("Enable Nightclub $300k/5s (Safe Remote AFK)")
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
-        script:sleep(500)
+        Script.Yield(500)
         return
     end
-    if NCRSCB:is_enabled() == true then
-        SafeValue = 1845298 + self.get_id() + 260 + 364 + 5 --("am_mp_nightclub") or we can just use TUNEABLE: NIGHTCLUBMAXSAFEVALUE
+    if NCRSCB:IsToggled() == true then
+        SafeValue = 1845298 + GTA.GetLocalPlayerId() + 260 + 364 + 5 --("am_mp_nightclub") or we can just use TUNEABLE: NIGHTCLUBMAXSAFEVALUE
         for i = IncomeStart, IncomeEnd do
-            globals.set_int(FMg + i, SafeAmount)
+            ScriptGlobal.SetInt(FMg + i, SafeAmount)
         end
-        globals.set_int(FMg + SafeCapacity, SafeAmount)
-        stats.set_int(MPX() .. "CLUB_PAY_TIME_LEFT", -1)
-        script:sleep(2500)
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("am_mp_nightclub")) > 0 then
-            locals.set_int("am_mp_nightclub", NLCl, 1)
+        ScriptGlobal.SetInt(FMg + SafeCapacity, SafeAmount)
+        Stats.SetInt(J(MPX() .. "CLUB_PAY_TIME_LEFT"), -1)
+        Script.Yield(2500)
+        if IsScriptRunning("am_mp_nightclub") then
+            ScriptLocal.SetInt(J("am_mp_nightclub"), NLCl, 1)
         end
-        globals.set_int(4516981, 0)
-        globals.set_int(4516982, 0)
-        globals.set_int(4516983, 0)
-        script:sleep(2500)
+        ScriptGlobal.SetInt(4516981, 0)
+        ScriptGlobal.SetInt(4516982, 0)
+        ScriptGlobal.SetInt(4516983, 0)
+        Script.Yield(2500)
     else
-        script:sleep(500)
+        Script.Yield(500)
     end
 end)
 
-NightClubSafeMenu:add_separator()
 
-NightClubSafeMenu:add_button("Open Nightclub Screen", function()
-    SYSTEM.START_NEW_SCRIPT("appBusinessHub", 1424)
+NightClubSafeMenu:Button("Open Nightclub Screen", function()
+    Natives.InvokeInt(N.START_NEW_SCRIPT, "appBusinessHub", 1424)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("local GVMENU = makeOnlineTab(L7NEG:add_tab(Gun Van Menu))", function()
-local GVMENU = makeOnlineTab(L7NEG:add_tab("Gun Van"))
+Section("Gun Van", function()
+local GVMENU = Menu:Tab("Gun Van"):RequireOnline()
 
 local gunvan_locations = {
-    vec3:new(-29.532, 6435.136, 31.162),
-    vec3:new(1705.214, 4819.167, 41.75),
-    vec3:new(1795.522, 3899.753, 33.869),
-    vec3:new(1335.536, 2758.746, 51.099),
-    vec3:new(795.583, 1210.78, 338.962),
-    vec3:new(-3192.67, 1077.205, 20.594),
-    vec3:new(-789.719, 5400.921, 33.915),
-    vec3:new(-24.384, 3048.167, 40.703),
-    vec3:new(2666.786, 1469.324, 24.237),
-    vec3:new(-1454.966, 2667.503, 3.2),
-    vec3:new(2340.418, 3054.188, 47.888),
-    vec3:new(1509.183, -2146.795, 76.853),
-    vec3:new(1137.404, -1358.654, 34.322),
-    vec3:new(-57.208, -2658.793, 5.737),
-    vec3:new(1905.017, 565.222, 175.558),
-    vec3:new(974.484, -1718.798, 30.296),
-    vec3:new(779.077, -3266.297, 5.719),
-    vec3:new(-587.728, -1637.208, 19.611),
-    vec3:new(733.99, -736.803, 26.165),
-    vec3:new(-1694.632, -454.082, 40.712),
-    vec3:new(-1330.726, -1163.948, 4.313),
-    vec3:new(-496.618, 40.231, 52.316),
-    vec3:new(275.527, 66.509, 94.108),
-    vec3:new(260.928, -763.35, 30.559),
-    vec3:new(-478.025, -741.45, 30.299),
-    vec3:new(894.94, 3603.911, 32.56),
-    vec3:new(-2166.511, 4289.503, 48.733),
-    vec3:new(1465.633, 6553.67, 13.771),
-    vec3:new(1101.032, -335.172, 66.944),
-    vec3:new(149.683, -1655.674, 29.028),
+    V3.New(-29.532, 6435.136, 31.162),
+    V3.New(1705.214, 4819.167, 41.75),
+    V3.New(1795.522, 3899.753, 33.869),
+    V3.New(1335.536, 2758.746, 51.099),
+    V3.New(795.583, 1210.78, 338.962),
+    V3.New(-3192.67, 1077.205, 20.594),
+    V3.New(-789.719, 5400.921, 33.915),
+    V3.New(-24.384, 3048.167, 40.703),
+    V3.New(2666.786, 1469.324, 24.237),
+    V3.New(-1454.966, 2667.503, 3.2),
+    V3.New(2340.418, 3054.188, 47.888),
+    V3.New(1509.183, -2146.795, 76.853),
+    V3.New(1137.404, -1358.654, 34.322),
+    V3.New(-57.208, -2658.793, 5.737),
+    V3.New(1905.017, 565.222, 175.558),
+    V3.New(974.484, -1718.798, 30.296),
+    V3.New(779.077, -3266.297, 5.719),
+    V3.New(-587.728, -1637.208, 19.611),
+    V3.New(733.99, -736.803, 26.165),
+    V3.New(-1694.632, -454.082, 40.712),
+    V3.New(-1330.726, -1163.948, 4.313),
+    V3.New(-496.618, 40.231, 52.316),
+    V3.New(275.527, 66.509, 94.108),
+    V3.New(260.928, -763.35, 30.559),
+    V3.New(-478.025, -741.45, 30.299),
+    V3.New(894.94, 3603.911, 32.56),
+    V3.New(-2166.511, 4289.503, 48.733),
+    V3.New(1465.633, 6553.67, 13.771),
+    V3.New(1101.032, -335.172, 66.944),
+    V3.New(149.683, -1655.674, 29.028),
 }
 
 local van_locations = {
@@ -4344,7 +3802,7 @@ local weapons_data = {
     "WEAPON_BATTLERIFLE",
     "WEAPON_SNOWLAUNCHER",
 }
-UML_WEAPON_NAMES = weapons_data
+WeaponNames = weapons_data
 
 selected_loc = 0
 selected_slot = 0
@@ -4357,6 +3815,7 @@ filter_text = ""
 weapon_name = ""
 
 gun_van_loc = 0
+discount = false
 
 function render_weapon_editor()
     ImGui.SetNextWindowSize(700, 420)
@@ -4372,16 +3831,16 @@ function render_weapon_editor()
         selected_slot =
             ImGui.Combo("Select Slot", selected_slot, { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" }, 10)
 
-        filter_text = ImGui.InputText("Weapon Name", filter_text, 100)
+        filter_text = ImGui.InputText("Weapon Name", filter_text)
         if ImGui.IsItemActive() then
             is_typing = true
         else
             is_typing = false
         end
 
-        if ImGui.BeginListBox("##weapons", 450, 200) then
+        if ImGui.ListBoxHeader("##weapons", 450.0, 200.0) then
             for index, item in ipairs(weapons_data) do
-                local display_name = weapons.get_weapon_display_name(item)
+                local display_name = WeaponDisplayName(item)
                 if string.find(display_name:lower(), filter_text:lower()) then
                     if ImGui.Selectable(display_name) then
                         filter_text = display_name
@@ -4389,23 +3848,23 @@ function render_weapon_editor()
                     end
                 end
             end
-            ImGui.EndListBox()
+            ImGui.ListBoxFooter()
         end
 
         if ImGui.Button("Set Weapon") then
-            local is_weapon_valid = weapons.get_weapon_display_name(weapon_name) ~= ""
+            local is_weapon_valid = WeaponDisplayName(weapon_name) ~= ""
 
             if is_weapon_valid then
-                tunables.set_int("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. selected_slot, joaat(weapon_name))
+                SetTunableInt("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. selected_slot, J(weapon_name))
             else
-                gui.show_error("Gun Van", "Invalid weapon.")
+                Toast("Gun Van", "Invalid weapon.")
             end
         end
 
         ImGui.SameLine()
 
         if ImGui.Button("Remove Weapon") then
-            tunables.set_int("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. selected_slot, 0)
+            SetTunableInt("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. selected_slot, 0)
         end
 
         if ImGui.Button("Close") then
@@ -4420,77 +3879,77 @@ function render_weapon_editor()
     end
 end
 
-script.register_looped("Gun Van", function(script)
-    script:yield()
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
-        script:sleep(500)
+        Script.Yield(500)
         return
     end
-    gun_van_loc = globals.get_int(2652581 + 2706)
+    gun_van_loc = ScriptGlobal.GetInt(2652581 + 2706)
 
     if is_typing then
-        PAD.DISABLE_ALL_CONTROL_ACTIONS(0)
+        Natives.InvokeVoid(N.DISABLE_ALL_CONTROL_ACTIONS, 0)
     end
 
     if weapon_skins then
-        tunables.set_bool(1490225691, false)
+        SetTunableBool(1490225691, false)
     end
 
     if livery_lock then
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("gunclub_shop")) > 0 then
-            local value = locals.get_int("gunclub_shop", 206 + 747)
+        if IsScriptRunning("gunclub_shop") then
+            local value = ScriptLocal.GetInt(J("gunclub_shop"), 206 + 747)
             if value ~= nil then
                 value = value | (1 << 8)
-                locals.set_int("gunclub_shop", 206 + 747, value)
+                ScriptLocal.SetInt(J("gunclub_shop"), 206 + 747, value)
             end
         end
     end
 
     if gta_plus_blip then
-        local gun_van_sprite = HUD.GET_FIRST_BLIP_INFO_ID(844)
+        local gun_van_sprite = Natives.InvokeInt(N.GET_FIRST_BLIP_INFO_ID, 844)
 
-        tunables.set_float(15999531, 10000.0)
-        if HUD.DOES_BLIP_EXIST(gun_van_sprite) then
-            HUD.SET_BLIP_AS_SHORT_RANGE(gun_van_sprite, false)
+        SetTunableFloat(15999531, 10000.0)
+        if Natives.InvokeBool(N.DOES_BLIP_EXIST, gun_van_sprite) then
+            Natives.InvokeVoid(N.SET_BLIP_AS_SHORT_RANGE, gun_van_sprite, false)
         end
     end
-    script:sleep(500)
+    Script.Yield(500)
 end)
 
-GVMENU:add_imgui(function()
+GVMENU:Box("Location")
+GVMENU:Custom(function()
     if weapon_editor_popup then
         render_weapon_editor()
     end
 
     ImGui.Text("Current Location: " .. (gun_van_loc ~= -1 and gun_van_loc + 1 or "N/A"))
 
-    ImGui.SetNextItemWidth(265)
     selected_loc = ImGui.Combo("##selected_loc", selected_loc, van_locations, 30)
 
-    ImGui.SameLine()
 
     if ImGui.Button("Set New Gun Van Location") then
-        globals.set_int(2652581 + 2706, selected_loc)
+        ScriptGlobal.SetInt(2652581 + 2706, selected_loc)
     end
 
-    ImGui.SameLine()
 
     if ImGui.Button("Teleport") then
-        script.run_in_fiber(function()
+        Script.QueueJob(function()
             local coords = gunvan_locations[selected_loc + 1]
-            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
         end)
     end
-
+end)
+GVMENU:Box("Options")
+GVMENU:Custom(function()
     weapon_skins, on_tick = ImGui.Checkbox("Weapon Skins", weapon_skins)
     help_marker("Enables the special liveries for Knife and Baseball Bat.")
 
     if on_tick then
         if not weapon_skins then
-            tunables.set_bool(1490225691, true)
+            SetTunableBool(1490225691, true)
         end
     end
 
@@ -4501,10 +3960,10 @@ GVMENU:add_imgui(function()
 
     if on_tick then
         if not livery_lock then
-            local value = locals.get_int("gunclub_shop", 206 + 747)
+            local value = ScriptLocal.GetInt(J("gunclub_shop"), 206 + 747)
             if value ~= nil then
                 value = value & ~(1 << 8)
-                locals.set_int("gunclub_shop", 206 + 747, value)
+                ScriptLocal.SetInt(J("gunclub_shop"), 206 + 747, value)
             end
         end
     end
@@ -4514,7 +3973,7 @@ GVMENU:add_imgui(function()
 
     if on_tick then
         if not gta_plus_blip then
-            tunables.set_float(15999531, 500.0)
+            SetTunableFloat(15999531, 500.0)
         end
     end
 
@@ -4525,39 +3984,40 @@ GVMENU:add_imgui(function()
     if on_tick then
         if discount then
             for i = 0, 4 do
-                _discountBackup.armour[i] = tunables.get_float("XM22_GUN_VAN_SLOT_ARMOUR_DISCOUNT_" .. i)
-                tunables.set_float("XM22_GUN_VAN_SLOT_ARMOUR_DISCOUNT_" .. i, 0.1)
+                _discountBackup.armour[i] = GetTunableFloat("XM22_GUN_VAN_SLOT_ARMOUR_DISCOUNT_" .. i)
+                SetTunableFloat("XM22_GUN_VAN_SLOT_ARMOUR_DISCOUNT_" .. i, 0.1)
             end
             for i = 0, 2 do
-                _discountBackup.throwable[i] = tunables.get_float("XM22_GUN_VAN_SLOT_THROWABLE_DISCOUNT_" .. i)
-                tunables.set_float("XM22_GUN_VAN_SLOT_THROWABLE_DISCOUNT_" .. i, 0.1)
+                _discountBackup.throwable[i] = GetTunableFloat("XM22_GUN_VAN_SLOT_THROWABLE_DISCOUNT_" .. i)
+                SetTunableFloat("XM22_GUN_VAN_SLOT_THROWABLE_DISCOUNT_" .. i, 0.1)
             end
             for i = 0, 9 do
-                _discountBackup.weapon[i] = tunables.get_float("XM22_GUN_VAN_SLOT_WEAPON_DISCOUNT_" .. i)
-                tunables.set_float("XM22_GUN_VAN_SLOT_WEAPON_DISCOUNT_" .. i, 0.1)
+                _discountBackup.weapon[i] = GetTunableFloat("XM22_GUN_VAN_SLOT_WEAPON_DISCOUNT_" .. i)
+                SetTunableFloat("XM22_GUN_VAN_SLOT_WEAPON_DISCOUNT_" .. i, 0.1)
             end
         else
             for i = 0, 4 do
-                tunables.set_float("XM22_GUN_VAN_SLOT_ARMOUR_DISCOUNT_" .. i, _discountBackup.armour[i] or 0.0)
+                SetTunableFloat("XM22_GUN_VAN_SLOT_ARMOUR_DISCOUNT_" .. i, _discountBackup.armour[i] or 0.0)
             end
             for i = 0, 2 do
-                tunables.set_float("XM22_GUN_VAN_SLOT_THROWABLE_DISCOUNT_" .. i, _discountBackup.throwable[i] or 0.0)
+                SetTunableFloat("XM22_GUN_VAN_SLOT_THROWABLE_DISCOUNT_" .. i, _discountBackup.throwable[i] or 0.0)
             end
             for i = 0, 9 do
-                tunables.set_float("XM22_GUN_VAN_SLOT_WEAPON_DISCOUNT_" .. i, _discountBackup.weapon[i] or 0.0)
+                SetTunableFloat("XM22_GUN_VAN_SLOT_WEAPON_DISCOUNT_" .. i, _discountBackup.weapon[i] or 0.0)
             end
         end
     end
-    ImGui.Separator()
-
+end)
+GVMENU:Box("Stock")
+GVMENU:Custom(function()
     if ImGui.TreeNode("Weapons") then
         for i = 0, 9 do
-            local weapon_hash = tunables.get_int("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. i)
+            local weapon_hash = GetTunableInt("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. i)
 
             if weapon_hash ~= 0 then
-                local weapon_name = weapons.get_weapon_display_name(weapon_hash)
+                local weapon_name = WeaponDisplayName(weapon_hash)
                 local weapon_discount =
-                    math.floor(tunables.get_float("XM22_GUN_VAN_SLOT_WEAPON_DISCOUNT_" .. i) * 100.0)
+                    math.floor(GetTunableFloat("XM22_GUN_VAN_SLOT_WEAPON_DISCOUNT_" .. i) * 100.0)
 
                 ImGui.Text(i + 1 .. " - " .. weapon_name .. " (" .. weapon_discount .. "%)")
             end
@@ -4573,12 +4033,12 @@ GVMENU:add_imgui(function()
 
     if ImGui.TreeNode("Throwables") then
         for i = 0, 2 do
-            local throwable_hash = tunables.get_int("XM22_GUN_VAN_SLOT_THROWABLE_TYPE_" .. i)
+            local throwable_hash = GetTunableInt("XM22_GUN_VAN_SLOT_THROWABLE_TYPE_" .. i)
 
             if throwable_hash ~= 0 then
-                local throwable_name = weapons.get_weapon_display_name(throwable_hash)
+                local throwable_name = WeaponDisplayName(throwable_hash)
                 local throwable_discount =
-                    math.floor(tunables.get_float("XM22_GUN_VAN_SLOT_THROWABLE_DISCOUNT_" .. i) * 100.0)
+                    math.floor(GetTunableFloat("XM22_GUN_VAN_SLOT_THROWABLE_DISCOUNT_" .. i) * 100.0)
 
                 ImGui.Text(i + 1 .. " - " .. throwable_name .. " (" .. throwable_discount .. "%)")
             end
@@ -4592,7 +4052,7 @@ GVMENU:add_imgui(function()
         local armour_discounts = {}
 
         for i = 0, 4 do
-            armour_discounts[i + 1] = math.floor(tunables.get_float("XM22_GUN_VAN_SLOT_ARMOUR_DISCOUNT_" .. i) * 100.0)
+            armour_discounts[i + 1] = math.floor(GetTunableFloat("XM22_GUN_VAN_SLOT_ARMOUR_DISCOUNT_" .. i) * 100.0)
         end
 
         ImGui.Text("Super Light Armor (" .. armour_discounts[1] .. "%)")
@@ -4608,342 +4068,350 @@ end)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end)
 
-__uml_block("ReportsMenu = makeOnlineTab(L7NEG:add_tab(Reports Menu))", function()
-ReportsMenu = Self:add_tab("Reports")
-ReportsMenu:add_imgui(function()
-    if isOffline() then
-        return
+Section("Reports", function()
+ReportsMenu = Self:Tab("Reports")
+ReportsMenu:Box("Reports")
+ReportsMenu:Custom(function()
+    ImGui.Text("Griefing: " .. GetStatInt("MPPLY_GRIEFING"))
+    ImGui.Text("Exploiting: " .. GetStatInt("MPPLY_EXPLOITS"))
+    ImGui.Text("Abusing Bugs: " .. GetStatInt("MPPLY_GAME_EXPLOITS"))
+    ImGui.Text("Annoying People In Text: " .. GetStatInt("MPPLY_TC_ANNOYINGME"))
+    ImGui.Text("Hate Speech In Voice: " .. GetStatInt("MPPLY_VC_HATE"))
+    ImGui.Text("Offensive Language: " .. GetStatInt("MPPLY_OFFENSIVE_LANGUAGE"))
+    ImGui.Text("Offensive Tagplate: " .. GetStatInt("MPPLY_OFFENSIVE_TAGPLATE"))
+    ImGui.Text("Offensive Content: " .. GetStatInt("MPPLY_OFFENSIVE_UGC"))
+    ImGui.Text("Bad Crew Name: " .. GetStatInt("MPPLY_BAD_CREW_NAME"))
+    ImGui.Text("Bad Crew Motto: " .. GetStatInt("MPPLY_BAD_CREW_MOTTO"))
+    ImGui.Text("Bad Crew Status: " .. GetStatInt("MPPLY_BAD_CREW_STATUS"))
+    ImGui.Text("Bad Crew Emblem: " .. GetStatInt("MPPLY_BAD_CREW_EMBLEM"))
+end)
+ReportsMenu:Box("Commendations")
+ReportsMenu:Custom(function()
+    ImGui.Text("Friendly: " .. GetStatInt("MPPLY_FRIENDLY"))
+    ImGui.Text("Helpful: " .. GetStatInt("MPPLY_HELPFUL"))
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+end)
+
+Section("WareHouse Data Editor", function()
+WareHouseDataEditorMenu = L7NEG7:Tab("WareHouse Data Editor")
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+WareHouseDataEditorMenu:Box("Stats")
+WareHouseDataEditorMenu:Button("Auto-Reset stats-0/0 Sales", function()
+    Stats.SetInt(J(MPX() .. "LIFETIME_BUY_COMPLETE"), 0)
+    Stats.SetInt(J(MPX() .. "LIFETIME_BUY_UNDERTAKEN"), 0)
+    Stats.SetInt(J(MPX() .. "LIFETIME_SELL_COMPLETE"), 0)
+    Stats.SetInt(J(MPX() .. "LIFETIME_SELL_UNDERTAKEN"), 0)
+    Stats.SetInt(J(MPX() .. "LIFETIME_CONTRA_EARNINGS"), 0)
+    ScriptGlobal.SetInt(CSg1, 11)
+    ScriptGlobal.SetInt(CSg2, 1)
+    Script.Yield(300)
+    ScriptGlobal.SetInt(CSg2, 0)
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+end)
+
+Section("Tutorial", function()
+L7NEG7N = L7NEG7:Tab("Tutorial")
+
+L7NEG7N:Box("Ceo Crates Method")
+L7NEG7N:Text("First Enter Your Warehouse")
+L7NEG7N:Text("Then Stand In Front Of Your Warehouse Computer And Then Activate The Enable Ceo Manager")
+L7NEG7N:Text("https://l7neg.is-a.dev/discord")
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+end)
+
+Section("Heists", function()
+HeistsDataEditorMenu = Menu:Tab("Heists"):RequireOnline()
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+end)
+
+Section("Apartment", function()
+local ApartmentDataEditorMenu = HeistsDataEditorMenu:Tab("Apartment")
+ApartmentDataEditorMenu:Box("Information", 0) -- full width, above everything else
+ApartmentDataEditorMenu:Text("Max Payout 3.000.000$ (+ optional 12.000.000$)")
+ApartmentDataEditorMenu:Text("Min Cooldown ≈ 0-5 minutes (+ optional > 6 hours)")
+-- Box order (two columns, filled left to right): Preps | Solo Launch, Misc | 12mil Bonus, then the rest.
+ApartmentDataEditorMenu:Box("Preps"):Box("Solo Launch"):Box("Misc"):Box("12mil Bonus")
+
+-- Stat values the game writes when each heist has all its preps done.
+-- depth = HEIST_MISSION_DEPTH_LV_2 .. LV_7
+local apartmentHeists = {
+    { name = "The Fleeca Job", rcont = -1072870761, cosmetic = 25, depth = { 1, -1, -1, -1, -1, -1 } },
+    { name = "The Prison Break", rcont = 979654579, cosmetic = 22, depth = { 0, 0, 1, -1, -1, -1 } },
+    { name = "The Humane Labs Raid", rcont = -1096986654, cosmetic = 23, depth = { 0, 1, 2, 2, -1, -1 } },
+    { name = "Series A Funding", rcont = 164435858, cosmetic = 24, depth = { 0, 0, 1, 2, -1, -1 } },
+    { name = "The Pacific Standard Job", rcont = -231973569, cosmetic = 21, depth = { 1, 2, 2, 2, -1, -1 } },
+}
+local apartmentHeistNames = {}
+for i, heist in ipairs(apartmentHeists) do
+    apartmentHeistNames[i] = heist.name
+end
+local apartmentHeistIndex = 0
+
+ApartmentDataEditorMenu:Box("Preps")
+ApartmentDataEditorMenu:Custom(function()
+    ImGui.Text("Heist:")
+    apartmentHeistIndex = ImGui.Combo("##ApartmentHeist", apartmentHeistIndex, apartmentHeistNames, #apartmentHeistNames)
+end)
+ApartmentDataEditorMenu:Button("Apply & Complete Preps", function()
+    local heist = apartmentHeists[apartmentHeistIndex + 1]
+    local mpx = MPX()
+    Stats.SetInt(J(mpx .. "BITSET_HEIST_VS_MISSIONS"), -17809409)
+    -- Only filled in when the game has not set them itself yet.
+    if GetStatInt(mpx .. "HEIST_LEADER_APART_ID") == 0 then
+        Stats.SetInt(J(mpx .. "HEIST_LEADER_APART_ID"), 67108864)
     end
-    ImGui.Text("Griefing: " .. stats.get_int("MPPLY_GRIEFING"))
-    ImGui.Text("Exploiting: " .. stats.get_int("MPPLY_EXPLOITS"))
-    ImGui.Text("Abusing Bugs: " .. stats.get_int("MPPLY_GAME_EXPLOITS"))
-    ImGui.Text("Annoying People In Text: " .. stats.get_int("MPPLY_TC_ANNOYINGME"))
-    ImGui.Text("Hate Speech In Voice: " .. stats.get_int("MPPLY_VC_HATE"))
-    ImGui.Text("Offensive Language: " .. stats.get_int("MPPLY_OFFENSIVE_LANGUAGE"))
-    ImGui.Text("Offensive Tagplate: " .. stats.get_int("MPPLY_OFFENSIVE_TAGPLATE"))
-    ImGui.Text("Offensive Content: " .. stats.get_int("MPPLY_OFFENSIVE_UGC"))
-    ImGui.Text("Bad Crew Name: " .. stats.get_int("MPPLY_BAD_CREW_NAME"))
-    ImGui.Text("Bad Crew Motto: " .. stats.get_int("MPPLY_BAD_CREW_MOTTO"))
-    ImGui.Text("Bad Crew Status: " .. stats.get_int("MPPLY_BAD_CREW_STATUS"))
-    ImGui.Text("Bad Crew Emblem: " .. stats.get_int("MPPLY_BAD_CREW_EMBLEM"))
-    ImGui.Separator()
-    ImGui.Text("Now onto your commendations:")
-    ImGui.Separator()
-    ImGui.Text("Friendly: " .. stats.get_int("MPPLY_FRIENDLY"))
-    ImGui.Text("Helpful: " .. stats.get_int("MPPLY_HELPFUL"))
+    if GetStatInt(mpx .. "HEIST_SESSION_ID_MACADDR") == 0 then
+        Stats.SetInt(J(mpx .. "HEIST_SESSION_ID_MACADDR"), 183381814)
+    end
+    Stats.SetInt(J(mpx .. "HEIST_MISSION_DEPTH_LV_0"), -1)
+    for i, value in ipairs(heist.depth) do
+        Stats.SetInt(J(mpx .. "HEIST_MISSION_DEPTH_LV_" .. (i + 1)), value)
+    end
+    Stats.SetInt(J(mpx .. "HEIST_MISSION_RCONT_ID_0"), heist.rcont)
+    Stats.SetInt(J(mpx .. "HEIST_TOTAL_REWARD_COSMETIC"), heist.cosmetic)
+    Stats.SetInt(J(mpx .. "HEIST_PLANNING_STAGE"), -1)
+    Toast("Apartment Heist", heist.name .. ": preps should've been completed")
 end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+ApartmentDataEditorMenu:Box("Session")
+ApartmentDataEditorMenu:Button("Kill Cooldown", function()
+    ScriptGlobal.SetInt(ACDg + 1 + (GTA.GetLocalPlayerId() * 77) + 76, -1)
+    Toast("Apartment Heist", "Cooldown should've been killed")
 end)
-
-__uml_block("WareHouseDataEditorMenu = L7NEG7:add_tab(WareHouse Data Edit", function()
-WareHouseDataEditorMenu = L7NEG7:add_tab("WareHouse Data Editor")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-WareHouseDataEditorMenu:add_button("Auto-Reset stats-0/0 Sales", function()
-    stats.set_int(MPX() .. "LIFETIME_BUY_COMPLETE", 0)
-    stats.set_int(MPX() .. "LIFETIME_BUY_UNDERTAKEN", 0)
-    stats.set_int(MPX() .. "LIFETIME_SELL_COMPLETE", 0)
-    stats.set_int(MPX() .. "LIFETIME_SELL_UNDERTAKEN", 0)
-    stats.set_int(MPX() .. "LIFETIME_CONTRA_EARNINGS", 0)
-    globals.set_int(CSg1, 11)
-    globals.set_int(CSg2, 1)
-    script:sleep(300)
-    globals.set_int(CSg2, 0)
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-end)
-
-__uml_block("L7NEG7N = L7NEG7:add_tab(Tutorial ReadMe)", function()
-L7NEG7N = L7NEG7:add_tab("Tutorial")
-
-L7NEG7N:add_text("Ceo Crates Method")
-L7NEG7N:add_text("First Enter Your Warehouse")
-L7NEG7N:add_text("Then Stand In Front Of Your Warehouse Computer And Then Activate The Enable Ceo Manager")
-L7NEG7N:add_text("https://l7neg.is-a.dev/discord")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-end)
-
-__uml_block("HeistsDataEditorMenu = makeOnlineTab(L7NEG:add_tab(Heists Da", function()
-HeistsDataEditorMenu = makeOnlineTab(L7NEG:add_tab("Heists"))
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-end)
-
-__uml_block("local ApartmentDataEditorMenu = HeistsDataEditorMenu:add_tab", function()
-local ApartmentDataEditorMenu = HeistsDataEditorMenu:add_tab("Apartment")
-
-ApartmentDataEditorMenu:add_text("Preps")
-ApartmentDataEditorMenu:add_button("Complete Preps", function()
-    stats.set_int(MPX() .. "HEIST_PLANNING_STAGE", -1)
-    gui.show_message("Apartment Heist", "Preps should've been completed")
-end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_text("")
-ApartmentDataEditorMenu:add_text("For Fleeca:")
-ApartmentDataEditorMenu:add_text(
-    'Pay for the preparation, start the first mission and as soon as you are sent to scout\nchange the session, come back to planning room, press "Complete Preps" near white board and press "E"'
-)
-ApartmentDataEditorMenu:add_text("For Other Heists:")
-ApartmentDataEditorMenu:add_text(
-    'Start the mission and leave after the 1st cutscene ends, press "Complete Preps" near white board and press "E"'
-)
-ApartmentDataEditorMenu:add_separator()
-ApartmentDataEditorMenu:add_button("Kill Cooldown", function()
-    globals.set_int(ACDg + 1 + (PLAYER.PLAYER_ID() * 77) + 76, -1)
-    gui.show_message("Apartment Heist", "Cooldown should've been killed")
-end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Change Session", function()
+ApartmentDataEditorMenu:Button("Change Session", function()
     changeSession(8)
 end)
 
-ApartmentDataEditorMenu:add_separator()
-ApartmentDataEditorMenu:add_text("Team Lives:")
-local livesValueApartment = ApartmentDataEditorMenu:add_input_int("Lives")
-livesValueApartment:set_value(3)
-ApartmentDataEditorMenu:add_button("Set Lives", function()
-    local v = livesValueApartment:get_value()
+ApartmentDataEditorMenu:Box("Team Lives")
+local livesValueApartment = ApartmentDataEditorMenu:InputInt("Lives")
+livesValueApartment:SetIntValue(3)
+ApartmentDataEditorMenu:Button("Set Lives", function()
+    local v = livesValueApartment:GetIntValue()
     if v < 1 then
-        gui.show_message("Apartment Heist", "Lives must be at least 1!")
+        Toast("Apartment Heist", "Lives must be at least 1!")
     else
-        locals.set_int(FMC, AHLIVESL, v)
-        gui.show_message("Apartment Heist", "Team lives set to " .. v)
+        ScriptLocal.SetInt(J(FMC), AHLIVESL, v)
+        Toast("Apartment Heist", "Team lives set to " .. v)
     end
 end)
 
-ApartmentDataEditorMenu:add_separator()
-ApartmentDataEditorMenu:add_text(
+ApartmentDataEditorMenu:Box("12mil Bonus")
+ApartmentDataEditorMenu:Text(
     "Works only for you. Allows you to get 12 millions bonus for The Pacific Standard Job on hard difficulty.\nEnable before starting the heist. Has a cooldown."
 )
 
-local apartmentBonus = ApartmentDataEditorMenu:add_checkbox("12mil Bonus")
+local apartmentBonus = ApartmentDataEditorMenu:Toggle("12mil Bonus")
 local previousState = false
 
-script.register_looped("SN_Apartment_Bonus", function(script)
-    script:yield()
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
         return
     end
-    local currentState = apartmentBonus:is_enabled()
+    local currentState = apartmentBonus:IsToggled()
     if currentState ~= previousState then
-        stats.set_int(joaat("MPPLY_HEISTFLOWORDERPROGRESS"), currentState and 268435455 or 134217727)
-        stats.set_bool(joaat("MPPLY_AWD_HST_ORDER"), not currentState)
-        stats.set_int(joaat("MPPLY_HEISTTEAMPROGRESSBITSET"), currentState and 268435455 or 134217727)
-        stats.set_bool(joaat("MPPLY_AWD_HST_SAME_TEAM"), not currentState)
-        stats.set_int(joaat("MPPLY_HEISTNODEATHPROGREITSET"), currentState and 268435455 or 134217727)
-        stats.set_bool(joaat("MPPLY_AWD_HST_ULT_CHAL"), not currentState)
-        gui.show_message(
+        Stats.SetInt(J("MPPLY_HEISTFLOWORDERPROGRESS"), currentState and 268435455 or 134217727)
+        Stats.SetBool(J("MPPLY_AWD_HST_ORDER"), (not currentState) and 1 or 0)
+        Stats.SetInt(J("MPPLY_HEISTTEAMPROGRESSBITSET"), currentState and 268435455 or 134217727)
+        Stats.SetBool(J("MPPLY_AWD_HST_SAME_TEAM"), (not currentState) and 1 or 0)
+        Stats.SetInt(J("MPPLY_HEISTNODEATHPROGREITSET"), currentState and 268435455 or 134217727)
+        Stats.SetBool(J("MPPLY_AWD_HST_ULT_CHAL"), (not currentState) and 1 or 0)
+        Toast(
             "12mil Bonus",
             currentState and "Bonus should've been applied. Don't forget about difficulty"
                 or "Bonus should've been unapplied"
         )
         previousState = currentState
     end
-    script:sleep(100)
+    Script.Yield(100)
 end)
 
-ApartmentDataEditorMenu:add_separator()
-ApartmentDataEditorMenu:add_button("3mil Payout", function()
-    local perPlayer, key = SN_ApartmentMaxCutCherax(false)
+ApartmentDataEditorMenu:Box("Cuts")
+ApartmentDataEditorMenu:Button("3mil Payout", function()
+    local perPlayer, key = SN_ApartmentMaxCut(false)
     if perPlayer then
         local isFleeca = (key == 1328892776)
-        SN_ApplyApartmentCutsCherax(perPlayer, perPlayer, perPlayer, perPlayer, isFleeca)
-        gui.show_message("Apartment Heist", "Cuts should've been applied")
+        SN_ApplyApartmentCuts(perPlayer, perPlayer, perPlayer, perPlayer, isFleeca)
+        Toast("Apartment Heist", "Cuts should've been applied")
     else
-        gui.show_message("Apartment Heist", "Unknown heist/difficulty")
+        Toast("Apartment Heist", "Unknown heist/difficulty")
     end
 end)
-ApartmentDataEditorMenu:add_separator()
-ApartmentDataEditorMenu:add_text("Cuts:")
-local apartCut1 = ApartmentDataEditorMenu:add_input_int("Player 1")
-local apartCut2 = ApartmentDataEditorMenu:add_input_int("Player 2")
-local apartCut3 = ApartmentDataEditorMenu:add_input_int("Player 3")
-local apartCut4 = ApartmentDataEditorMenu:add_input_int("Player 4")
-ApartmentDataEditorMenu:add_separator()
-ApartmentDataEditorMenu:add_text("Board Limits:")
-ApartmentDataEditorMenu:add_text("Raise before Apply Cuts for over-100% cuts. Reset after the heist.")
-local boardCeiling = ApartmentDataEditorMenu:add_input_int("Ceiling")
-boardCeiling:set_value(3000000)
-local boardCap = ApartmentDataEditorMenu:add_input_int("Max Cut %")
-boardCap:set_value(70)
-ApartmentDataEditorMenu:add_button("Apply Custom Limits", function()
-    tunables.set_int("HEIST_PLANNING_SANITY_CEILING", boardCeiling:get_value())
-    tunables.set_int("MAX_HEIST_CUT_AMOUNT", boardCap:get_value())
-    gui.show_message("Apartment Heist", "Ceiling: " .. boardCeiling:get_value() .. " Cap: " .. boardCap:get_value())
+local apartCut1 = ApartmentDataEditorMenu:InputInt("Player 1")
+local apartCut2 = ApartmentDataEditorMenu:InputInt("Player 2")
+local apartCut3 = ApartmentDataEditorMenu:InputInt("Player 3")
+local apartCut4 = ApartmentDataEditorMenu:InputInt("Player 4")
+ApartmentDataEditorMenu:Box("Board Limits")
+ApartmentDataEditorMenu:Text("Raise before Apply Cuts for over-100% cuts. Reset after the heist.")
+local boardCeiling = ApartmentDataEditorMenu:InputInt("Ceiling")
+boardCeiling:SetIntValue(3000000)
+local boardCap = ApartmentDataEditorMenu:InputInt("Max Cut %")
+boardCap:SetIntValue(70)
+ApartmentDataEditorMenu:Button("Apply Custom Limits", function()
+    SetTunableInt("HEIST_PLANNING_SANITY_CEILING", boardCeiling:GetIntValue())
+    SetTunableInt("MAX_HEIST_CUT_AMOUNT", boardCap:GetIntValue())
+    Toast("Apartment Heist", "Ceiling: " .. boardCeiling:GetIntValue() .. " Cap: " .. boardCap:GetIntValue())
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Raise Board Limits", function()
-    tunables.set_int("HEIST_PLANNING_SANITY_CEILING", 10000000)
-    tunables.set_int("MAX_HEIST_CUT_AMOUNT", 100)
-    gui.show_message("Apartment Heist", "Board limits should've been raised")
+ApartmentDataEditorMenu:Button("Raise Board Limits", function()
+    SetTunableInt("HEIST_PLANNING_SANITY_CEILING", 10000000)
+    SetTunableInt("MAX_HEIST_CUT_AMOUNT", 100)
+    Toast("Apartment Heist", "Board limits should've been raised")
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Reset Board Limits", function()
-    tunables.set_int("HEIST_PLANNING_SANITY_CEILING", 3000000)
-    tunables.set_int("MAX_HEIST_CUT_AMOUNT", 70)
-    gui.show_message("Apartment Heist", "Board limits should've been reset")
+ApartmentDataEditorMenu:Button("Reset Board Limits", function()
+    SetTunableInt("HEIST_PLANNING_SANITY_CEILING", 3000000)
+    SetTunableInt("MAX_HEIST_CUT_AMOUNT", 70)
+    Toast("Apartment Heist", "Board limits should've been reset")
 end)
-ApartmentDataEditorMenu:add_button("Read Board Limits", function()
-    local ceiling = tunables.get_int("HEIST_PLANNING_SANITY_CEILING")
-    local cap = tunables.get_int("MAX_HEIST_CUT_AMOUNT")
-    gui.show_message("Apartment Heist", "Ceiling: " .. ceiling .. " Cap: " .. cap)
+ApartmentDataEditorMenu:Button("Read Board Limits", function()
+    local ceiling = GetTunableInt("HEIST_PLANNING_SANITY_CEILING")
+    local cap = GetTunableInt("MAX_HEIST_CUT_AMOUNT")
+    Toast("Apartment Heist", "Ceiling: " .. ceiling .. " Cap: " .. cap)
 end)
-ApartmentDataEditorMenu:add_button("Apply Cuts", function()
+ApartmentDataEditorMenu:Box("Cuts")
+ApartmentDataEditorMenu:Button("Apply Cuts", function()
     local heistType = 0
-    if script.is_active(FMMCL) then
-        heistType = locals.get_int(FMMCL, HGGs1)
+    if IsScriptRunning(FMMCL) then
+        heistType = ScriptLocal.GetInt(J(FMMCL), HGGs1)
     end
-    local key = globals.get_int(ACDg + (PLAYER.PLAYER_ID() * 77) + 24 + 2)
+    local key = ScriptGlobal.GetInt(ACDg + (GTA.GetLocalPlayerId() * 77) + 24 + 2)
     local isFleeca = (heistType == 1328892776) or (key == 1328892776)
-    SN_ApplyApartmentCutsCherax(apartCut1:get_value(), apartCut2:get_value(), apartCut3:get_value(), apartCut4:get_value(), isFleeca)
-    gui.show_message("Apartment Heist", "Cuts should've been applied")
+    SN_ApplyApartmentCuts(apartCut1:GetIntValue(), apartCut2:GetIntValue(), apartCut3:GetIntValue(), apartCut4:GetIntValue(), isFleeca)
+    Toast("Apartment Heist", "Cuts should've been applied")
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Read Cuts", function()
-    local b1 = globals.get_int(ACg1)
-    local b2 = globals.get_int(ACg2)
-    local b3 = globals.get_int(ACg3)
-    local b4 = globals.get_int(ACg4)
-    local a1 = globals.get_int(ACg5)
-    local a2 = globals.get_int(ACg6)
-    local a3 = globals.get_int(ACg7)
-    local a4 = globals.get_int(ACg8)
-    gui.show_message("Apartment Heist", "Board: " .. b1 .. "/" .. b2 .. "/" .. b3 .. "/" .. b4 .. " Actual: " .. a1 .. "/" .. a2 .. "/" .. a3 .. "/" .. a4)
+ApartmentDataEditorMenu:Button("Read Cuts", function()
+    local b1 = ScriptGlobal.GetInt(ACg1)
+    local b2 = ScriptGlobal.GetInt(ACg2)
+    local b3 = ScriptGlobal.GetInt(ACg3)
+    local b4 = ScriptGlobal.GetInt(ACg4)
+    local a1 = ScriptGlobal.GetInt(ACg5)
+    local a2 = ScriptGlobal.GetInt(ACg6)
+    local a3 = ScriptGlobal.GetInt(ACg7)
+    local a4 = ScriptGlobal.GetInt(ACg8)
+    Toast("Apartment Heist", "Board: " .. b1 .. "/" .. b2 .. "/" .. b3 .. "/" .. b4 .. " Actual: " .. a1 .. "/" .. a2 .. "/" .. a3 .. "/" .. a4)
 end)
-ApartmentDataEditorMenu:add_separator()
-ApartmentDataEditorMenu:add_text("Presets:")
-ApartmentDataEditorMenu:add_button("All - 0%", function()
-    apartCut1:set_value(0)
-    apartCut2:set_value(0)
-    apartCut3:set_value(0)
-    apartCut4:set_value(0)
+ApartmentDataEditorMenu:Box("Cut Presets", 2) -- right column, under Board Limits
+ApartmentDataEditorMenu:Button("All - 0%", function()
+    apartCut1:SetIntValue(0)
+    apartCut2:SetIntValue(0)
+    apartCut3:SetIntValue(0)
+    apartCut4:SetIntValue(0)
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("All - 25%", function()
-    apartCut1:set_value(25)
-    apartCut2:set_value(25)
-    apartCut3:set_value(25)
-    apartCut4:set_value(25)
+ApartmentDataEditorMenu:Button("All - 25%", function()
+    apartCut1:SetIntValue(25)
+    apartCut2:SetIntValue(25)
+    apartCut3:SetIntValue(25)
+    apartCut4:SetIntValue(25)
 end)
-ApartmentDataEditorMenu:add_button("All - 85%", function()
-    apartCut1:set_value(85)
-    apartCut2:set_value(85)
-    apartCut3:set_value(85)
-    apartCut4:set_value(85)
+ApartmentDataEditorMenu:Button("All - 85%", function()
+    apartCut1:SetIntValue(85)
+    apartCut2:SetIntValue(85)
+    apartCut3:SetIntValue(85)
+    apartCut4:SetIntValue(85)
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("All - 100%", function()
-    apartCut1:set_value(100)
-    apartCut2:set_value(100)
-    apartCut3:set_value(100)
-    apartCut4:set_value(100)
+ApartmentDataEditorMenu:Button("All - 100%", function()
+    apartCut1:SetIntValue(100)
+    apartCut2:SetIntValue(100)
+    apartCut3:SetIntValue(100)
+    apartCut4:SetIntValue(100)
 end)
-ApartmentDataEditorMenu:add_separator()
-ApartmentDataEditorMenu:add_text("Extras")
-ApartmentDataEditorMenu:add_button("Bypass Fleeca Hack", function()
-    locals.set_int(FMC, AFHl, 7)
-    gui.show_message("Apartment Heist", "Hacking process should've been skipped")
+ApartmentDataEditorMenu:Box("Misc")
+ApartmentDataEditorMenu:Button("Bypass Fleeca Hack", function()
+    ScriptLocal.SetInt(J(FMC), AFHl, 7)
+    Toast("Apartment Heist", "Hacking process should've been skipped")
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Bypass Fleeca Drill", function()
-    locals.set_float(FMC, AFDl, 100)
-    gui.show_message("Apartment Heist", "Drilling process should've been skipped")
+ApartmentDataEditorMenu:Button("Bypass Fleeca Drill", function()
+    ScriptLocal.SetFloat(J(FMC), AFDl, 100.0)
+    Toast("Apartment Heist", "Drilling process should've been skipped")
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Bypass Pacific Hack", function()
-    locals.set_int(FMC, AFPl, 9)
-    gui.show_message("Apartment Heist", "Hacking process should've been skipped")
+ApartmentDataEditorMenu:Button("Bypass Pacific Hack", function()
+    ScriptLocal.SetInt(J(FMC), AFPl, 9)
+    Toast("Apartment Heist", "Hacking process should've been skipped")
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Skip Checkpoint", function()
-    locals.set_int(FMC, AHSo, locals.get_int(FMC, AHSo) | (1 << 17))
-    gui.show_message("Apartment Heist", "Checkpoint should've been skipped")
+ApartmentDataEditorMenu:Button("Skip Checkpoint", function()
+    ScriptLocal.SetInt(J(FMC), AHSo, ScriptLocal.GetInt(J(FMC), AHSo) | (1 << 17))
+    Toast("Apartment Heist", "Checkpoint should've been skipped")
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Unlock All Jobs", function()
-    stats.set_int(MPX() .. "HEIST_SAVED_STRAND_0", tunables.get_int("ROOT_ID_HASH_THE_FLECCA_JOB"))
-    stats.set_int(MPX() .. "HEIST_SAVED_STRAND_0_L", 5)
-    stats.set_int(MPX() .. "HEIST_SAVED_STRAND_1", tunables.get_int("ROOT_ID_HASH_THE_PRISON_BREAK"))
-    stats.set_int(MPX() .. "HEIST_SAVED_STRAND_1_L", 5)
-    stats.set_int(MPX() .. "HEIST_SAVED_STRAND_2", tunables.get_int("ROOT_ID_HASH_THE_HUMANE_LABS_RAID"))
-    stats.set_int(MPX() .. "HEIST_SAVED_STRAND_2_L", 5)
-    stats.set_int(MPX() .. "HEIST_SAVED_STRAND_3", tunables.get_int("ROOT_ID_HASH_SERIES_A_FUNDING"))
-    stats.set_int(MPX() .. "HEIST_SAVED_STRAND_3_L", 5)
-    stats.set_int(MPX() .. "HEIST_SAVED_STRAND_4", tunables.get_int("ROOT_ID_HASH_THE_PACIFIC_STANDARD_JOB"))
-    stats.set_int(MPX() .. "HEIST_SAVED_STRAND_4_L", 5)
-    gui.show_message("Apartment Heist", "All jobs should've been unlocked. Don't forget to restart the game")
+ApartmentDataEditorMenu:Button("Unlock All Jobs", function()
+    Stats.SetInt(J(MPX() .. "HEIST_SAVED_STRAND_0"), GetTunableInt("ROOT_ID_HASH_THE_FLECCA_JOB"))
+    Stats.SetInt(J(MPX() .. "HEIST_SAVED_STRAND_0_L"), 5)
+    Stats.SetInt(J(MPX() .. "HEIST_SAVED_STRAND_1"), GetTunableInt("ROOT_ID_HASH_THE_PRISON_BREAK"))
+    Stats.SetInt(J(MPX() .. "HEIST_SAVED_STRAND_1_L"), 5)
+    Stats.SetInt(J(MPX() .. "HEIST_SAVED_STRAND_2"), GetTunableInt("ROOT_ID_HASH_THE_HUMANE_LABS_RAID"))
+    Stats.SetInt(J(MPX() .. "HEIST_SAVED_STRAND_2_L"), 5)
+    Stats.SetInt(J(MPX() .. "HEIST_SAVED_STRAND_3"), GetTunableInt("ROOT_ID_HASH_SERIES_A_FUNDING"))
+    Stats.SetInt(J(MPX() .. "HEIST_SAVED_STRAND_3_L"), 5)
+    Stats.SetInt(J(MPX() .. "HEIST_SAVED_STRAND_4"), GetTunableInt("ROOT_ID_HASH_THE_PACIFIC_STANDARD_JOB"))
+    Stats.SetInt(J(MPX() .. "HEIST_SAVED_STRAND_4_L"), 5)
+    Toast("Apartment Heist", "All jobs should've been unlocked. Don't forget to restart the game")
 end)
-local soloLaunchToggle = ApartmentDataEditorMenu:add_checkbox("Solo Launch")
-script.register_looped("SN_Apartment_SoloLaunch", function(s)
-    s:yield()
-    if not soloLaunchToggle:is_enabled() then
-        s:sleep(500)
+ApartmentDataEditorMenu:Box("Solo Launch")
+local soloLaunchToggle = ApartmentDataEditorMenu:Toggle("Solo Launch")
+Script.RegisterLooped(function()
+    Script.Yield()
+    if not soloLaunchToggle:IsToggled() then
+        Script.Yield(500)
         return
     end
-    if not network.is_session_started() or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then
-        s:sleep(500)
+    if not IsSessionStarted() or IsScriptRunning("maintransition") then
+        Script.Yield(500)
         return
     end
-    if script.is_active(FMMCL) then
-        local idx = locals.get_int(FMMCL, HGGs1)
+    if IsScriptRunning(FMMCL) then
+        local idx = ScriptLocal.GetInt(J(FMMCL), HGGs1)
         if idx ~= nil and idx > 0 then
-            locals.set_int(FMMCL, HGGs2, 1)
-            globals.set_int(794989 + 4 + 1 + (idx * 95) + 75, 1)
+            ScriptLocal.SetInt(J(FMMCL), HGGs2, 1)
+            ScriptGlobal.SetInt(794989 + 4 + 1 + (idx * 95) + 75, 1)
         end
     end
-    globals.set_int(HGLs1, 1)
-    globals.set_int(4718592 + 3775 + 1, 1)
-    globals.set_int(HGLs4, 0)
-    globals.set_int(HGLs2, 1)
-    globals.set_int(HGLs3, 1)
-    s:sleep(500)
+    ScriptGlobal.SetInt(HGLs1, 1)
+    ScriptGlobal.SetInt(4718592 + 3775 + 1, 1)
+    ScriptGlobal.SetInt(HGLs4, 0)
+    ScriptGlobal.SetInt(HGLs2, 1)
+    ScriptGlobal.SetInt(HGLs3, 1)
+    Script.Yield(500)
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Skip Cutscene", SkipCutscene)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Force Ready", function()
-    script.run_in_fiber(function(script)
-        network.force_script_host(FMC)
-        script:sleep(1000)
+ApartmentDataEditorMenu:Box("Misc")
+ApartmentDataEditorMenu:Button("Skip Cutscene", SkipCutscene)
+ApartmentDataEditorMenu:Button("Force Ready", function()
+    Script.QueueJob(function()
+        GTA.ForceScriptHost(J(FMC))
+        Script.Yield(1000)
         for i = 0, 3 do
-            globals.set_int(AFRg + 1 + (i * 468) + 270, 6)
+            ScriptGlobal.SetInt(AFRg + 1 + (i * 468) + 270, 6)
         end
-        gui.show_message("Apartment Heist", "Everyone should've been forced ready")
+        Toast("Apartment Heist", "Everyone should've been forced ready")
     end)
 end)
-ApartmentDataEditorMenu:add_sameline()
-ApartmentDataEditorMenu:add_button("Instant Finish", function()
-    script.run_in_fiber(function(s)
-        if not script.is_active(FMC) then
-            gui.show_message("Apartment Heist", "Start the finale first!")
+ApartmentDataEditorMenu:Button("Instant Finish", function()
+    Script.QueueJob(function()
+        if not IsScriptRunning(FMC) then
+            Toast("Apartment Heist", "Start the finale first!")
             return
         end
-        network.force_script_host(FMC)
-        s:sleep(500)
+        GTA.ForceScriptHost(J(FMC))
+        Script.Yield(500)
         for i = 0, 5 do
-            globals.set_string(4718592 + 133252 + 1 + i * 6, "", 0)
+            ScriptGlobal.SetString(4718592 + 133252 + 1 + i * 6, "")
         end
-        locals.set_int(FMC, AIFl2, 5)
-        locals.set_int(FMC, 19808 + 1232 + 1, 999999)
-        local bits = locals.get_int(FMC, 19808 + 1)
+        ScriptLocal.SetInt(J(FMC), AIFl2, 5)
+        ScriptLocal.SetInt(J(FMC), 19808 + 1232 + 1, 999999)
+        local bits = ScriptLocal.GetInt(J(FMC), 19808 + 1)
         bits = bits | (1 << 9) | (1 << 16)
-        locals.set_int(FMC, 19808 + 1, bits)
-        gui.show_message("Apartment Heist", "Heist finished. Wait for load!")
+        ScriptLocal.SetInt(J(FMC), 19808 + 1, bits)
+        Toast("Apartment Heist", "Heist finished. Wait for load!")
     end)
 end)
-ApartmentDataEditorMenu:add_text("")
-ApartmentDataEditorMenu:add_text("Note: After Clicking Unlock All Heists, restart the game")
+ApartmentDataEditorMenu:Text("Note: After Clicking Unlock All Heists, restart the game")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Cayo Heist --
@@ -4952,99 +4420,87 @@ local CayoPericoCrewCut = {
     { tunable = "IH_DEDUCTION_FENCING_FEE", default = -0.1 },
 }
 
-local cayoPrimaryTargets = {
-    { name = "Panther Statue", id = 5 },
-    { name = "Madrazo Files", id = 4 },
-    { name = "Diamond", id = 3 },
-    { name = "Bonds", id = 2 },
-    { name = "Necklace", id = 1 },
-    { name = "Tequila", id = 0 },
+-- Cayo Perico setup: the values the game stores for each planning board choice.
+local cayoSetup = {
+    difficulty = { { "Normal", 126823 }, { "Hard", 131055 } }, -- H4_PROGRESS
+    approach = { -- H4_MISSIONS
+        { "Kosatka", 65283 },
+        { "Alkonost", 65413 },
+        { "Velum", 65289 },
+        { "Stealth Annihilator", 65425 },
+        { "Patrol Boat", 65313 },
+        { "Longfin", 65345 },
+        { "All Ways", 65535 },
+    },
+    loadout = { -- H4CNF_WEAPONS
+        { "Aggressor", 1 },
+        { "Conspirator", 2 },
+        { "Crackshot", 3 },
+        { "Saboteur", 4 },
+        { "Marksman", 5 },
+    },
+    target = { -- H4CNF_TARGET
+        { "Sinsimito Tequila", 0 },
+        { "Ruby Necklace", 1 },
+        { "Bearer Bonds", 2 },
+        { "Pink Diamond", 3 },
+        { "Madrazo Files", 4 },
+        { "Panther Statue", 5 },
+    },
+    -- Secondary loot type per location: only H4LOOT_<type>_<C|I> of the chosen type is filled.
+    secondary = { { "None", false }, { "Cash", "CASH" }, { "Weed", "WEED" }, { "Coke", "COKE" }, { "Gold", "GOLD" } },
+    -- Amounts are bitmasks with one bit per loot spot (compound 8, paintings 7, island 24 spots).
+    compoundAmount = {
+        { "Empty", 0 }, { "1", 128 }, { "2", 192 }, { "3", 196 }, { "4", 204 },
+        { "5", 220 }, { "6", 252 }, { "7", 253 }, { "Full", 255 },
+    },
+    artsAmount = {
+        { "Empty", 0 }, { "1", 64 }, { "2", 96 }, { "3", 112 }, { "4", 120 },
+        { "5", 122 }, { "6", 126 }, { "Full", 127 },
+    },
+    islandAmount = {
+        { "Empty", 0 }, { "1", 8388608 }, { "2", 12582912 }, { "3", 12845056 }, { "4", 12976128 },
+        { "5", 13500416 }, { "6", 14548992 }, { "Full", 16777215 },
+    },
+    lootValues = { CASH = 74925, WEED = 121500, COKE = 182250, GOLD = 300000 }, -- H4LOOT_<type>_V
+    paintValue = 162000, -- H4LOOT_PAINT_V
 }
 
-function CayoCompletePreps()
-    stats.set_int(MPX() .. "H4CNF_UNIFORM", -1)
-    stats.set_int(MPX() .. "H4CNF_GRAPPEL", -1)
-    stats.set_int(MPX() .. "H4CNF_TROJAN", 5)
-    stats.set_int(MPX() .. "H4CNF_WEP_DISRP", 3)
-    stats.set_int(MPX() .. "H4CNF_ARM_DISRP", 3)
-    stats.set_int(MPX() .. "H4CNF_HEL_DISRP", 3)
-    stats.set_int(MPX() .. "H4_PLAYTHROUGH_STATUS", 10)
-    stats.set_int(MPX() .. "H4CNF_BS_GEN", -1)
-    stats.set_int(MPX() .. "H4CNF_BS_ENTR", 63)
-    stats.set_int(MPX() .. "H4CNF_BS_ABIL", 63)
-    stats.set_int(MPX() .. "H4CNF_APPROACH", -1)
+-- Selected index (0-based) of every setup dropdown.
+local cayoChoice = {
+    difficulty = 0,
+    approach = 0,
+    loadout = 0,
+    target = 0,
+    compoundTarget = 0,
+    compoundAmount = #cayoSetup.compoundAmount - 1,
+    artsAmount = 0,
+    islandTarget = 0,
+    islandAmount = #cayoSetup.islandAmount - 1,
+}
+
+local function CayoCombo(label, key, options)
+    if not options.names then
+        options.names = {}
+        for i, option in ipairs(options) do
+            options.names[i] = option[1]
+        end
+    end
+    cayoChoice[key] = ImGui.Combo(label, cayoChoice[key], options.names, #options.names)
 end
 
-function CayoTargetsSetter(cash, weed, coke, gold, where)
-    stats.set_int(MPX() .. "H4LOOT_CASH_" .. where, cash)
-    stats.set_int(MPX() .. "H4LOOT_CASH_" .. where .. "_SCOPED", cash)
-    stats.set_int(MPX() .. "H4LOOT_WEED_" .. where, weed)
-    stats.set_int(MPX() .. "H4LOOT_WEED_" .. where .. "_SCOPED", weed)
-    stats.set_int(MPX() .. "H4LOOT_COKE_" .. where, coke)
-    stats.set_int(MPX() .. "H4LOOT_COKE_" .. where .. "_SCOPED", coke)
-    stats.set_int(MPX() .. "H4LOOT_GOLD_" .. where, gold)
-    stats.set_int(MPX() .. "H4LOOT_GOLD_" .. where .. "_SCOPED", gold)
+local function CayoPick(key, options)
+    return options[cayoChoice[key] + 1][2]
 end
 
-function CayoPaintingsToggler(Enabled)
-    if Enabled then
-        stats.set_int(MPX() .. "H4LOOT_PAINT", 127)
-        stats.set_int(MPX() .. "H4LOOT_PAINT_SCOPED", 127)
-        stats.set_int(MPX() .. "H4LOOT_PAINT_V", 189500)
-    else
-        stats.set_int(MPX() .. "H4LOOT_PAINT", 0)
-        stats.set_int(MPX() .. "H4LOOT_PAINT_SCOPED", 0)
-        stats.set_int(MPX() .. "H4LOOT_PAINT_V", 0)
+-- where = "C" (compound) or "I" (island)
+local function CayoSetSecondary(where, lootType, amount)
+    for loot in pairs(cayoSetup.lootValues) do
+        local value = (loot == lootType) and amount or 0
+        Stats.SetInt(J(MPX() .. "H4LOOT_" .. loot .. "_" .. where), value)
+        Stats.SetInt(J(MPX() .. "H4LOOT_" .. loot .. "_" .. where .. "_SCOPED"), value)
     end
 end
-
-local cayoSecondaryTargets = {
-    {
-        name = "None",
-        caps = "NONE",
-        amount = {
-            compound = { cash = 0, weed = 0, coke = 0, gold = 0 },
-            island = { cash = 0, weed = 0, coke = 0, gold = 0 },
-        },
-        value = 0,
-    },
-    {
-        name = "Gold",
-        caps = "GOLD",
-        amount = {
-            compound = { cash = 0, weed = 0, coke = 0, gold = 255 },
-            island = { cash = 0, weed = 0, coke = 0, gold = 16777215 },
-        },
-        value = 333333,
-    },
-    {
-        name = "Cocaine",
-        caps = "COKE",
-        amount = {
-            compound = { cash = 0, weed = 0, coke = 255, gold = 0 },
-            island = { cash = 0, weed = 0, coke = 16777215, gold = 0 },
-        },
-        value = 202500,
-    },
-    {
-        name = "Weed",
-        caps = "WEED",
-        amount = {
-            compound = { cash = 0, weed = 255, coke = 0, gold = 0 },
-            island = { cash = 0, weed = 16777215, coke = 0, gold = 0 },
-        },
-        value = 135000,
-    },
-    {
-        name = "Cash",
-        caps = "CASH",
-        amount = {
-            compound = { cash = 255, weed = 0, coke = 0, gold = 0 },
-            island = { cash = 16777215, weed = 0, coke = 0, gold = 0 },
-        },
-        value = 83250,
-    },
-}
 
 local cayoLocations = {
     { name = "Front Gate", x = 4990.0386, y = -5717.6895, z = 19.876024 },
@@ -5057,32 +4513,7 @@ local cayoLocations = {
     { name = "Elevator", x = 5012.1533, y = -5749.0107, z = 28.945145 },
 }
 
-local cayoApproachVehicles = {
-    { name = "Longfin", id = 65345 },
-    { name = "Patrol Boat", id = 65313 },
-    { name = "Stealth Annihilator", id = 65425 },
-    { name = "Velum", id = 65289 },
-    { name = "Alkonost", id = 65413 },
-    { name = "Kosatka", id = 65283 },
-    { name = "All Ways", id = 65535 },
-}
-
-local cayoWeapons = {
-    { name = "Aggressor", id = 1 },
-    { name = "Conspirator", id = 2 },
-    { name = "Crackshot", id = 3 },
-    { name = "Saboteur", id = 4 },
-    { name = "Marksman", id = 5 },
-}
-
--- Move these variables outside to maintain state
-local sPrimary = 0
-local compoundI = 0
-local islandI = 0
-local sApproach = 0
-local sWeapon = 0
 local bagValue = 0
-local addPaintings = false
 local cayocut1 = 0
 local cayocut2 = 0
 local cayocut3 = 0
@@ -5092,46 +4523,43 @@ local livesValueCayo = 3
 local cayoLootTakeValue = 0
 
 function CayoSoloMantrap()
-    script.run_in_fiber(function(s)
-        network.force_script_host(FMC2020)
-        s:sleep(500)
-        locals.set_int(FMC2020, CPMantrap1, 7)
-        locals.set_int(FMC2020, CPMantrap2, 1)
-        gui.show_message("Cayo Perico Heist", "Solo mantrap enabled")
+    Script.QueueJob(function()
+        GTA.ForceScriptHost(J(FMC2020))
+        Script.Yield(500)
+        ScriptLocal.SetInt(J(FMC2020), CPMantrap1, 7)
+        ScriptLocal.SetInt(J(FMC2020), CPMantrap2, 1)
+        Toast("Cayo Perico Heist", "Solo mantrap enabled")
     end)
 end
 
 function CayoTakeSecondary()
-    script.run_in_fiber(function(s)
-        locals.set_int(FMC2020, CPSecondary, 3)
-        s:sleep(500)
-        local cur = locals.get_int(FMC2020, CPSecondary)
+    Script.QueueJob(function()
+        ScriptLocal.SetInt(J(FMC2020), CPSecondary, 3)
+        Script.Yield(500)
+        local cur = ScriptLocal.GetInt(J(FMC2020), CPSecondary)
         if cur ~= nil then
-            locals.set_int(FMC2020, CPSecondary, cur - 1)
+            ScriptLocal.SetInt(J(FMC2020), CPSecondary, cur - 1)
         end
-        gui.show_message("Cayo Perico Heist", "Secondary target taken")
+        Toast("Cayo Perico Heist", "Secondary target taken")
     end)
 end
 
 function CayoSetLootTake(value)
-    locals.set_int(FMC2020, CPLootTake, value)
-    gui.show_message("Cayo Perico Heist", "Loot take set to " .. value)
+    ScriptLocal.SetInt(J(FMC2020), CPLootTake, value)
+    Toast("Cayo Perico Heist", "Loot take set to " .. value)
 end
 
 function GetCayoTakeText()
-    if script.is_active(FMC2020) then
-        return "Current Take: $" .. tostring(locals.get_int(FMC2020, CPLootTake))
+    if IsScriptRunning(FMC2020) then
+        return "Current Take: $" .. tostring(ScriptLocal.GetInt(J(FMC2020), CPLootTake))
     end
     return "Current Take: N/A (start finale)"
 end
 
 function CayoDrawMisc()
-    ImGui.Separator()
-    ImGui.Text("Misc")
     if ImGui.Button("Solo Mantrap (Dual Keycard)") then
         CayoSoloMantrap()
     end
-    ImGui.SameLine()
     if ImGui.Button("Take Secondary Target") then
         CayoTakeSecondary()
     end
@@ -5140,62 +4568,93 @@ function CayoDrawMisc()
     if ImGui.Button("Set Loot Take") then
         CayoSetLootTake(cayoLootTakeValue)
     end
-    ImGui.Separator()
 end
 
-function CayoRefreshLootValues()
-    local vals = { CASH = 0, WEED = 0, COKE = 0, GOLD = 0 }
-    local comp = cayoSecondaryTargets[compoundI + 1]
-    local isl = cayoSecondaryTargets[islandI + 1]
-    if comp.caps ~= "NONE" then
-        vals[comp.caps] = comp.value
-    end
-    if isl.caps ~= "NONE" then
-        vals[isl.caps] = isl.value
-    end
-    stats.set_int(MPX() .. "H4LOOT_CASH_V", vals.CASH)
-    stats.set_int(MPX() .. "H4LOOT_WEED_V", vals.WEED)
-    stats.set_int(MPX() .. "H4LOOT_COKE_V", vals.COKE)
-    stats.set_int(MPX() .. "H4LOOT_GOLD_V", vals.GOLD)
-end
+local CayoHeistEditorMenu = HeistsDataEditorMenu:Tab("Cayo Perico")
+CayoHeistEditorMenu:Box("Information", 0) -- full width, above everything else
+CayoHeistEditorMenu:Text("Max Payout 2.550.000$")
+CayoHeistEditorMenu:Text("Min Cooldown ≈ 15-20 minutes")
 
-local CayoHeistEditorMenu = HeistsDataEditorMenu:add_tab("Cayo Perico")
+CayoHeistEditorMenu:Box("Preps")
+CayoHeistEditorMenu:Custom(function()
+    CayoCombo("Difficulty", "difficulty", cayoSetup.difficulty)
+    CayoCombo("Approach", "approach", cayoSetup.approach)
+    CayoCombo("Loadout", "loadout", cayoSetup.loadout)
+    CayoCombo("Target", "target", cayoSetup.target)
+    CayoCombo("Com. Target", "compoundTarget", cayoSetup.secondary)
+    CayoCombo("Com. Amount", "compoundAmount", cayoSetup.compoundAmount)
+    CayoCombo("Arts Amount", "artsAmount", cayoSetup.artsAmount)
+    CayoCombo("Isl. Target", "islandTarget", cayoSetup.secondary)
+    CayoCombo("Isl. Amount", "islandAmount", cayoSetup.islandAmount)
+end)
+CayoHeistEditorMenu:Button("Apply & Complete Preps", function()
+    local mpx = MPX()
+    -- Planning board choices
+    Stats.SetInt(J(mpx .. "H4_PROGRESS"), CayoPick("difficulty", cayoSetup.difficulty))
+    Stats.SetInt(J(mpx .. "H4_MISSIONS"), CayoPick("approach", cayoSetup.approach))
+    Stats.SetInt(J(mpx .. "H4CNF_WEAPONS"), CayoPick("loadout", cayoSetup.loadout))
+    Stats.SetInt(J(mpx .. "H4CNF_TARGET"), CayoPick("target", cayoSetup.target))
 
-CayoHeistEditorMenu:add_imgui(function()
-    if isOffline() then
-        return
+    -- Secondary loot
+    CayoSetSecondary("C", CayoPick("compoundTarget", cayoSetup.secondary), CayoPick("compoundAmount", cayoSetup.compoundAmount))
+    CayoSetSecondary("I", CayoPick("islandTarget", cayoSetup.secondary), CayoPick("islandAmount", cayoSetup.islandAmount))
+    for loot, value in pairs(cayoSetup.lootValues) do
+        Stats.SetInt(J(mpx .. "H4LOOT_" .. loot .. "_V"), value)
     end
+    local arts = CayoPick("artsAmount", cayoSetup.artsAmount)
+    Stats.SetInt(J(mpx .. "H4LOOT_PAINT"), arts)
+    Stats.SetInt(J(mpx .. "H4LOOT_PAINT_SCOPED"), arts)
+    Stats.SetInt(J(mpx .. "H4LOOT_PAINT_V"), arts ~= 0 and cayoSetup.paintValue or 0)
 
+    -- Completed preps
+    Stats.SetInt(J(mpx .. "H4CNF_APPROACH"), -1)
+    Stats.SetInt(J(mpx .. "H4CNF_BS_GEN"), -1)
+    Stats.SetInt(J(mpx .. "H4CNF_BS_ENTR"), 63)
+    Stats.SetInt(J(mpx .. "H4CNF_BS_ABIL"), 63)
+    Stats.SetInt(J(mpx .. "H4CNF_UNIFORM"), -1)
+    Stats.SetInt(J(mpx .. "H4CNF_GRAPPEL"), -1)
+    Stats.SetInt(J(mpx .. "H4CNF_TROJAN"), 5)
+    Stats.SetInt(J(mpx .. "H4CNF_WEP_DISRP"), 3)
+    Stats.SetInt(J(mpx .. "H4CNF_ARM_DISRP"), 3)
+    Stats.SetInt(J(mpx .. "H4CNF_HEL_DISRP"), 3)
+    Stats.SetInt(J(mpx .. "H4_PLAYTHROUGH_STATUS"), 10)
+
+    ScriptLocal.SetInt(J(HIP), CPRSl, 2)
+    Toast("Cayo Perico Heist", "Preps should've been completed")
+end)
+CayoHeistEditorMenu:Button("Reset Preps", function()
+    local mpx = MPX()
+    Stats.SetInt(J(mpx .. "H4_PROGRESS"), 0)
+    Stats.SetInt(J(mpx .. "H4_MISSIONS"), 0)
+    Stats.SetInt(J(mpx .. "H4CNF_APPROACH"), 0)
+    Stats.SetInt(J(mpx .. "H4CNF_TARGET"), -1)
+    Stats.SetInt(J(mpx .. "H4CNF_BS_GEN"), 0)
+    Stats.SetInt(J(mpx .. "H4CNF_BS_ENTR"), 0)
+    Stats.SetInt(J(mpx .. "H4CNF_BS_ABIL"), 0)
+    Stats.SetInt(J(mpx .. "H4_PLAYTHROUGH_STATUS"), 0)
+    ScriptLocal.SetInt(J(HIP), CPRSl, 2)
+    Toast("Cayo Perico Heist", "Preps should've been reset")
+end)
+CayoHeistEditorMenu:Button("Reload Planning Screen", function()
+    ScriptLocal.SetInt(J(HIP), CPRSl, 2)
+    Toast("Cayo Perico Heist", "Screen should've been reloaded")
+end)
+
+CayoHeistEditorMenu:Box("Bag Size")
+CayoHeistEditorMenu:Custom(function()
     -- Cayo Bag Size Editor
-    ImGui.Text("Cayo Bag Size Editor")
     bagValue, __ = ImGui.InputInt("Bag Size", bagValue)
     if ImGui.Button("Set Bag Size") then
         if bagValue < 0 or bagValue > 10000 then
-            gui.show_error("Cayo Perico", "Bag size must be 0-10000.")
+            Toast("Cayo Perico", "Bag size must be 0-10000.")
         else
-            tunables.set_int("HEIST_BAG_MAX_CAPACITY", bagValue)
-            gui.show_message("Cayo Perico", "Bag size set to " .. bagValue)
+            SetTunableInt("HEIST_BAG_MAX_CAPACITY", bagValue)
+            Toast("Cayo Perico", "Bag size set to " .. bagValue)
         end
     end
-
-    ImGui.Separator()
-
-    -- Primary Target
-    ImGui.Text("Primary Target:")
-    local primaryNames = {}
-    for _, target in ipairs(cayoPrimaryTargets) do
-        table.insert(primaryNames, target.name)
-    end
-    local nIndex, changed = ImGui.Combo("##CayoPrimary", sPrimary, primaryNames, #primaryNames)
-    if changed then
-        sPrimary = nIndex
-        local selected = cayoPrimaryTargets[sPrimary + 1]
-        stats.set_int(MPX() .. "H4CNF_TARGET", selected.id)
-        gui.show_message("Cayo Perico", "Primary target set to: " .. selected.name)
-    end
-
-    ImGui.Separator()
-    ImGui.Text("Primary Payouts (direct tunables):")
+end)
+CayoHeistEditorMenu:Box("Primary Payouts")
+CayoHeistEditorMenu:Custom(function()
     local cayoPrimaryPayouts = {
         { name = "Panther Statue", tunable = "IH_PRIMARY_TARGET_VALUE_SAPPHIRE_PANTHER_STATUE" },
         { name = "Madrazo Files", tunable = "IH_PRIMARY_TARGET_VALUE_MADRAZO_FILES" },
@@ -5205,139 +4664,25 @@ CayoHeistEditorMenu:add_imgui(function()
         { name = "Tequila", tunable = "IH_PRIMARY_TARGET_VALUE_TEQUILA" },
     }
     for _, p in ipairs(cayoPrimaryPayouts) do
-        local cur = tunables.get_int(p.tunable)
+        local cur = GetTunableInt(p.tunable)
         local val, used = ImGui.InputInt(p.name, cur)
         if used then
             if val < 0 or val > 10000000 then
-                gui.show_error("Cayo Perico", p.name .. " must be 0-10M.")
+                Toast("Cayo Perico", p.name .. " must be 0-10M.")
             else
-                tunables.set_int(p.tunable, val)
-                gui.show_message("Cayo Perico", p.name .. " payout set to " .. val)
+                SetTunableInt(p.tunable, val)
+                Toast("Cayo Perico", p.name .. " payout set to " .. val)
             end
         end
     end
-
-    ImGui.Separator()
-
-    -- Secondary Targets
-    local targetNames = {}
-    for i, target in ipairs(cayoSecondaryTargets) do
-        table.insert(targetNames, target.name)
-    end
-
-    ImGui.Text("Compound Target:")
-    local nCompoundI, clickedCompound = ImGui.Combo("##Compound", compoundI, targetNames, #targetNames)
-    if clickedCompound then
-        compoundI = nCompoundI
-        local selected = cayoSecondaryTargets[compoundI + 1]
-        CayoTargetsSetter(
-            selected.amount.compound.cash,
-            selected.amount.compound.weed,
-            selected.amount.compound.coke,
-            selected.amount.compound.gold,
-            "C"
-        )
-        CayoRefreshLootValues()
-        gui.show_message("Cayo Perico", "Compound target set to: " .. selected.name)
-    end
-
-    ImGui.Text("Island Target:")
-    local nIslandI, clickedIsland = ImGui.Combo("##Island", islandI, targetNames, #targetNames)
-    if clickedIsland then
-        islandI = nIslandI
-        local selected = cayoSecondaryTargets[islandI + 1]
-        CayoTargetsSetter(
-            selected.amount.island.cash,
-            selected.amount.island.weed,
-            selected.amount.island.coke,
-            selected.amount.island.gold,
-            "I"
-        )
-        CayoRefreshLootValues()
-        gui.show_message("Cayo Perico", "Island target set to: " .. selected.name)
-    end
-
-    ImGui.Text("")
-    addPaintings, __ = ImGui.Checkbox("Paintings", addPaintings)
-
-    ImGui.Separator()
-
-    -- Difficulty
-    ImGui.Text("Difficulty:")
-    if ImGui.Button("Hard") then
-        stats.set_int(MPX() .. "H4_PROGRESS", 131055)
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Normal") then
-        stats.set_int(MPX() .. "H4_PROGRESS", 126823)
-    end
-
-    ImGui.Separator()
-
-    -- Approach
-    local approachNames = {}
-    for _, veh in ipairs(cayoApproachVehicles) do
-        table.insert(approachNames, veh.name)
-    end
-    ImGui.Text("Approach:")
-    local nIndex2, changed2 = ImGui.Combo("##CayoApproach", sApproach, approachNames, #approachNames)
-    if changed2 then
-        sApproach = nIndex2
-        local selected = cayoApproachVehicles[sApproach + 1]
-        stats.set_int(MPX() .. "H4_MISSIONS", selected.id)
-        gui.show_message("Cayo Perico", "Approach set to: " .. selected.name)
-    end
-
-    ImGui.Separator()
-
-    -- Weapons
-    local weaponNames = {}
-    for _, wep in ipairs(cayoWeapons) do
-        table.insert(weaponNames, wep.name)
-    end
-    ImGui.Text("Weapons:")
-    local nIndex3, changed3 = ImGui.Combo("##CayoWeapon", sWeapon, weaponNames, #weaponNames)
-    if changed3 then
-        sWeapon = nIndex3
-        local selected = cayoWeapons[sWeapon + 1]
-        stats.set_int(MPX() .. "H4CNF_WEAPONS", selected.id)
-        gui.show_message("Cayo Perico", "Weapon loadout set to: " .. selected.name)
-    end
-
-    ImGui.Separator()
-
-    -- Preps
-    ImGui.Text("Preps:")
-    if ImGui.Button("Complete Preps") then
-        CayoPaintingsToggler(addPaintings)
-        CayoCompletePreps()
-        locals.set_int(HIP, CPRSl, 2)
-        gui.show_message("Cayo Perico Heist", "Preps should've been completed")
-    end
-    ImGui.SameLine()
-    if ImGui.Button("Reset Preps") then
-        stats.set_int(MPX() .. "H4_PROGRESS", 0)
-        stats.set_int(MPX() .. "H4_MISSIONS", 0)
-        stats.set_int(MPX() .. "H4CNF_APPROACH", 0)
-        stats.set_int(MPX() .. "H4CNF_TARGET", -1)
-        stats.set_int(MPX() .. "H4CNF_BS_GEN", 0)
-        stats.set_int(MPX() .. "H4CNF_BS_ENTR", 0)
-        stats.set_int(MPX() .. "H4CNF_BS_ABIL", 0)
-        stats.set_int(MPX() .. "H4_PLAYTHROUGH_STATUS", 0)
-        locals.set_int(HIP, CPRSl, 2)
-        gui.show_message("Cayo Perico Heist", "Preps should've been reset")
-    end
-
-    ImGui.Separator()
-
+end)
+CayoHeistEditorMenu:Box("Cuts")
+CayoHeistEditorMenu:Custom(function()
     -- Crew Cuts
     ImGui.Text("Removes fencing fee and Pavel's cut")
     cayoCrewCuts, __ = ImGui.Checkbox("Remove Crew Cuts", cayoCrewCuts)
-    -- Note: script.register_looped for this should be handled separately
 
-    ImGui.Separator()
 
-    ImGui.Text("Cuts:")
     ImGui.Text("Transaction limit is 2.55mil.")
     cayocut1, __ = ImGui.InputInt("Player 1", cayocut1)
     cayocut2, __ = ImGui.InputInt("Player 2", cayocut2)
@@ -5352,207 +4697,196 @@ CayoHeistEditorMenu:add_imgui(function()
             end
         end
         if not cayoValid then
-            gui.show_error("Cayo Perico", "Cuts must be 0-100.")
+            Toast("Cayo Perico", "Cuts must be 0-100.")
         else
-            SN_ApplyCayoCutsCherax(cayocut1, cayocut2, cayocut3, cayocut4)
-            gui.show_message("Cayo Perico", "Cuts should've been applied")
+            SN_ApplyCayoCuts(cayocut1, cayocut2, cayocut3, cayocut4)
+            Toast("Cayo Perico", "Cuts should've been applied")
         end
     end
-
-    ImGui.Separator()
-
-    ImGui.Text("Presets:")
+end)
+CayoHeistEditorMenu:Box("Cut Presets")
+CayoHeistEditorMenu:Custom(function()
     if ImGui.Button("All - 0%##Cayo") then
         cayocut1, cayocut2, cayocut3, cayocut4 = 0, 0, 0, 0
-        SN_ApplyCayoCutsCherax(0, 0, 0, 0)
-        gui.show_message("Cayo Perico", "Cuts should've been applied")
+        SN_ApplyCayoCuts(0, 0, 0, 0)
+        Toast("Cayo Perico", "Cuts should've been applied")
     end
     ImGui.SameLine()
     if ImGui.Button("All - 25%##Cayo") then
         cayocut1, cayocut2, cayocut3, cayocut4 = 25, 25, 25, 25
-        SN_ApplyCayoCutsCherax(25, 25, 25, 25)
-        gui.show_message("Cayo Perico", "Cuts should've been applied")
+        SN_ApplyCayoCuts(25, 25, 25, 25)
+        Toast("Cayo Perico", "Cuts should've been applied")
     end
     if ImGui.Button("All - 85%##Cayo") then
         cayocut1, cayocut2, cayocut3, cayocut4 = 85, 85, 85, 85
-        SN_ApplyCayoCutsCherax(85, 85, 85, 85)
-        gui.show_message("Cayo Perico", "Cuts should've been applied")
+        SN_ApplyCayoCuts(85, 85, 85, 85)
+        Toast("Cayo Perico", "Cuts should've been applied")
     end
     ImGui.SameLine()
     if ImGui.Button("All - 100%##Cayo") then
         cayocut1, cayocut2, cayocut3, cayocut4 = 100, 100, 100, 100
-        SN_ApplyCayoCutsCherax(100, 100, 100, 100)
-        gui.show_message("Cayo Perico", "Cuts should've been applied")
+        SN_ApplyCayoCuts(100, 100, 100, 100)
+        Toast("Cayo Perico", "Cuts should've been applied")
     end
     if ImGui.Button("2.55mil Payout##Cayo") then
-        local maxCut = SN_CayoMaxCutCherax()
+        local maxCut = SN_CayoMaxCut()
         if maxCut then
             cayocut1, cayocut2, cayocut3, cayocut4 = maxCut, maxCut, maxCut, maxCut
             cayoCrewCuts = false
-            SN_ApplyCayoCutsCherax(maxCut, maxCut, maxCut, maxCut)
-            gui.show_message("Cayo Perico", "Cuts should've been applied (" .. maxCut .. "% each)")
+            SN_ApplyCayoCuts(maxCut, maxCut, maxCut, maxCut)
+            Toast("Cayo Perico", "Cuts should've been applied (" .. maxCut .. "% each)")
         else
-            gui.show_message("Cayo Perico", "Unknown primary target")
+            Toast("Cayo Perico", "Unknown primary target")
         end
     end
-
-    ImGui.Separator()
-
-    -- Reload Planning Screen
-    ImGui.Text("Reload Planning Screen")
-    if ImGui.Button("Reload Planning Screen") then
-        locals.set_int(HIP, CPRSl, 2)
-        gui.show_message("Cayo Perico Heist", "Screen should've been reloaded")
-    end
-
-    ImGui.Separator()
-
+end)
+CayoHeistEditorMenu:Box("Hacks")
+CayoHeistEditorMenu:Custom(function()
     -- Extras
-    ImGui.Text("Extras")
     if ImGui.Button("Bypass Drainage Cut") then
-        locals.set_int(FMC2020, CPSTCl, 6)
-        gui.show_message("Cayo Perico Heist", "Cutting process should've been skipped")
+        ScriptLocal.SetInt(J(FMC2020), CPSTCl, 6)
+        Toast("Cayo Perico Heist", "Cutting process should've been skipped")
     end
-    ImGui.SameLine()
     if ImGui.Button("Bypass Fingerprint Scanner") then
-        locals.set_int(FMC2020, CPFHl, 5)
-        gui.show_message("Cayo Perico Heist", "Hacking process should've been skipped")
+        ScriptLocal.SetInt(J(FMC2020), CPFHl, 5)
+        Toast("Cayo Perico Heist", "Hacking process should've been skipped")
     end
-    ImGui.SameLine()
     if ImGui.Button("Bypass Plasma Cutter") then
-        locals.set_float(FMC2020, CPPCCl, 100.0)
-        gui.show_message("Cayo Perico Heist", "Cutting process should've been skipped")
+        ScriptLocal.SetFloat(J(FMC2020), CPPCCl, 100.0)
+        Toast("Cayo Perico Heist", "Cutting process should've been skipped")
     end
-
-    ImGui.Separator()
-
-    ImGui.Text("Team Lives:")
+end)
+CayoHeistEditorMenu:Box("Team Lives")
+CayoHeistEditorMenu:Custom(function()
     livesValueCayo, __ = ImGui.InputInt("##CayolivesValue", livesValueCayo)
     if ImGui.Button("Set Lives") then
         if livesValueCayo < 1 then
-            gui.show_error("Cayo Perico Heist", "Lives must be at least 1.")
+            Toast("Cayo Perico Heist", "Lives must be at least 1.")
         elseif livesValueCayo > 999999 then
-            gui.show_error("Cayo Perico Heist", "Lives value too high.")
-        elseif not script.is_active(FMC2020) then
-            gui.show_error("Cayo Perico Heist", "Mission script not active.")
+            Toast("Cayo Perico Heist", "Lives value too high.")
+        elseif not IsScriptRunning(FMC2020) then
+            Toast("Cayo Perico Heist", "Mission script not active.")
         else
-            locals.set_int(FMC2020, CPLIVESL, livesValueCayo)
-            gui.show_message("Cayo Perico Heist", "Team Lives value set to " .. livesValueCayo)
+            ScriptLocal.SetInt(J(FMC2020), CPLIVESL, livesValueCayo)
+            Toast("Cayo Perico Heist", "Team Lives value set to " .. livesValueCayo)
         end
     end
     if ImGui.IsItemHovered() then
         ImGui.SetTooltip("Default is 3. Infinite team lives for the heist (set to 999999 for unlimited)")
     end
-
+end)
+CayoHeistEditorMenu:Box("Mission")
+CayoHeistEditorMenu:Custom(function()
     if ImGui.Button("Remove All CCTVs") then
-        for _, ent in pairs(entities.get_all_objects_as_handles()) do
-            for __, cam in pairs(CamList) do
-                if ENTITY.GET_ENTITY_MODEL(ent) == cam then
-                    ENTITY.SET_ENTITY_AS_MISSION_ENTITY(ent, true, true)
-                    ENTITY.DELETE_ENTITY(ent)
+        Script.QueueJob(function()
+            for _, ent in ipairs(GetAllObjects()) do
+                local model = Natives.InvokeInt(N.GET_ENTITY_MODEL, ent) & 0xFFFFFFFF
+                for _, cam in ipairs(CamList) do
+                    if model == cam then
+                        Natives.InvokeVoid(N.SET_ENTITY_AS_MISSION_ENTITY, ent, true, true)
+                        DeleteEntity(ent)
+                        break
+                    end
                 end
             end
-        end
+        end)
     end
 
     CamList = {
-        joaat("prop_cctv_cam_01a"),
-        joaat("prop_cctv_cam_01b"),
-        joaat("prop_cctv_cam_02a"),
-        joaat("prop_cctv_cam_03a"),
-        joaat("prop_cctv_cam_04a"),
-        joaat("prop_cctv_cam_04c"),
-        joaat("prop_cctv_cam_05a"),
-        joaat("prop_cctv_cam_06a"),
-        joaat("prop_cctv_cam_07a"),
-        joaat("prop_cs_cctv"),
-        joaat("p_cctv_s"),
-        joaat("hei_prop_bank_cctv_01"),
-        joaat("hei_prop_bank_cctv_02"),
-        joaat("ch_prop_ch_cctv_cam_02a"),
-        joaat("xm_prop_x17_server_farm_cctv_01"),
+        J("prop_cctv_cam_01a"),
+        J("prop_cctv_cam_01b"),
+        J("prop_cctv_cam_02a"),
+        J("prop_cctv_cam_03a"),
+        J("prop_cctv_cam_04a"),
+        J("prop_cctv_cam_04c"),
+        J("prop_cctv_cam_05a"),
+        J("prop_cctv_cam_06a"),
+        J("prop_cctv_cam_07a"),
+        J("prop_cs_cctv"),
+        J("p_cctv_s"),
+        J("hei_prop_bank_cctv_01"),
+        J("hei_prop_bank_cctv_02"),
+        J("ch_prop_ch_cctv_cam_02a"),
+        J("xm_prop_x17_server_farm_cctv_01"),
     }
 
     if ImGui.Button("Instant Finish") then
         -- FIX Bug#2: old code never took script host, so finish desynced and only host got payout.
         -- Must be HOST (or force host) and cuts must already be set by HOST.
-        script.run_in_fiber(function(cayoFin)
-            if not script.is_active(FMC2020) then
-                gui.show_message("Cayo Perico Heist", "Start the finale first!")
+        Script.QueueJob(function()
+            if not IsScriptRunning(FMC2020) then
+                Toast("Cayo Perico Heist", "Start the finale first!")
                 return
             end
-            network.force_script_host(FMC2020)
-            cayoFin:sleep(1000)
-            locals.set_int(FMC2020, CPXf1, 9)
-            locals.set_int(FMC2020, CPXf2, 50)
-            gui.show_message("Cayo Perico Heist", "Finished (HOST). If crew got 0, HOST forgot to set cuts to 100/100 before finale!")
+            GTA.ForceScriptHost(J(FMC2020))
+            Script.Yield(1000)
+            ScriptLocal.SetInt(J(FMC2020), CPXf1, 9)
+            ScriptLocal.SetInt(J(FMC2020), CPXf2, 50)
+            Toast("Cayo Perico Heist", "Finished (HOST). If crew got 0, HOST forgot to set cuts to 100/100 before finale!")
         end)
     end
-    ImGui.SameLine()
     if ImGui.Button("Skip Cutscene") then
         SkipCutscene()
     end
-    ImGui.SameLine()
     if ImGui.Button("Force Ready") then
-        script.run_in_fiber(function(script)
-            network.force_script_host(FMC2020)
-            script:sleep(1000)
+        Script.QueueJob(function()
+            GTA.ForceScriptHost(J(FMC2020))
+            Script.Yield(1000)
             for i = 0, 3 do
-                globals.set_int(CYFRg + 1 + (i * 27) + 7 + 1 + i, 1)
+                ScriptGlobal.SetInt(CYFRg + 1 + (i * 27) + 7 + 1 + i, 1)
             end
-            gui.show_message("Cayo Perico Heist", "Everyone should've been forced ready")
+            Toast("Cayo Perico Heist", "Everyone should've been forced ready")
         end)
     end
 
     if ImGui.Button("Kill Cooldown (after solo)") then
-        stats.set_int(MPX() .. "H4_TARGET_POSIX", 1659643454)
-        stats.set_int(MPX() .. "H4_COOLDOWN", 0)
-        stats.set_int(MPX() .. "H4_COOLDOWN_HARD", 0)
-        gui.show_message("Cayo Perico Heist", "Cooldown should've been killed")
+        Stats.SetInt(J(MPX() .. "H4_TARGET_POSIX"), 1659643454)
+        Stats.SetInt(J(MPX() .. "H4_COOLDOWN"), 0)
+        Stats.SetInt(J(MPX() .. "H4_COOLDOWN_HARD"), 0)
+        Toast("Cayo Perico Heist", "Cooldown should've been killed")
     end
-    ImGui.SameLine()
     if ImGui.Button("Kill Cooldown (after team)") then
-        stats.set_int(MPX() .. "H4_TARGET_POSIX", 1659429119)
-        stats.set_int(MPX() .. "H4_COOLDOWN", 0)
-        stats.set_int(MPX() .. "H4_COOLDOWN_HARD", 0)
-        gui.show_message("Cayo Perico Heist", "Cooldown should've been killed")
+        Stats.SetInt(J(MPX() .. "H4_TARGET_POSIX"), 1659429119)
+        Stats.SetInt(J(MPX() .. "H4_COOLDOWN"), 0)
+        Stats.SetInt(J(MPX() .. "H4_COOLDOWN_HARD"), 0)
+        Toast("Cayo Perico Heist", "Cooldown should've been killed")
     end
 
     ImGui.Text("After clicking the Kill Cooldown button, go offline and then come back online")
-
+end)
+CayoHeistEditorMenu:Box("Misc")
+CayoHeistEditorMenu:Custom(function()
     CayoDrawMisc()
-
+end)
+CayoHeistEditorMenu:Box("Teleports", 2) -- right column, under Mission
+CayoHeistEditorMenu:Custom(function()
     -- Teleports
-    ImGui.Text("Teleports")
 
     for i, location in ipairs(cayoLocations) do
         if ImGui.Button(location.name) then
-            script.run_in_fiber(function()
-                local ped = PLAYER.PLAYER_PED_ID()
-                PED.SET_PED_COORDS_KEEP_VEHICLE(ped, location.x, location.y, location.z)
+            Script.QueueJob(function()
+                local ped = Natives.InvokeInt(N.PLAYER_PED_ID)
+                Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, ped, location.x, location.y, location.z)
             end)
         end
 
-        if i < 6 or i == 7 then
-            ImGui.SameLine()
-        end
     end
 end)
 
 -- Handle the Crew Cuts loop separately
-script.register_looped("SN_CayoPerico_Crew", function(script)
-    script:yield()
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
         return
     end
     for _, cut in ipairs(CayoPericoCrewCut) do
         if cayoCrewCuts then
-            tunables.set_float(cut.tunable, 0)
+            SetTunableFloat(cut.tunable, 0)
         else
-            tunables.set_float(cut.tunable, cut.default)
+            SetTunableFloat(cut.tunable, cut.default)
         end
     end
 end)
@@ -5560,76 +4894,73 @@ end)
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Casino Heist 
 
-local CasinoHeistEditorMenu = HeistsDataEditorMenu:add_tab("Casino Heist")
+local CasinoHeistEditorMenu = HeistsDataEditorMenu:Tab("Casino Heist")
+CasinoHeistEditorMenu:Box("Information", 0) -- full width, above everything else
+CasinoHeistEditorMenu:Text("Max Payout 3.619.000$")
+CasinoHeistEditorMenu:Text("Min Cooldown ≈ 15-20 minutes")
 
-CasinoHeistEditorMenu:add_text("One Click Setups:")
-CasinoHeistEditorMenu:add_button("Casino Silent&Sneaky (Diamonds)", function()
-    stats.set_int(MPX() .. "H3OPT_APPROACH", 1)
-    stats.set_int(MPX() .. "H3_LAST_APPROACH", 3)
-    stats.set_int(MPX() .. "H3OPT_TARGET", 3)
-    stats.set_int(MPX() .. "H3OPT_BITSET1", 127)
-    stats.set_int(MPX() .. "H3OPT_DISRUPTSHIP", 3)
-    stats.set_int(MPX() .. "H3OPT_KEYLEVELS", 2)
-    stats.set_int(MPX() .. "H3_BOARD_DIALOGUE2", -1)
-    stats.set_int(MPX() .. "H3OPT_CREWWEAP", 4)
-    stats.set_int(MPX() .. "H3OPT_CREWDRIVER", 5)
-    stats.set_int(MPX() .. "H3OPT_CREWHACKER", 5)
-    stats.set_int(MPX() .. "H3OPT_VEHS", 2)
-    stats.set_int(MPX() .. "H3OPT_WEAPS", 1)
-    stats.set_int(MPX() .. "H3OPT_BITSET0", 262399)
-    stats.set_int(MPX() .. "H3OPT_MASKS", 2)
+CasinoHeistEditorMenu:Box("One Click Setups")
+CasinoHeistEditorMenu:Button("Casino Silent&Sneaky (Diamonds)", function()
+    Stats.SetInt(J(MPX() .. "H3OPT_APPROACH"), 1)
+    Stats.SetInt(J(MPX() .. "H3_LAST_APPROACH"), 3)
+    Stats.SetInt(J(MPX() .. "H3OPT_TARGET"), 3)
+    Stats.SetInt(J(MPX() .. "H3OPT_BITSET1"), 127)
+    Stats.SetInt(J(MPX() .. "H3OPT_DISRUPTSHIP"), 3)
+    Stats.SetInt(J(MPX() .. "H3OPT_KEYLEVELS"), 2)
+    Stats.SetInt(J(MPX() .. "H3_BOARD_DIALOGUE2"), -1)
+    Stats.SetInt(J(MPX() .. "H3OPT_CREWWEAP"), 4)
+    Stats.SetInt(J(MPX() .. "H3OPT_CREWDRIVER"), 5)
+    Stats.SetInt(J(MPX() .. "H3OPT_CREWHACKER"), 5)
+    Stats.SetInt(J(MPX() .. "H3OPT_VEHS"), 2)
+    Stats.SetInt(J(MPX() .. "H3OPT_WEAPS"), 1)
+    Stats.SetInt(J(MPX() .. "H3OPT_BITSET0"), 262399)
+    Stats.SetInt(J(MPX() .. "H3OPT_MASKS"), 2)
 end)
-CasinoHeistEditorMenu:add_button("Casino The Big Con (Diamonds)", function()
-    stats.set_int(MPX() .. "H3OPT_APPROACH", 2)
-    stats.set_int(MPX() .. "H3_LAST_APPROACH", 3)
-    stats.set_int(MPX() .. "H3OPT_TARGET", 3)
-    stats.set_int(MPX() .. "H3OPT_BITSET1", 799)
-    stats.set_int(MPX() .. "H3OPT_DISRUPTSHIP", 3)
-    stats.set_int(MPX() .. "H3OPT_KEYLEVELS", 2)
-    stats.set_int(MPX() .. "H3_BOARD_DIALOGUE2", -1)
-    stats.set_int(MPX() .. "H3OPT_CREWWEAP", 4)
-    stats.set_int(MPX() .. "H3OPT_CREWDRIVER", 5)
-    stats.set_int(MPX() .. "H3OPT_CREWHACKER", 5)
-    stats.set_int(MPX() .. "H3OPT_VEHS", 2)
-    stats.set_int(MPX() .. "H3OPT_WEAPS", 0)
-    stats.set_int(MPX() .. "H3OPT_BITSET0", 913623)
-    stats.set_int(MPX() .. "H3OPT_MASKS", 2)
+CasinoHeistEditorMenu:Button("Casino The Big Con (Diamonds)", function()
+    Stats.SetInt(J(MPX() .. "H3OPT_APPROACH"), 2)
+    Stats.SetInt(J(MPX() .. "H3_LAST_APPROACH"), 3)
+    Stats.SetInt(J(MPX() .. "H3OPT_TARGET"), 3)
+    Stats.SetInt(J(MPX() .. "H3OPT_BITSET1"), 799)
+    Stats.SetInt(J(MPX() .. "H3OPT_DISRUPTSHIP"), 3)
+    Stats.SetInt(J(MPX() .. "H3OPT_KEYLEVELS"), 2)
+    Stats.SetInt(J(MPX() .. "H3_BOARD_DIALOGUE2"), -1)
+    Stats.SetInt(J(MPX() .. "H3OPT_CREWWEAP"), 4)
+    Stats.SetInt(J(MPX() .. "H3OPT_CREWDRIVER"), 5)
+    Stats.SetInt(J(MPX() .. "H3OPT_CREWHACKER"), 5)
+    Stats.SetInt(J(MPX() .. "H3OPT_VEHS"), 2)
+    Stats.SetInt(J(MPX() .. "H3OPT_WEAPS"), 0)
+    Stats.SetInt(J(MPX() .. "H3OPT_BITSET0"), 913623)
+    Stats.SetInt(J(MPX() .. "H3OPT_MASKS"), 2)
 end)
-CasinoHeistEditorMenu:add_button("Casino Aggressive (Diamonds)", function()
-    stats.set_int(MPX() .. "H3OPT_APPROACH", 3)
-    stats.set_int(MPX() .. "H3_LAST_APPROACH", 1)
-    stats.set_int(MPX() .. "H3OPT_TARGET", 3)
-    stats.set_int(MPX() .. "H3OPT_BITSET1", 799)
-    stats.set_int(MPX() .. "H3OPT_DISRUPTSHIP", 3)
-    stats.set_int(MPX() .. "H3OPT_KEYLEVELS", 2)
-    stats.set_int(MPX() .. "H3_BOARD_DIALOGUE2", -1)
-    stats.set_int(MPX() .. "H3OPT_CREWWEAP", 4)
-    stats.set_int(MPX() .. "H3OPT_CREWDRIVER", 5)
-    stats.set_int(MPX() .. "H3OPT_CREWHACKER", 5)
-    stats.set_int(MPX() .. "H3OPT_VEHS", 2)
-    stats.set_int(MPX() .. "H3OPT_WEAPS", 1)
-    stats.set_int(MPX() .. "H3OPT_BITSET0", 1835223)
-    stats.set_int(MPX() .. "H3OPT_MASKS", 2)
+CasinoHeistEditorMenu:Button("Casino Aggressive (Diamonds)", function()
+    Stats.SetInt(J(MPX() .. "H3OPT_APPROACH"), 3)
+    Stats.SetInt(J(MPX() .. "H3_LAST_APPROACH"), 1)
+    Stats.SetInt(J(MPX() .. "H3OPT_TARGET"), 3)
+    Stats.SetInt(J(MPX() .. "H3OPT_BITSET1"), 799)
+    Stats.SetInt(J(MPX() .. "H3OPT_DISRUPTSHIP"), 3)
+    Stats.SetInt(J(MPX() .. "H3OPT_KEYLEVELS"), 2)
+    Stats.SetInt(J(MPX() .. "H3_BOARD_DIALOGUE2"), -1)
+    Stats.SetInt(J(MPX() .. "H3OPT_CREWWEAP"), 4)
+    Stats.SetInt(J(MPX() .. "H3OPT_CREWDRIVER"), 5)
+    Stats.SetInt(J(MPX() .. "H3OPT_CREWHACKER"), 5)
+    Stats.SetInt(J(MPX() .. "H3OPT_VEHS"), 2)
+    Stats.SetInt(J(MPX() .. "H3OPT_WEAPS"), 1)
+    Stats.SetInt(J(MPX() .. "H3OPT_BITSET0"), 1835223)
+    Stats.SetInt(J(MPX() .. "H3OPT_MASKS"), 2)
 end)
 
-CasinoHeistEditorMenu:add_separator()
 
 -- Lives Editor for Casino Heist
-CasinoHeistEditorMenu:add_text("Team Lives:")
 local livesValueCasino = 3
-CasinoHeistEditorMenu:add_imgui(function()
-    if isOffline() then
-        return
-    end
-
-    ImGui.Text("Team Lives:")
+CasinoHeistEditorMenu:Box("Team Lives")
+CasinoHeistEditorMenu:Custom(function()
     livesValueCasino, __ = ImGui.InputInt("##CasinoLives", livesValueCasino)
     if ImGui.Button("Set Lives##Casino") then
         if livesValueCasino < 1 then
-            gui.show_message("Casino Heist", "Lives must be at least 1!")
+            Toast("Casino Heist", "Lives must be at least 1!")
         else
-            locals.set_int(FMC, DCLIVESL, livesValueCasino)
-            gui.show_message("Casino Heist", "Team lives set to " .. livesValueCasino)
+            ScriptLocal.SetInt(J(FMC), DCLIVESL, livesValueCasino)
+            Toast("Casino Heist", "Team lives set to " .. livesValueCasino)
         end
     end
     if ImGui.IsItemHovered() then
@@ -5637,7 +4968,6 @@ CasinoHeistEditorMenu:add_imgui(function()
     end
 end)
 
-CasinoHeistEditorMenu:add_separator()
 
 DiamondCasinoDifficulties = {
     { name = "Normal", index = 0 },
@@ -5844,13 +5174,8 @@ for _, item in ipairs(diamondTargetList) do
 end
 local diamondTargetIndex = 0
 
-CasinoHeistEditorMenu:add_imgui(function()
-    if isOffline() then
-        return
-    end
-
-    ImGui.Text("Preps:")
-    ImGui.Separator()
+CasinoHeistEditorMenu:Box("Preps")
+CasinoHeistEditorMenu:Custom(function()
 
     -- Difficulty
     local nIndex, changed =
@@ -5939,7 +5264,6 @@ CasinoHeistEditorMenu:add_imgui(function()
         diamondTargetIndex = nIndex
     end
 
-    ImGui.Separator()
 
     -- Apply & Complete Preps button (inline so it appears right after the dropdowns)
     if ImGui.Button("Apply & Complete Preps") then
@@ -5954,56 +5278,55 @@ CasinoHeistEditorMenu:add_imgui(function()
         local keycards = diamondKeycardsList[diamondKeycardsIndex + 1].index
         local target = diamondTargetList[diamondTargetIndex + 1].index
         local difficulty = DiamondCasinoDifficulties[diamondDifficultyIndex + 1].index
-        stats.set_int(MPX() .. "H3OPT_POI", -1)
-        stats.set_int(MPX() .. "H3OPT_ACCESSPOINTS", -1)
-        stats.set_int(MPX() .. "CAS_HEIST_NOTS", -1)
-        stats.set_int(MPX() .. "CAS_HEIST_FLOW", -1)
-        stats.set_int(MPX() .. "H3_LAST_APPROACH", 0)
-        stats.set_int(MPX() .. "H3_HARD_APPROACH", (difficulty == 0) and 0 or approach)
-        stats.set_int(MPX() .. "H3OPT_APPROACH", approach)
-        stats.set_int(MPX() .. "H3OPT_CREWWEAP", gunman)
-        stats.set_int(MPX() .. "H3OPT_WEAPS", loadout)
-        stats.set_int(MPX() .. "H3OPT_CREWDRIVER", driver)
-        stats.set_int(MPX() .. "H3OPT_VEHS", vehicles)
-        stats.set_int(MPX() .. "H3OPT_CREWHACKER", hacker)
-        stats.set_int(MPX() .. "H3OPT_TARGET", target)
-        stats.set_int(MPX() .. "H3OPT_MASKS", masks)
-        stats.set_int(MPX() .. "H3OPT_DISRUPTSHIP", guards)
-        stats.set_int(MPX() .. "H3OPT_KEYLEVELS", keycards)
-        stats.set_int(MPX() .. "H3OPT_BODYARMORLVL", -1)
-        stats.set_int(MPX() .. "H3OPT_BITSET0", -1)
-        stats.set_int(MPX() .. "H3OPT_BITSET1", -1)
-        stats.set_int(MPX() .. "H3OPT_COMPLETEDPOSIX", -1)
-        locals.set_int(CASPL, DCRBl, 2)
-        gui.show_message("Diamond Casino Heist", "Preps should've been completed")
+        Stats.SetInt(J(MPX() .. "H3OPT_POI"), -1)
+        Stats.SetInt(J(MPX() .. "H3OPT_ACCESSPOINTS"), -1)
+        Stats.SetInt(J(MPX() .. "CAS_HEIST_NOTS"), -1)
+        Stats.SetInt(J(MPX() .. "CAS_HEIST_FLOW"), -1)
+        Stats.SetInt(J(MPX() .. "H3_LAST_APPROACH"), 0)
+        Stats.SetInt(J(MPX() .. "H3_HARD_APPROACH"), (difficulty == 0) and 0 or approach)
+        Stats.SetInt(J(MPX() .. "H3OPT_APPROACH"), approach)
+        Stats.SetInt(J(MPX() .. "H3OPT_CREWWEAP"), gunman)
+        Stats.SetInt(J(MPX() .. "H3OPT_WEAPS"), loadout)
+        Stats.SetInt(J(MPX() .. "H3OPT_CREWDRIVER"), driver)
+        Stats.SetInt(J(MPX() .. "H3OPT_VEHS"), vehicles)
+        Stats.SetInt(J(MPX() .. "H3OPT_CREWHACKER"), hacker)
+        Stats.SetInt(J(MPX() .. "H3OPT_TARGET"), target)
+        Stats.SetInt(J(MPX() .. "H3OPT_MASKS"), masks)
+        Stats.SetInt(J(MPX() .. "H3OPT_DISRUPTSHIP"), guards)
+        Stats.SetInt(J(MPX() .. "H3OPT_KEYLEVELS"), keycards)
+        Stats.SetInt(J(MPX() .. "H3OPT_BODYARMORLVL"), -1)
+        Stats.SetInt(J(MPX() .. "H3OPT_BITSET0"), -1)
+        Stats.SetInt(J(MPX() .. "H3OPT_BITSET1"), -1)
+        Stats.SetInt(J(MPX() .. "H3OPT_COMPLETEDPOSIX"), -1)
+        ScriptLocal.SetInt(J(CASPL), DCRBl, 2)
+        Toast("Diamond Casino Heist", "Preps should've been completed")
     end
 
-    ImGui.SameLine()
 
     if ImGui.Button("Reset Preps##diamond") then
-        stats.set_int(MPX() .. "H3_LAST_APPROACH", 0)
-        stats.set_int(MPX() .. "H3_HARD_APPROACH", 0)
-        stats.set_int(MPX() .. "H3_APPROACH", 0)
-        stats.set_int(MPX() .. "H3OPT_APPROACH", 0)
-        stats.set_int(MPX() .. "H3OPT_CREWWEAP", 0)
-        stats.set_int(MPX() .. "H3OPT_WEAPS", 0)
-        stats.set_int(MPX() .. "H3OPT_CREWDRIVER", 0)
-        stats.set_int(MPX() .. "H3OPT_VEHS", 0)
-        stats.set_int(MPX() .. "H3OPT_CREWHACKER", 0)
-        stats.set_int(MPX() .. "H3OPT_MASKS", 0)
-        stats.set_int(MPX() .. "H3OPT_TARGET", 0)
-        stats.set_int(MPX() .. "H3OPT_DISRUPTSHIP", 0)
-        stats.set_int(MPX() .. "H3OPT_BODYARMORLVL", 1)
-        stats.set_int(MPX() .. "H3OPT_KEYLEVELS", 0)
-        stats.set_int(MPX() .. "H3OPT_BITSET0", 0)
-        stats.set_int(MPX() .. "H3OPT_BITSET1", 0)
-        stats.set_int(MPX() .. "H3_BOARD_DIALOGUE0", 0)
-        stats.set_int(MPX() .. "H3_BOARD_DIALOGUE1", 0)
-        stats.set_int(MPX() .. "H3_BOARD_DIALOGUE2", 0)
-        stats.set_int("MPPLY_H3_COOLDOWN", 0)
-        stats.set_int(MPX() .. "H3OPT_COMPLETEDPOSIX", 0)
-        locals.set_int(CASPL, DCRBl, 2)
-        gui.show_message("Diamond Casino Heist", "Preps should've been reset")
+        Stats.SetInt(J(MPX() .. "H3_LAST_APPROACH"), 0)
+        Stats.SetInt(J(MPX() .. "H3_HARD_APPROACH"), 0)
+        Stats.SetInt(J(MPX() .. "H3_APPROACH"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_APPROACH"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_CREWWEAP"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_WEAPS"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_CREWDRIVER"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_VEHS"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_CREWHACKER"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_MASKS"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_TARGET"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_DISRUPTSHIP"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_BODYARMORLVL"), 1)
+        Stats.SetInt(J(MPX() .. "H3OPT_KEYLEVELS"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_BITSET0"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_BITSET1"), 0)
+        Stats.SetInt(J(MPX() .. "H3_BOARD_DIALOGUE0"), 0)
+        Stats.SetInt(J(MPX() .. "H3_BOARD_DIALOGUE1"), 0)
+        Stats.SetInt(J(MPX() .. "H3_BOARD_DIALOGUE2"), 0)
+        Stats.SetInt(J("MPPLY_H3_COOLDOWN"), 0)
+        Stats.SetInt(J(MPX() .. "H3OPT_COMPLETEDPOSIX"), 0)
+        ScriptLocal.SetInt(J(CASPL), DCRBl, 2)
+        Toast("Diamond Casino Heist", "Preps should've been reset")
     end
 end)
 
@@ -6014,9 +5337,9 @@ local casinoPc3_val = 0
 local casinoPc4_val = 0
 
 function SetDiamondMaxPayout()
-    local approach = stats.get_int(MPX() .. "H3OPT_APPROACH")
-    local hardApproach = stats.get_int(MPX() .. "H3_HARD_APPROACH")
-    local target = stats.get_int(MPX() .. "H3OPT_TARGET")
+    local approach = GetStatInt(MPX() .. "H3OPT_APPROACH")
+    local hardApproach = GetStatInt(MPX() .. "H3_HARD_APPROACH")
+    local target = GetStatInt(MPX() .. "H3OPT_TARGET")
     local difficulty = (approach == hardApproach) and 2 or 1
     local payouts = {
         [0] = { 2115000, 2326500 },
@@ -6029,9 +5352,9 @@ function SetDiamondMaxPayout()
     end
     local payout = payouts[target][difficulty] + 819000
     local maxPayout = 3619000
-    local gunman = stats.get_int(MPX() .. "H3OPT_CREWWEAP")
-    local driver = stats.get_int(MPX() .. "H3OPT_CREWDRIVER")
-    local hacker = stats.get_int(MPX() .. "H3OPT_CREWHACKER")
+    local gunman = GetStatInt(MPX() .. "H3OPT_CREWWEAP")
+    local driver = GetStatInt(MPX() .. "H3OPT_CREWDRIVER")
+    local hacker = GetStatInt(MPX() .. "H3OPT_CREWHACKER")
     local buyerFee = 0.1
     local lesterCut = 0.05
     local gunmanCuts = { [1] = 0.05, [3] = 0.07, [5] = 0.08, [2] = 0.09, [4] = 0.1 }
@@ -6060,13 +5383,8 @@ for _, preset in ipairs(casinoCutPresets) do
 end
 local sPresetIndex = 0
 
-CasinoHeistEditorMenu:add_imgui(function()
-    if isOffline() then
-        return
-    end
-
-    ImGui.Separator()
-    ImGui.Text("Cuts:")
+CasinoHeistEditorMenu:Box("Cuts")
+CasinoHeistEditorMenu:Custom(function()
 
     -- Remove Crew Cuts checkbox
     casinoCrewCuts_enabled, __ = ImGui.Checkbox("Remove Crew Cuts", casinoCrewCuts_enabled)
@@ -6107,172 +5425,182 @@ CasinoHeistEditorMenu:add_imgui(function()
             end
         end
         if not cutsValid then
-            gui.show_error("Casino Heist", "Cuts must be 0-100.")
+            Toast("Casino Heist", "Cuts must be 0-100.")
         else
-            globals.set_int(DCCg1, casinoPc1_val)
-            globals.set_int(DCCg2, casinoPc2_val)
-            globals.set_int(DCCg3, casinoPc3_val)
-            globals.set_int(DCCg4, casinoPc4_val)
-            gui.show_message("Casino Heist", "Cuts should've been applied")
+            ScriptGlobal.SetInt(DCCg1, casinoPc1_val)
+            ScriptGlobal.SetInt(DCCg2, casinoPc2_val)
+            ScriptGlobal.SetInt(DCCg3, casinoPc3_val)
+            ScriptGlobal.SetInt(DCCg4, casinoPc4_val)
+            Toast("Casino Heist", "Cuts should've been applied")
         end
     end
 end)
 
-script.register_looped("DiamondCasino_Crew", function(script)
-    script:yield()
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
-        script:sleep(500)
+        Script.Yield(500)
         return
     end
     for _, cut in ipairs(DiamondCasinoCrewCut) do
         if casinoCrewCuts_enabled then
-            tunables.set_int(cut.tunable, 0)
+            SetTunableInt(cut.tunable, 0)
         else
-            tunables.set_int(cut.tunable, cut.default)
+            SetTunableInt(cut.tunable, cut.default)
         end
     end
-    script:sleep(500)
+    Script.Yield(500)
 end)
 
-CasinoHeistEditorMenu:add_imgui(function()
-    if isOffline() then
-        return
-    end
-    ImGui.Separator()
+CasinoHeistEditorMenu:Box("Misc")
+CasinoHeistEditorMenu:Custom(function()
     if ImGui.Button("Reload boards") then
-        locals.set_int(CASPL, DCRBl, 2)
+        ScriptLocal.SetInt(J(CASPL), DCRBl, 2)
     end
-    ImGui.SameLine()
     if ImGui.Button("Solo Launch") then
-        if locals.get_int(FMMCL, HGGs1) ~= nil and locals.get_int(FMMCL, HGGs1) ~= 0 then
-            if locals.get_int(FMMCL, HGGs1) > 1 then
-                locals.set_int(FMMCL, HGGs2, 1)
-                globals.set_int(794989 + 4 + 1 + (locals.get_int(FMMCL, HGGs1) * 95) + 75, 1)
+        if ScriptLocal.GetInt(J(FMMCL), HGGs1) ~= nil and ScriptLocal.GetInt(J(FMMCL), HGGs1) ~= 0 then
+            if ScriptLocal.GetInt(J(FMMCL), HGGs1) > 1 then
+                ScriptLocal.SetInt(J(FMMCL), HGGs2, 1)
+                ScriptGlobal.SetInt(794989 + 4 + 1 + (ScriptLocal.GetInt(J(FMMCL), HGGs1) * 95) + 75, 1)
             end
-            globals.set_int(HGLs1, 1)
-            globals.set_int(HGLs2, 1)
-            globals.set_int(HGLs3, 1)
-            globals.set_int(HGLs4, 0)
+            ScriptGlobal.SetInt(HGLs1, 1)
+            ScriptGlobal.SetInt(HGLs2, 1)
+            ScriptGlobal.SetInt(HGLs3, 1)
+            ScriptGlobal.SetInt(HGLs4, 0)
         end
     end
-    ImGui.SameLine()
     if ImGui.Button("Kill Cooldown") then
-        stats.set_int(MPX() .. "H3_COMPLETEDPOSIX", -1)
-        stats.set_int("MPPLY_H3_COOLDOWN", -1)
-        gui.show_message("Diamond Casino Heist", "Cooldown should've been killed")
+        Stats.SetInt(J(MPX() .. "H3_COMPLETEDPOSIX"), -1)
+        Stats.SetInt(J("MPPLY_H3_COOLDOWN"), -1)
+        Toast("Diamond Casino Heist", "Cooldown should've been killed")
     end
 end)
 
-local CasinoHeistExtra = CasinoHeistEditorMenu:add_tab("Extras")
-CasinoHeistExtra:add_text("Hacks")
-local casinoAutograbber = CasinoHeistExtra:add_checkbox("Autograbber")
-script.register_looped("casinoAg", function(script)
-    script:yield()
+local CasinoHeistExtra = CasinoHeistEditorMenu:Tab("Extras")
+CasinoHeistExtra:Box("Hacks")
+local casinoAutograbber = CasinoHeistExtra:Toggle("Autograbber")
+Script.RegisterLooped(function()
+    Script.Yield()
     if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
+        not IsSessionStarted()
+        or IsScriptRunning("maintransition")
     then
-        script:sleep(500)
+        Script.Yield(500)
         return
     end
-    if casinoAutograbber:is_enabled() then
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat(FMC)) == 0 then
-            script:sleep(500)
+    if casinoAutograbber:IsToggled() then
+        if not IsScriptRunning(FMC) then
+            Script.Yield(500)
             return
         end
-        if locals.get_int(FMC, DCAg) == 3 then
-            locals.set_int(FMC, DCAg, 4)
-        elseif locals.get_int(FMC, DCAg) == 4 then
-            locals.set_float(FMC, DCAs, 2.0)
+        if ScriptLocal.GetInt(J(FMC), DCAg) == 3 then
+            ScriptLocal.SetInt(J(FMC), DCAg, 4)
+        elseif ScriptLocal.GetInt(J(FMC), DCAg) == 4 then
+            ScriptLocal.SetFloat(J(FMC), DCAs, 2.0)
         else
-            script:sleep(500)
+            Script.Yield(500)
         end
     else
-        script:sleep(500)
+        Script.Yield(500)
     end
 end)
-CasinoHeistExtra:add_button("Bypass Fingerprint Hack", function()
-    if not script.is_active(FMC) then
-        gui.show_error("Casino Heist", "Mission script not active.")
+CasinoHeistExtra:Button("Bypass Fingerprint Hack", function()
+    if not IsScriptRunning(FMC) then
+        Toast("Casino Heist", "Mission script not active.")
         return
     end
-    if locals.get_int(FMC, DCFHl) == 4 then
-        locals.set_int(FMC, DCFHl, 5)
+    if ScriptLocal.GetInt(J(FMC), DCFHl) == 4 then
+        ScriptLocal.SetInt(J(FMC), DCFHl, 5)
     else
-        gui.show_error("Casino Heist", "Fingerprint hack not ready.")
+        Toast("Casino Heist", "Fingerprint hack not ready.")
     end
 end)
-CasinoHeistExtra:add_sameline()
-CasinoHeistExtra:add_button("Bypass Keypad Hack", function()
-    if not script.is_active(FMC) then
-        gui.show_error("Casino Heist", "Mission script not active.")
+CasinoHeistExtra:Button("Bypass Keypad Hack", function()
+    if not IsScriptRunning(FMC) then
+        Toast("Casino Heist", "Mission script not active.")
         return
     end
-    if locals.get_int(FMC, DCKHl) ~= 4 then
-        locals.set_int(FMC, DCKHl, 5)
+    if ScriptLocal.GetInt(J(FMC), DCKHl) ~= 4 then
+        ScriptLocal.SetInt(J(FMC), DCKHl, 5)
     else
-        gui.show_error("Casino Heist", "Keypad hack not ready.")
+        Toast("Casino Heist", "Keypad hack not ready.")
     end
 end)
-CasinoHeistExtra:add_sameline()
-CasinoHeistExtra:add_button("Bypass Drill Vault Door", function()
-    locals.set_int(FMC, DCDVDl1, locals.get_int(FMC, DCDVDl2))
+CasinoHeistExtra:Button("Bypass Drill Vault Door", function()
+    ScriptLocal.SetInt(J(FMC), DCDVDl1, ScriptLocal.GetInt(J(FMC), DCDVDl2))
 end)
-CasinoHeistExtra:add_button("Instant Finish", function()
+CasinoHeistExtra:Box("Mission")
+CasinoHeistExtra:Button("Instant Finish", function()
     -- FIX: old code never took script host and only set half the locals per approach -> desync/fail.
-    script.run_in_fiber(function(casFin)
-        if not script.is_active(FMC) then
-            gui.show_message("Instant Heist Passed", "Start the finale first!")
+    Script.QueueJob(function()
+        if not IsScriptRunning(FMC) then
+            Toast("Instant Heist Passed", "Start the finale first!")
             return
         end
-        network.force_script_host(FMC)
-        casFin:sleep(1000)
-        locals.set_int(FMC, DCXf1, 12)
-        locals.set_int(FMC, DCXf2, 5)
-        locals.set_int(FMC, DCXf3, 80)
-        locals.set_int(FMC, DCXf4, 10000000)
-        locals.set_int(FMC, DCXf5, 99999)
-        locals.set_int(FMC, DCXf6, 99999)
-        gui.show_message("Instant Heist Passed", "Activated (HOST). Wait for vault to stream!")
+        GTA.ForceScriptHost(J(FMC))
+        Script.Yield(1000)
+        ScriptLocal.SetInt(J(FMC), DCXf1, 12)
+        ScriptLocal.SetInt(J(FMC), DCXf2, 5)
+        ScriptLocal.SetInt(J(FMC), DCXf3, 80)
+        ScriptLocal.SetInt(J(FMC), DCXf4, 10000000)
+        ScriptLocal.SetInt(J(FMC), DCXf5, 99999)
+        ScriptLocal.SetInt(J(FMC), DCXf6, 99999)
+        Toast("Instant Heist Passed", "Activated (HOST). Wait for vault to stream!")
     end)
 end)
-CasinoHeistExtra:add_sameline()
-CasinoHeistExtra:add_button("Force Ready", function()
-    script.run_in_fiber(function(script)
-        network.force_script_host(FMC)
-        script:sleep(1000)
+CasinoHeistExtra:Button("Force Ready", function()
+    Script.QueueJob(function()
+        GTA.ForceScriptHost(J(FMC))
+        Script.Yield(1000)
         for i = 0, 3 do
-            globals.set_int(CFRg + 1 + (i * 68) + 7 + 1 + i, 1)
+            ScriptGlobal.SetInt(CFRg + 1 + (i * 68) + 7 + 1 + i, 1)
         end
     end)
 end)
-CasinoHeistExtra:add_sameline()
-CasinoHeistExtra:add_button("Skip Cutscene", SkipCutscene)
+CasinoHeistExtra:Button("Skip Cutscene", SkipCutscene)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Doomsday --
 
 function DoomsdayActSetter(progress, status)
-    stats.set_int(MPX() .. "GANGOPS_FLOW_MISSION_PROG", progress)
-    stats.set_int(MPX() .. "GANGOPS_HEIST_STATUS", status)
-    stats.set_int(MPX() .. "GANGOPS_FLOW_NOTIFICATIONS", 1557)
+    Stats.SetInt(J(MPX() .. "GANGOPS_FLOW_MISSION_PROG"), progress)
+    Stats.SetInt(J(MPX() .. "GANGOPS_HEIST_STATUS"), status)
+    Stats.SetInt(J(MPX() .. "GANGOPS_FLOW_NOTIFICATIONS"), 1557)
 end
 
-local SN_Doomsday = HeistsDataEditorMenu:add_tab("Doomsday")
-SN_Doomsday:add_text("Doomsday Acts")
-SN_Doomsday:add_button("Data Breaches", function()
-    DoomsdayActSetter(503, 229383)
+local SN_Doomsday = HeistsDataEditorMenu:Tab("Doomsday")
+SN_Doomsday:Box("Information", 0) -- full width, above everything else
+SN_Doomsday:Text("Max Payout 2.550.000$")
+SN_Doomsday:Text("Min Cooldown ≈ 15-20 minutes")
+-- progress = GANGOPS_FLOW_MISSION_PROG, status = GANGOPS_HEIST_STATUS
+local doomsdayActs = {
+    { name = "Data Breaches", progress = 503, status = 229383 },
+    { name = "Bogdan Problem", progress = 240, status = 229378 },
+    { name = "Doomsday Scenario", progress = 16368, status = 229380 },
+}
+local doomsdayActNames = {}
+for i, act in ipairs(doomsdayActs) do
+    doomsdayActNames[i] = act.name
+end
+local doomsdayActIndex = 0
+
+SN_Doomsday:Box("Preps")
+SN_Doomsday:Custom(function()
+    ImGui.Text("Act:")
+    doomsdayActIndex = ImGui.Combo("##DoomsdayAct", doomsdayActIndex, doomsdayActNames, #doomsdayActNames)
 end)
-SN_Doomsday:add_sameline()
-SN_Doomsday:add_button("Bogdan Problem", function()
-    DoomsdayActSetter(240, 229378)
+SN_Doomsday:Button("Complete Preps", function()
+    local act = doomsdayActs[doomsdayActIndex + 1]
+    DoomsdayActSetter(act.progress, act.status)
+    Stats.SetInt(J(MPX() .. "GANGOPS_FM_MISSION_PROG"), -1)
+    Toast("Doomsday Heist", act.name .. ": preps should've been completed")
 end)
-SN_Doomsday:add_sameline()
-SN_Doomsday:add_button("Doomsday Scenario", function()
-    DoomsdayActSetter(16368, 229380)
+SN_Doomsday:Button("Reset Preps", function()
+    DoomsdayActSetter(240, 0)
+    Toast("Doomsday Heist", "Preps should've been reset")
 end)
 
 local DoomsdayHeists = {
@@ -6282,8 +5610,8 @@ local DoomsdayHeists = {
 }
 
 function SetDoomsdayMaxPayout()
-    local heist = stats.get_int(MPX() .. "GANGOPS_FLOW_MISSION_PROG")
-    local difficulty = globals.get_int(AHDg)
+    local heist = GetStatInt(MPX() .. "GANGOPS_FLOW_MISSION_PROG")
+    local difficulty = ScriptGlobal.GetInt(AHDg)
     if difficulty == 0 then
         difficulty = 1
     end
@@ -6300,12 +5628,11 @@ function SetDoomsdayMaxPayout()
     return cut
 end
 
-SN_Doomsday:add_separator()
-SN_Doomsday:add_text("Custom Cuts:")
-local dmsdyCut1 = SN_Doomsday:add_input_int("Cut 1")
-local dmsdyCut2 = SN_Doomsday:add_input_int("Cut 2")
-local dmsdyCut3 = SN_Doomsday:add_input_int("Cut 3")
-local dmsdyCut4 = SN_Doomsday:add_input_int("Cut 4")
+SN_Doomsday:Box("Cuts")
+local dmsdyCut1 = SN_Doomsday:InputInt("Cut 1")
+local dmsdyCut2 = SN_Doomsday:InputInt("Cut 2")
+local dmsdyCut3 = SN_Doomsday:InputInt("Cut 3")
+local dmsdyCut4 = SN_Doomsday:InputInt("Cut 4")
 
 local Presets = {
     { name = "All - 0%", index = 0 },
@@ -6320,7 +5647,7 @@ for _, preset in ipairs(Presets) do
 end
 local sPresetIndex = 0
 
-SN_Doomsday:add_imgui(function()
+SN_Doomsday:Custom(function()
     ImGui.Text("Presets:")
     ImGui.SetNextItemWidth(170)
     local nIndex, changed = ImGui.Combo("##DoomsdayPreset", sPresetIndex, presetNames, #presetNames)
@@ -6329,48 +5656,42 @@ SN_Doomsday:add_imgui(function()
         local selected = Presets[sPresetIndex + 1]
         local cutValue = selected.index
         if cutValue == -1 then
-            cutValue = SetDoomsdayMaxPayout()
+            cutValue = SetDoomsdayMaxPayout() or 0
         end
         if dmsdyCut1 then
-            dmsdyCut1:set_value(cutValue)
+            dmsdyCut1:SetIntValue(cutValue)
         end
         if dmsdyCut2 then
-            dmsdyCut2:set_value(cutValue)
+            dmsdyCut2:SetIntValue(cutValue)
         end
         if dmsdyCut3 then
-            dmsdyCut3:set_value(cutValue)
+            dmsdyCut3:SetIntValue(cutValue)
         end
         if dmsdyCut4 then
-            dmsdyCut4:set_value(cutValue)
+            dmsdyCut4:SetIntValue(cutValue)
         end
     end
 end)
 
-SN_Doomsday:add_button("Apply Cuts", function()
-    globals.set_int(DCg1, dmsdyCut1:get_value())
-    globals.set_int(DCg2, dmsdyCut2:get_value())
-    globals.set_int(DCg3, dmsdyCut3:get_value())
-    globals.set_int(DCg4, dmsdyCut4:get_value())
-    gui.show_message("Doomsday Heist", "Cuts should've been applied")
+SN_Doomsday:Button("Apply Cuts", function()
+    ScriptGlobal.SetInt(DCg1, dmsdyCut1:GetIntValue())
+    ScriptGlobal.SetInt(DCg2, dmsdyCut2:GetIntValue())
+    ScriptGlobal.SetInt(DCg3, dmsdyCut3:GetIntValue())
+    ScriptGlobal.SetInt(DCg4, dmsdyCut4:GetIntValue())
+    Toast("Doomsday Heist", "Cuts should've been applied")
 end)
 
 -- Lives Editor for Doomsday Heist
-SN_Doomsday:add_separator()
-SN_Doomsday:add_text("Team Lives:")
 local livesValueDoomsday = 3
-SN_Doomsday:add_imgui(function()
-    if isOffline() then
-        return
-    end
-
-    ImGui.Text("Team Lives:")
+SN_Doomsday:Box("Team Lives")
+SN_Doomsday:Custom(function()
     livesValueDoomsday, __ = ImGui.InputInt("##DoomsdayLives", livesValueDoomsday)
     if ImGui.Button("Set Lives##Doomsday") then
         if livesValueDoomsday < 1 then
-            gui.show_message("Doomsday Heist", "Lives must be at least 1!")
+            Toast("Doomsday Heist", "Lives must be at least 1!")
         else
-            locals.set_int(FMC, DDLIVESL, livesValueDoomsday)
-            gui.show_message("Doomsday Heist", "Team lives set to " .. livesValueDoomsday)
+            ScriptLocal.SetInt(J(FMC), DDLIVESL, livesValueDoomsday)
+            Toast("Doomsday Heist", "Team lives set to " .. livesValueDoomsday)
         end
     end
     if ImGui.IsItemHovered() then
@@ -6378,88 +5699,75 @@ SN_Doomsday:add_imgui(function()
     end
 end)
 
-SN_Doomsday:add_separator()
-SN_Doomsday:add_text("Preps")
-SN_Doomsday:add_button("Reset Preps", function()
-    DoomsdayActSetter(240, 0)
-    gui.show_message("Doomsday Heist", "Preps should've been reset")
+SN_Doomsday:Box("Extras")
+SN_Doomsday:Button("By Act III Pass hack", function()
+    ScriptLocal.SetInt(J(FMC), DDSHl, 3)
 end)
-SN_Doomsday:add_sameline()
-SN_Doomsday:add_button("Complete Preps", function()
-    stats.set_int(MPX() .. "GANGOPS_FM_MISSION_PROG", -1)
-end)
-SN_Doomsday:add_separator()
-SN_Doomsday:add_text("Extras")
-SN_Doomsday:add_button("By Act III Pass hack", function()
-    locals.set_int(FMC, DDSHl, 3)
-end)
-SN_Doomsday:add_sameline()
-SN_Doomsday:add_button("Solo Launch", function()
-    if locals.get_int(FMMCL, HGGs1) ~= nil then
-        if locals.get_int(FMMCL, HGGs1) ~= 0 then
-            if locals.get_int(FMMCL, HGGs1) > 1 then
-                locals.set_int(FMMCL, HGGs2, 1)
-                globals.set_int(794989 + 4 + 1 + (locals.get_int(FMMCL, HGGs1) * 95) + 75, 1)
+SN_Doomsday:Button("Solo Launch", function()
+    if ScriptLocal.GetInt(J(FMMCL), HGGs1) ~= nil then
+        if ScriptLocal.GetInt(J(FMMCL), HGGs1) ~= 0 then
+            if ScriptLocal.GetInt(J(FMMCL), HGGs1) > 1 then
+                ScriptLocal.SetInt(J(FMMCL), HGGs2, 1)
+                ScriptGlobal.SetInt(794989 + 4 + 1 + (ScriptLocal.GetInt(J(FMMCL), HGGs1) * 95) + 75, 1)
             end
-            globals.set_int(HGLs1, 1)
-            globals.set_int(HGLs2, 1)
-            globals.set_int(HGLs3, 1)
-            globals.set_int(HGLs4, 0)
+            ScriptGlobal.SetInt(HGLs1, 1)
+            ScriptGlobal.SetInt(HGLs2, 1)
+            ScriptGlobal.SetInt(HGLs3, 1)
+            ScriptGlobal.SetInt(HGLs4, 0)
         end
     end
 end)
-SN_Doomsday:add_text("Instant Finish: use Act I/II for Data Breaches/Bogdan, Act III for Doomsday Scenario. HOST only. Wait for area to load or you will fail/crash.")
-SN_Doomsday:add_button("Instant Finish (Act I/II)", function()
+SN_Doomsday:Box("Instant Finish")
+SN_Doomsday:Text("Instant Finish: use Act I/II for Data Breaches/Bogdan, Act III for Doomsday Scenario. HOST only. Wait for area to load or you will fail/crash.")
+SN_Doomsday:Button("Instant Finish (Act I/II)", function()
     -- FIX Bug#1: old single button mixed Act I/II (80) + Act III (150) values and never
     -- took script host -> teleport to unloaded interior -> crash/fail.
     -- Act I/II needs 12 + 80 + 99999 + 99999 (no 150, no passed-flag).
-    script.run_in_fiber(function(dd)
-        if not script.is_active(FMC) then
-            gui.show_message("Doomsday Heist", "Start the finale first!")
+    Script.QueueJob(function()
+        if not IsScriptRunning(FMC) then
+            Toast("Doomsday Heist", "Start the finale first!")
             return
         end
-        network.force_script_host(FMC)
-        dd:sleep(1000)
-        locals.set_int(FMC, DDIF1, 12)
-        locals.set_int(FMC, DDIF5, 80)
-        locals.set_int(FMC, DDIF3, 99999)
-        locals.set_int(FMC, DDIF4, 99999)
-        gui.show_message("Doomsday Heist", "Act I/II should be finished. Wait for load, do NOT skip too fast.")
+        GTA.ForceScriptHost(J(FMC))
+        Script.Yield(1000)
+        ScriptLocal.SetInt(J(FMC), DDIF1, 12)
+        ScriptLocal.SetInt(J(FMC), DDIF5, 80)
+        ScriptLocal.SetInt(J(FMC), DDIF3, 99999)
+        ScriptLocal.SetInt(J(FMC), DDIF4, 99999)
+        Toast("Doomsday Heist", "Act I/II should be finished. Wait for load, do NOT skip too fast.")
     end)
 end)
-SN_Doomsday:add_sameline()
-SN_Doomsday:add_button("Instant Finish (Act III Scenario)", function()
+SN_Doomsday:Button("Instant Finish (Act III Scenario)", function()
     -- FIX Bug#1 Act III: needs 12 + 150 + 5 (passed flag DDIF6) + 99999 + 99999 (no 80).
     -- Missing DDIF6=5 was the main cause of End-of-World teleport/fail.
-    script.run_in_fiber(function(dd3)
-        if not script.is_active(FMC) then
-            gui.show_message("Doomsday Heist", "Start the Doomsday Scenario finale first!")
+    Script.QueueJob(function()
+        if not IsScriptRunning(FMC) then
+            Toast("Doomsday Heist", "Start the Doomsday Scenario finale first!")
             return
         end
-        network.force_script_host(FMC)
-        dd3:sleep(1000)
-        locals.set_int(FMC, DDIF1, 12)
-        locals.set_int(FMC, DDIF2, 150)
-        locals.set_int(FMC, DDIF6, 5)
-        locals.set_int(FMC, DDIF3, 99999)
-        locals.set_int(FMC, DDIF4, 99999)
-        gui.show_message("Doomsday Heist", "Act III should be finished. Wait 10-20s for Mount Chiliad bunker to stream!")
+        GTA.ForceScriptHost(J(FMC))
+        Script.Yield(1000)
+        ScriptLocal.SetInt(J(FMC), DDIF1, 12)
+        ScriptLocal.SetInt(J(FMC), DDIF2, 150)
+        ScriptLocal.SetInt(J(FMC), DDIF6, 5)
+        ScriptLocal.SetInt(J(FMC), DDIF3, 99999)
+        ScriptLocal.SetInt(J(FMC), DDIF4, 99999)
+        Toast("Doomsday Heist", "Act III should be finished. Wait 10-20s for Mount Chiliad bunker to stream!")
     end)
 end)
-SN_Doomsday:add_text("If teleport fails/loads forever: use Skip Checkpoint instead, or walk to yellow marker before pressing.")
-SN_Doomsday:add_sameline()
-SN_Doomsday:add_button("Force Ready", function()
-    script.run_in_fiber(function(script)
-        network.force_script_host(FMC)
-        script:sleep(1000)
+SN_Doomsday:Text("If teleport fails/loads forever: use Skip Checkpoint instead, or walk to yellow marker before pressing.")
+SN_Doomsday:Box("Extras")
+SN_Doomsday:Button("Force Ready", function()
+    Script.QueueJob(function()
+        GTA.ForceScriptHost(J(FMC))
+        Script.Yield(1000)
         for i = 0, 3 do
-            globals.set_int(DDFRg + 1 + (i * 321) + 43 + 11 + 1 + i, 1)
+            ScriptGlobal.SetInt(DDFRg + 1 + (i * 321) + 43 + 11 + 1 + i, 1)
         end
-        gui.show_message("Doomsday Heist", "Everyone should've been forced ready")
+        Toast("Doomsday Heist", "Everyone should've been forced ready")
     end)
 end)
-SN_Doomsday:add_sameline()
-SN_Doomsday:add_button("Skip Cutscene", SkipCutscene)
+SN_Doomsday:Button("Skip Cutscene", SkipCutscene)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Salvage Yard 
@@ -6648,8 +5956,12 @@ for _, keep in ipairs(SalvageYard.keeps) do
     table.insert(keep_names, keep.name)
 end
 local ssIndex = 0
-local SN_Salvage = HeistsDataEditorMenu:add_tab("Salvage Yard")
-SN_Salvage:add_imgui(function()
+local SN_Salvage = HeistsDataEditorMenu:Tab("Salvage Yard")
+SN_Salvage:Box("Information", 0) -- full width, above everything else
+SN_Salvage:Text("Max Payout 2.100.000$")
+SN_Salvage:Text("Min Cooldown ≈ 15-20 minutes")
+SN_Salvage:Box("Robbery Slots")
+SN_Salvage:Custom(function()
     local nIndex, changed = ImGui.Combo("##Slot", ssIndex, slot_names, #slot_names)
     if changed then
         ssIndex = nIndex
@@ -6661,7 +5973,7 @@ SN_Salvage:add_imgui(function()
     local nIndex, changed = ImGui.Combo("Robbery", slot.robbery_index, robbery_names, #robbery_names)
     if changed then
         slot.robbery_index = nIndex
-        gui.show_message(
+        Toast(
             "Salvage Yard",
             "Selected " .. slot_names[ssIndex + 1] .. " robbery: " .. robbery_names[slot.robbery_index + 1]
         )
@@ -6670,7 +5982,7 @@ SN_Salvage:add_imgui(function()
     nIndex, changed = ImGui.Combo("Vehicle", slot.vehicle_index, vehicle_names, #vehicle_names)
     if changed then
         slot.vehicle_index = nIndex
-        gui.show_message(
+        Toast(
             "Salvage Yard",
             "Selected " .. slot_names[ssIndex + 1] .. " vehicle: " .. vehicle_names[slot.vehicle_index + 1]
         )
@@ -6679,7 +5991,7 @@ SN_Salvage:add_imgui(function()
     nIndex, changed = ImGui.Combo("Modification", slot.mod_index, mod_names, #mod_names)
     if changed then
         slot.mod_index = nIndex
-        gui.show_message(
+        Toast(
             "Salvage Yard",
             "Selected " .. slot_names[ssIndex + 1] .. " modification: " .. mod_names[slot.mod_index + 1]
         )
@@ -6688,7 +6000,7 @@ SN_Salvage:add_imgui(function()
     nIndex, changed = ImGui.Combo("Status", slot.keep_index, keep_names, #keep_names)
     if changed then
         slot.keep_index = nIndex
-        gui.show_message(
+        Toast(
             "Salvage Yard",
             "Selected " .. slot_names[ssIndex + 1] .. " status: " .. keep_names[slot.keep_index + 1]
         )
@@ -6699,85 +6011,76 @@ SN_Salvage:add_imgui(function()
         local vehicle = SalvageYard.vehicles[slot.vehicle_index + 1].index
         local mod = SalvageYard.modifications[slot.mod_index + 1].index
         local keep = SalvageYard.keeps[slot.keep_index + 1].index
-        tunables.set_int(SalvageYard.tunables["robbery_slot" .. currSlot .. "_type"], robbery)
-        tunables.set_int(SalvageYard.tunables["vehicle_slot" .. currSlot .. "_type"], vehicle + mod * 100)
-        tunables.set_int(SalvageYard.tunables["vehicle_slot" .. currSlot .. "_cankeep"], keep)
-        locals.set_int("vehrob_planning", SYRl1, 2)
-        gui.show_message("Salvage Yard", slot_names[ssIndex + 1] .. " changes should've been applied")
+        SetTunableInt(SalvageYard.tunables["robbery_slot" .. currSlot .. "_type"], robbery)
+        SetTunableInt(SalvageYard.tunables["vehicle_slot" .. currSlot .. "_type"], vehicle + mod * 100)
+        SetTunableInt(SalvageYard.tunables["vehicle_slot" .. currSlot .. "_cankeep"], keep)
+        ScriptLocal.SetInt(J("vehrob_planning"), SYRl1, 2)
+        Toast("Salvage Yard", slot_names[ssIndex + 1] .. " changes should've been applied")
     end
-    ImGui.SameLine()
     if ImGui.Button("Make Available") then
-        stats.set_int(MPX() .. "SALV23_VEHROB_STATUS" .. (currSlot - 1), 0)
-        locals.set_int("vehrob_planning", SYRl1, 2)
-        gui.show_message("Salvage Yard", slot_names[ssIndex + 1] .. " should've been made Available")
+        Stats.SetInt(J(MPX() .. "SALV23_VEHROB_STATUS" .. (currSlot - 1)), 0)
+        ScriptLocal.SetInt(J("vehrob_planning"), SYRl1, 2)
+        Toast("Salvage Yard", slot_names[ssIndex + 1] .. " should've been made Available")
     end
 end)
 
-SN_Salvage:add_text("")
-SN_Salvage:add_text("Preps")
-SN_Salvage:add_separator()
-SN_Salvage:add_button("Complete Preps", function()
-    stats.set_int(MPX() .. "SALV23_GEN_BS", -1)
-    stats.set_int(MPX() .. "SALV23_SCOPE_BS", -1)
-    stats.set_int(MPX() .. "SALV23_FM_PROG", -1)
-    stats.set_int(MPX() .. "SALV23_INST_PROG", -1)
-    locals.set_int("vehrob_planning", SYRl1, 2)
-    gui.show_message("Salvage Yard", "Preps should've been completed")
+SN_Salvage:Box("Preps")
+SN_Salvage:Button("Complete Preps", function()
+    Stats.SetInt(J(MPX() .. "SALV23_GEN_BS"), -1)
+    Stats.SetInt(J(MPX() .. "SALV23_SCOPE_BS"), -1)
+    Stats.SetInt(J(MPX() .. "SALV23_FM_PROG"), -1)
+    Stats.SetInt(J(MPX() .. "SALV23_INST_PROG"), -1)
+    ScriptLocal.SetInt(J("vehrob_planning"), SYRl1, 2)
+    Toast("Salvage Yard", "Preps should've been completed")
 end)
-SN_Salvage:add_sameline()
-SN_Salvage:add_button("Reset Preps", function()
-    stats.set_int(MPX() .. "SALV23_GEN_BS", 0)
-    stats.set_int(MPX() .. "SALV23_SCOPE_BS", 0)
-    stats.set_int(MPX() .. "SALV23_FM_PROG", 0)
-    stats.set_int(MPX() .. "SALV23_INST_PROG", 0)
-    locals.set_int("vehrob_planning", SYRl1, 2)
-    gui.show_message("Salvage Yard", "Preps should've been reset")
+SN_Salvage:Button("Reset Preps", function()
+    Stats.SetInt(J(MPX() .. "SALV23_GEN_BS"), 0)
+    Stats.SetInt(J(MPX() .. "SALV23_SCOPE_BS"), 0)
+    Stats.SetInt(J(MPX() .. "SALV23_FM_PROG"), 0)
+    Stats.SetInt(J(MPX() .. "SALV23_INST_PROG"), 0)
+    ScriptLocal.SetInt(J("vehrob_planning"), SYRl1, 2)
+    Toast("Salvage Yard", "Preps should've been reset")
 end)
-SN_Salvage:add_button("Reload Screen", function()
-    locals.set_int("vehrob_planning", SYRl1, 2)
-    gui.show_message("Salvage Yard", "Screen should've been reloaded")
+SN_Salvage:Button("Reload Screen", function()
+    ScriptLocal.SetInt(J("vehrob_planning"), SYRl1, 2)
+    Toast("Salvage Yard", "Screen should've been reloaded")
 end)
-SN_Salvage:add_button("Skip Weekly Cooldown", function()
-    tunables.set_int(SalvageYard.tunables.cooldown_weekly, stats.get_int(MPX() .. "SALV23_WEEK_SYNC") + 1)
-    locals.set_int("vehrob_planning", SYRl1, 2)
-    gui.show_message("Salvage Yard", "Cooldown should've been skipped")
+SN_Salvage:Button("Skip Weekly Cooldown", function()
+    SetTunableInt(SalvageYard.tunables.cooldown_weekly, GetStatInt(MPX() .. "SALV23_WEEK_SYNC") + 1)
+    ScriptLocal.SetInt(J("vehrob_planning"), SYRl1, 2)
+    Toast("Salvage Yard", "Cooldown should've been skipped")
 end)
 
-SN_Salvage:add_separator()
-SN_Salvage:add_text("Payout")
-local sell_value_slot1 = SN_Salvage:add_input_int("Sell Value Slot 1")
-sell_value_slot1:set_value(0)
-local sell_value_slot2 = SN_Salvage:add_input_int("Sell Value Slot 2")
-sell_value_slot2:set_value(0)
-local sell_value_slot3 = SN_Salvage:add_input_int("Sell Value Slot 3")
-sell_value_slot3:set_value(0)
-SN_Salvage:add_button("Apply Sell Values", function()
-    tunables.set_int(SalvageYard.tunables.vehicle_slot1_value, sell_value_slot1:get_value())
-    tunables.set_int(SalvageYard.tunables.vehicle_slot2_value, sell_value_slot2:get_value())
-    tunables.set_int(SalvageYard.tunables.vehicle_slot3_value, sell_value_slot3:get_value())
-    locals.set_int("vehrob_planning", SYRl1, 2)
-    gui.show_message("Salvage Yard", "Sell values should've been applied")
+SN_Salvage:Box("Payout")
+local sell_value_slot1 = SN_Salvage:InputInt("Sell Value Slot 1")
+sell_value_slot1:SetIntValue(0)
+local sell_value_slot2 = SN_Salvage:InputInt("Sell Value Slot 2")
+sell_value_slot2:SetIntValue(0)
+local sell_value_slot3 = SN_Salvage:InputInt("Sell Value Slot 3")
+sell_value_slot3:SetIntValue(0)
+SN_Salvage:Button("Apply Sell Values", function()
+    SetTunableInt(SalvageYard.tunables.vehicle_slot1_value, sell_value_slot1:GetIntValue())
+    SetTunableInt(SalvageYard.tunables.vehicle_slot2_value, sell_value_slot2:GetIntValue())
+    SetTunableInt(SalvageYard.tunables.vehicle_slot3_value, sell_value_slot3:GetIntValue())
+    ScriptLocal.SetInt(J("vehrob_planning"), SYRl1, 2)
+    Toast("Salvage Yard", "Sell values should've been applied")
 end)
 
-SN_Salvage:add_text("")
-SN_Salvage:add_text("Misc")
-SN_Salvage:add_separator()
-SN_Salvage:add_button("Instant Finish", function()
+SN_Salvage:Box("Misc")
+SN_Salvage:Button("Instant Finish", function()
     for _, mission in ipairs(SalvageYard.salvage_missions) do
-        local value = locals.get_int(mission.script, mission.step1)
-        locals.set_int(mission.script, mission.step1, value | (1 << 11))
-        locals.set_int(mission.script, mission.step2, 2)
+        local value = ScriptLocal.GetInt(J(mission.script), mission.step1)
+        ScriptLocal.SetInt(J(mission.script), mission.step1, value | (1 << 11))
+        ScriptLocal.SetInt(J(mission.script), mission.step2, 2)
     end
-    gui.show_message("Salvage Yard", "Heist should've been finished")
+    Toast("Salvage Yard", "Heist should've been finished")
 end)
-SN_Salvage:add_sameline()
-SN_Salvage:add_button("Instant Sell", function()
-    local player_ped = PLAYER.PLAYER_PED_ID()
-    PED.SET_PED_COORDS_KEEP_VEHICLE(player_ped, 1169.0, -2976.0, 6.0)
-    gui.show_message("Salvage Yard", "Sell mission should've been finished")
+SN_Salvage:Button("Instant Sell", function()
+    local player_ped = Natives.InvokeInt(N.PLAYER_PED_ID)
+    Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, player_ped, 1169.0, -2976.0, 6.0)
+    Toast("Salvage Yard", "Sell mission should've been finished")
 end)
-SN_Salvage:add_sameline()
-SN_Salvage:add_button("Skip Cutscene", SkipCutscene)
+SN_Salvage:Button("Skip Cutscene", SkipCutscene)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Kortz Center Heist
@@ -6801,8 +6104,11 @@ glassCaseTypes = {
 -- Create menu tab
 end)
 
-__uml_block("KortzCenterHeistMenu = HeistsDataEditorMenu:add_tab(Kortz Ce", function()
-KortzCenterHeistMenu = HeistsDataEditorMenu:add_tab("Kortz")
+Section("Kortz", function()
+KortzCenterHeistMenu = HeistsDataEditorMenu:Tab("Kortz")
+KortzCenterHeistMenu:Box("Information", 0) -- full width, above everything else
+KortzCenterHeistMenu:Text("Max Payout 2.117.500$")
+KortzCenterHeistMenu:Text("Min Cooldown ≈ 15-20 minutes")
 
 -- State
 k26_heist_target = 0
@@ -6855,47 +6161,47 @@ end
 
 -- Helper functions
 function isKortzHeistActive()
-    return SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat(FMCV3)) > 0
+    return IsScriptRunning(FMCV3)
 end
 
 function getCurrentBagSize()
-    return globals.get_int(KCBGL)
+    return ScriptGlobal.GetInt(KCBGL)
 end
 
 function getCurrentLives()
-    return locals.get_int(FMCV3, KCLIVESL)
+    return ScriptLocal.GetInt(J(FMCV3), KCLIVESL)
 end
 
 -- Set payout to Global_262145.f_37405 + (index + 1)
 function setPayout(index, value)
-    globals.set_int(KCPAYOUT_BASE + index + 1, value)
+    ScriptGlobal.SetInt(KCPAYOUT_BASE + index + 1, value)
 end
 
 function EnableSoloSecondaryTargets()
     local target_indices = { 0, 1, 5, 6, 7, 20, 21 }
     for _, i in ipairs(target_indices) do
         local base = KCSECONDARY_BASE + (i * 333)
-        globals.set_int(base + 68, 0)
-        globals.set_int(base + 143, 0)
+        ScriptGlobal.SetInt(base + 68, 0)
+        ScriptGlobal.SetInt(base + 143, 0)
     end
-    gui.show_message("Kortz Center", "Solo secondary targets enabled")
+    Toast("Kortz Center", "Solo secondary targets enabled")
 end
 
 function SetKortzTarget(target_index)
-    stats.set_int(MPX() .. "K26_HEIST_TARGET", target_index)
-    locals.set_int(KORTZPL, KCBRL, 2)
-    gui.show_message("Kortz Center Heist", "Target set to: " .. targetShortNames[target_index + 1])
+    Stats.SetInt(J(MPX() .. "K26_HEIST_TARGET"), target_index)
+    ScriptLocal.SetInt(J(KORTZPL), KCBRL, 2)
+    Toast("Kortz Center Heist", "Target set to: " .. targetShortNames[target_index + 1])
 end
 
 function KortzReloadBoard()
-    locals.set_int(KORTZPL, KCBRL, 2)
-    gui.show_message("Kortz Center Heist", "Planning board reloaded")
+    ScriptLocal.SetInt(J(KORTZPL), KCBRL, 2)
+    Toast("Kortz Center Heist", "Planning board reloaded")
 end
 
 function KortzSkipCooldown()
-    globals.set_int(KCCDG, 0)
-    globals.set_int(KCCD2G, 0)
-    gui.show_message("Kortz Center Heist", "Cooldowns reset to 0")
+    ScriptGlobal.SetInt(KCCDG, 0)
+    ScriptGlobal.SetInt(KCCD2G, 0)
+    Toast("Kortz Center Heist", "Cooldowns reset to 0")
 end
 
 -- Smooth rainbow fade info helper
@@ -6909,18 +6215,18 @@ end
 
 -- Toggle dropdown helper
 function ToggleBitDropdown(label, stat_name, bit, tooltip)
-    local current = stats.get_int(MPX() .. stat_name)
+    local current = GetStatInt(MPX() .. stat_name)
     local is_set = (current & bit) ~= 0
     local options = { "Not Done", "Done" }
     local idx = is_set and 1 or 0
     local new_idx, changed = ImGui.Combo(label, idx, options, 2)
     if changed then
         if new_idx == 1 then
-            stats.set_int(MPX() .. stat_name, current | bit)
-            gui.show_message("Kortz Center Heist", label .. " completed")
+            Stats.SetInt(J(MPX() .. stat_name), current | bit)
+            Toast("Kortz Center Heist", label .. " completed")
         else
-            stats.set_int(MPX() .. stat_name, current & ~bit)
-            gui.show_message("Kortz Center Heist", label .. " undone")
+            Stats.SetInt(J(MPX() .. stat_name), current & ~bit)
+            Toast("Kortz Center Heist", label .. " undone")
         end
     end
     if ImGui.IsItemHovered() then
@@ -6932,170 +6238,170 @@ end
 local function KortzSkipDataCrack()
     if isKortzHeistActive() then
         for b = 0, 7 do
-            locals.set_int(FMCV3, KCDCL + 1 + (b * 4), 1)
+            ScriptLocal.SetInt(J(FMCV3), KCDCL + 1 + (b * 4), 1)
         end
-        locals.set_int(FMCV3, KCDCL, 1)
-        gui.show_message("Kortz Center Cracker", "Data crack bypassed")
+        ScriptLocal.SetInt(J(FMCV3), KCDCL, 1)
+        Toast("Kortz Center Cracker", "Data crack bypassed")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function KortzSkipFingerprint()
     if isKortzHeistActive() then
-        locals.set_int(FMCV3, KCFHL, 5)
-        gui.show_message("Kortz Center Cracker", "Fingerprint scanner bypassed")
+        ScriptLocal.SetInt(J(FMCV3), KCFHL, 5)
+        Toast("Kortz Center Cracker", "Fingerprint scanner bypassed")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function KortzSkipVaultDoor()
     if isKortzHeistActive() then
-        locals.set_int(FMCV3, KCVLL, 5)
-        gui.show_message("Kortz Center Cracker", "Vault door bypassed")
+        ScriptLocal.SetInt(J(FMCV3), KCVLL, 5)
+        Toast("Kortz Center Cracker", "Vault door bypassed")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function KortzAutoAccessCode()
     if isKortzHeistActive() then
-        locals.set_int(FMCV3, KCAC_BASE + (0 * 2), 0)
-        locals.set_int(FMCV3, KCAC_BASE + (1 * 2), 0)
-        locals.set_int(FMCV3, KCAC_BASE + (2 * 2), 0)
-        PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 237, 1.0)
-        gui.show_message("Kortz Center Cracker", "Access code entered: 00-00-00")
+        ScriptLocal.SetInt(J(FMCV3), KCAC_BASE + (0 * 2), 0)
+        ScriptLocal.SetInt(J(FMCV3), KCAC_BASE + (1 * 2), 0)
+        ScriptLocal.SetInt(J(FMCV3), KCAC_BASE + (2 * 2), 0)
+        Natives.InvokeBool(N.SET_CONTROL_VALUE_NEXT_FRAME, 0, 237, 1.0)
+        Toast("Kortz Center Cracker", "Access code entered: 00-00-00")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function KortzDisableLasers()
     if isKortzHeistActive() then
-        locals.set_int(FMCV3, KCLGL, 4294784)
-        globals.set_int(KCLDG, 1)
-        gui.show_message("Kortz Center Cracker", "Laser grid neutralized")
+        ScriptLocal.SetInt(J(FMCV3), KCLGL, 4294784)
+        ScriptGlobal.SetInt(KCLDG, 1)
+        Toast("Kortz Center Cracker", "Laser grid neutralized")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function KortzSetLasersEasy()
-    locals.set_int(FMMLASERS, KCLDIF1, 1)
-    locals.set_int(FMMLASERS, KCLDIF2, 0)
-    gui.show_message("Kortz Center Cracker", "Lasers set to Easy")
+    ScriptLocal.SetInt(J(FMMLASERS), KCLDIF1, 1)
+    ScriptLocal.SetInt(J(FMMLASERS), KCLDIF2, 0)
+    Toast("Kortz Center Cracker", "Lasers set to Easy")
 end
 
 local function KortzSetLasersHard()
-    locals.set_int(FMMLASERS, KCLDIF1, 0)
-    locals.set_int(FMMLASERS, KCLDIF2, 1)
-    gui.show_message("Kortz Center Cracker", "Lasers set to Hard")
+    ScriptLocal.SetInt(J(FMMLASERS), KCLDIF1, 0)
+    ScriptLocal.SetInt(J(FMMLASERS), KCLDIF2, 1)
+    Toast("Kortz Center Cracker", "Lasers set to Hard")
 end
 
 local function KortzNoDamageLasers()
-    locals.set_int(FMMLASERS, KCNoDmg, 1)
-    gui.show_message("Kortz Center Cracker", "No damage lasers enabled")
+    ScriptLocal.SetInt(J(FMMLASERS), KCNoDmg, 1)
+    Toast("Kortz Center Cracker", "No damage lasers enabled")
 end
 
 local function KortzSetLootTake(value)
     if isKortzHeistActive() then
-        locals.set_int(FMCV3, KCLootTake, value)
-        gui.show_message("Kortz Center Cracker", "Loot take set to " .. value)
+        ScriptLocal.SetInt(J(FMCV3), KCLootTake, value)
+        Toast("Kortz Center Cracker", "Loot take set to " .. value)
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 function GetKortzTakeText()
     if isKortzHeistActive() then
-        return "Current Take: $" .. tostring(locals.get_int(FMCV3, KCLootTake))
+        return "Current Take: $" .. tostring(ScriptLocal.GetInt(J(FMCV3), KCLootTake))
     end
     return "Current Take: N/A (start heist)"
 end
 
 local function CutVenus()
     if isKortzHeistActive() then
-        locals.set_float(FMCV3, KCCGL_BASE + (0 * 13) + KCCGL_OFFSET, 100.0)
-        gui.show_message("Kortz Center Cracker", "Venus d'Algernon cut")
+        ScriptLocal.SetFloat(J(FMCV3), KCCGL_BASE + (0 * 13) + KCCGL_OFFSET, 100.0)
+        Toast("Kortz Center Cracker", "Venus d'Algernon cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function CutGemstone()
     if isKortzHeistActive() then
-        locals.set_float(FMCV3, KCCGL_BASE + (1 * 13) + KCCGL_OFFSET, 100.0)
-        gui.show_message("Kortz Center Cracker", "Gemstone cut")
+        ScriptLocal.SetFloat(J(FMCV3), KCCGL_BASE + (1 * 13) + KCCGL_OFFSET, 100.0)
+        Toast("Kortz Center Cracker", "Gemstone cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function CutHorse()
     if isKortzHeistActive() then
-        locals.set_float(FMCV3, KCCGL_BASE + (2 * 13) + KCCGL_OFFSET, 100.0)
-        gui.show_message("Kortz Center Cracker", "Horse cut")
+        ScriptLocal.SetFloat(J(FMCV3), KCCGL_BASE + (2 * 13) + KCCGL_OFFSET, 100.0)
+        Toast("Kortz Center Cracker", "Horse cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function CutCoquard()
     if isKortzHeistActive() then
-        locals.set_float(FMCV3, KCCGL_BASE + (3 * 13) + KCCGL_OFFSET, 100.0)
-        gui.show_message("Kortz Center Cracker", "Coquard Carcanet cut")
+        ScriptLocal.SetFloat(J(FMCV3), KCCGL_BASE + (3 * 13) + KCCGL_OFFSET, 100.0)
+        Toast("Kortz Center Cracker", "Coquard Carcanet cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function CutMemento()
     if isKortzHeistActive() then
-        locals.set_float(FMCV3, KCCGL_BASE + (4 * 13) + KCCGL_OFFSET, 100.0)
-        gui.show_message("Kortz Center Cracker", "Memento Non Mori cut")
+        ScriptLocal.SetFloat(J(FMCV3), KCCGL_BASE + (4 * 13) + KCCGL_OFFSET, 100.0)
+        Toast("Kortz Center Cracker", "Memento Non Mori cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function KortzCutAllGlass()
     if isKortzHeistActive() then
         for i = 0, 4 do
-            locals.set_float(FMCV3, KCCGL_BASE + (i * 13) + KCCGL_OFFSET, 100.0)
+            ScriptLocal.SetFloat(J(FMCV3), KCCGL_BASE + (i * 13) + KCCGL_OFFSET, 100.0)
         end
-        gui.show_message("Kortz Center Cracker", "All glass cases cut")
+        Toast("Kortz Center Cracker", "All glass cases cut")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function KortzTakePrimary()
     if isKortzHeistActive() then
-        locals.set_int(FMCV3, KCPT_STATE, 15)
-        locals.set_int(FMCV3, KCPT_STATE, 17)
-        PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 237, 1.0)
-        gui.show_message("Kortz Center Cracker", "Primary target acquired")
+        ScriptLocal.SetInt(J(FMCV3), KCPT_STATE, 15)
+        ScriptLocal.SetInt(J(FMCV3), KCPT_STATE, 17)
+        Natives.InvokeBool(N.SET_CONTROL_VALUE_NEXT_FRAME, 0, 237, 1.0)
+        Toast("Kortz Center Cracker", "Primary target acquired")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 local function KortzTakeSecondary()
     if isKortzHeistActive() then
-        locals.set_int(FMCV3, KCST_STATE, 3)
-        PAD.SET_CONTROL_VALUE_NEXT_FRAME(0, 219, 1.0)
-        gui.show_message("Kortz Center Cracker", "Secondary target secured")
+        ScriptLocal.SetInt(J(FMCV3), KCST_STATE, 3)
+        Natives.InvokeBool(N.SET_CONTROL_VALUE_NEXT_FRAME, 0, 219, 1.0)
+        Toast("Kortz Center Cracker", "Secondary target secured")
     else
-        gui.show_message("Kortz Center Cracker", "Heist not active")
+        Toast("Kortz Center Cracker", "Heist not active")
     end
 end
 
 -- Auto hack loop
-script.register_looped("KortzCenterAutoHack", function(s)
-    s:yield()
-    if not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0 then
+Script.RegisterLooped(function()
+    Script.Yield()
+    if not IsSessionStarted()
+        or IsScriptRunning("maintransition") then
         return
     end
 
@@ -7106,80 +6412,78 @@ script.register_looped("KortzCenterAutoHack", function(s)
         fingerprintTriggered = false
         vaultDoorTriggered = false
         heistWasActive = false
-        s:sleep(500)
+        Script.Yield(500)
         return
     end
 
     heistWasActive = heistActive
 
     if not heistActive or not autoHacks then
-        s:sleep(500)
+        Script.Yield(500)
         return
     end
 
     if not dataCrackTriggered then
         local isActive = false
         for b = 0, 7 do
-            if locals.get_int(FMCV3, KCDCL + 1 + (b * 4)) == 0 then
+            if ScriptLocal.GetInt(J(FMCV3), KCDCL + 1 + (b * 4)) == 0 then
                 isActive = true
                 break
             end
         end
         if isActive then
             for b = 0, 7 do
-                locals.set_int(FMCV3, KCDCL + 1 + (b * 4), 1)
+                ScriptLocal.SetInt(J(FMCV3), KCDCL + 1 + (b * 4), 1)
             end
-            locals.set_int(FMCV3, KCDCL, 1)
+            ScriptLocal.SetInt(J(FMCV3), KCDCL, 1)
             dataCrackTriggered = true
-            gui.show_message("Kortz Center Cracker", "Auto: Data crack bypassed")
-            s:sleep(1000)
+            Toast("Kortz Center Cracker", "Auto: Data crack bypassed")
+            Script.Yield(1000)
             return
         end
     end
 
     if not fingerprintTriggered then
-        local val = locals.get_int(FMCV3, KCFHL)
+        local val = ScriptLocal.GetInt(J(FMCV3), KCFHL)
         if val ~= nil and val >= 0 and val <= 4 then
-            locals.set_int(FMCV3, KCFHL, 5)
+            ScriptLocal.SetInt(J(FMCV3), KCFHL, 5)
             fingerprintTriggered = true
-            gui.show_message("Kortz Center Cracker", "Auto: Fingerprint bypassed")
-            s:sleep(1000)
+            Toast("Kortz Center Cracker", "Auto: Fingerprint bypassed")
+            Script.Yield(1000)
             return
         end
     end
 
     if not vaultDoorTriggered then
-        local val = locals.get_int(FMCV3, KCVLL)
+        local val = ScriptLocal.GetInt(J(FMCV3), KCVLL)
         if val ~= nil and val >= 0 and val <= 4 then
-            locals.set_int(FMCV3, KCVLL, 5)
+            ScriptLocal.SetInt(J(FMCV3), KCVLL, 5)
             vaultDoorTriggered = true
-            gui.show_message("Kortz Center Cracker", "Auto: Vault door bypassed")
-            s:sleep(1000)
+            Toast("Kortz Center Cracker", "Auto: Vault door bypassed")
+            Script.Yield(1000)
             return
         end
     end
 
-    s:sleep(100)
+    Script.Yield(100)
 end)
 
 -- MAIN UI
 
-KortzCenterHeistMenu:add_imgui(function()
-    if isOffline() then return end
-
+KortzCenterHeistMenu:Box("Status")
+KortzCenterHeistMenu:Custom(function()
     local heistActive = isKortzHeistActive()
     if heistActive then
         ImGui.TextColored(0.0, 1.0, 0.0, 1.0, "HEIST IS ACTIVE")
     else
         ImGui.TextColored(1.0, 0.5, 0.0, 1.0, "HEIST NOT ACTIVE")
     end
-    ImGui.Dummy(0, 5)
 
     -- PRIMARY TARGET
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "PRIMARY TARGET")
-    ImGui.SameLine()
+end)
+KortzCenterHeistMenu:Box("Primary Target")
+KortzCenterHeistMenu:Custom(function()
     RainbowInfo("Select the main painting you want to steal.\nClick SET TARGET to apply it.")
-    ImGui.Separator()
 
     local nIndex, changed = ImGui.Combo("##PrimaryTarget", k26_heist_target, targetShortNames, #targetShortNames)
     if changed then
@@ -7190,15 +6494,13 @@ KortzCenterHeistMenu:add_imgui(function()
         SetKortzTarget(k26_heist_target)
         selectedPayoutTarget = k26_heist_target
     end
-    ImGui.SameLine()
     ImGui.Text("Selected: " .. targetShortNames[k26_heist_target + 1])
-    ImGui.Dummy(0, 8)
 
     -- PAYOUT SETTINGS
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "PAYOUT SETTINGS")
-    ImGui.SameLine()
+end)
+KortzCenterHeistMenu:Box("Payout Settings")
+KortzCenterHeistMenu:Custom(function()
     RainbowInfo("Adjust the payout for the selected target.")
-    ImGui.Separator()
 
     selectedPayoutTarget = k26_heist_target
     local targetIdx = selectedPayoutTarget + 1
@@ -7219,75 +6521,70 @@ KortzCenterHeistMenu:add_imgui(function()
             local newPayout = math.floor(targetBasePayouts[targetIdx] * payoutModifiers[targetIdx])
             setPayout(targetIdx - 1, newPayout)
             KortzReloadBoard()
-            gui.show_message("Kortz Center Heist", "Payout set to $" .. string.format("%.0f", newPayout))
+            Toast("Kortz Center Heist", "Payout set to $" .. string.format("%.0f", newPayout))
         end
-        ImGui.SameLine()
         if ImGui.Button("Apply Custom Value") then
             if payoutCustomValues[targetIdx] > 0 then
                 setPayout(targetIdx - 1, payoutCustomValues[targetIdx])
                 KortzReloadBoard()
-                gui.show_message("Kortz Center Heist", "Payout set to $" .. string.format("%.0f", payoutCustomValues[targetIdx]))
+                Toast("Kortz Center Heist", "Payout set to $" .. string.format("%.0f", payoutCustomValues[targetIdx]))
             end
         end
-        ImGui.SameLine()
         if ImGui.Button("Reset This Target") then
             setPayout(targetIdx - 1, targetBasePayouts[targetIdx])
             KortzReloadBoard()
             payoutModifiers[targetIdx] = 1.0
             payoutCustomValues[targetIdx] = 0
-            gui.show_message("Kortz Center Heist", "Payout reset to base")
+            Toast("Kortz Center Heist", "Payout reset to base")
         end
     end
-    ImGui.Dummy(0, 8)
 
     -- GENERAL SETTINGS
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "GENERAL SETTINGS")
-    ImGui.SameLine()
-    RainbowInfo("Adjust bag size, team lives, weekly multiplier, difficulty, and cooldowns.")
-    ImGui.Separator()
-
+end)
+KortzCenterHeistMenu:Box("Bag Size")
+KortzCenterHeistMenu:Custom(function()
     local currentBag = getCurrentBagSize()
     ImGui.Text("Bag Capacity: " .. currentBag)
     bagSizeValue, __ = ImGui.InputInt("##BagSize", bagSizeValue)
     if ImGui.Button("Set Bag Size") then
         if bagSizeValue < 0 or bagSizeValue > 10000 then
-            gui.show_error("Kortz Center Heist", "Bag size must be 0-10000.")
+            Toast("Kortz Center Heist", "Bag size must be 0-10000.")
         else
-            globals.set_int(KCBGL, bagSizeValue)
-            gui.show_message("Kortz Center Heist", "Bag capacity set to " .. bagSizeValue)
+            ScriptGlobal.SetInt(KCBGL, bagSizeValue)
+            Toast("Kortz Center Heist", "Bag capacity set to " .. bagSizeValue)
         end
     end
-
-    ImGui.Separator()
-
+end)
+KortzCenterHeistMenu:Box("Team Lives")
+KortzCenterHeistMenu:Custom(function()
     local currentLives = getCurrentLives()
     ImGui.Text("Team Lives: " .. currentLives)
     livesValue, __ = ImGui.InputInt("##Lives", livesValue)
     if ImGui.Button("Set Lives") then
         if livesValue < 1 then
-            gui.show_error("Kortz Center Heist", "Lives must be at least 1.")
+            Toast("Kortz Center Heist", "Lives must be at least 1.")
         elseif livesValue > 999999 then
-            gui.show_error("Kortz Center Heist", "Lives value too high.")
-        elseif not script.is_active(FMCV3) then
-            gui.show_error("Kortz Center Heist", "Mission script not active.")
+            Toast("Kortz Center Heist", "Lives value too high.")
+        elseif not IsScriptRunning(FMCV3) then
+            Toast("Kortz Center Heist", "Mission script not active.")
         else
-            locals.set_int(FMCV3, KCLIVESL, livesValue)
-            gui.show_message("Kortz Center Heist", "Team lives set to " .. livesValue)
+            ScriptLocal.SetInt(J(FMCV3), KCLIVESL, livesValue)
+            Toast("Kortz Center Heist", "Team lives set to " .. livesValue)
         end
     end
-
-    ImGui.Separator()
-
+end)
+KortzCenterHeistMenu:Box("Weekly Multiplier")
+KortzCenterHeistMenu:Custom(function()
     ImGui.Text("Weekly Bonus Multiplier:")
     weeklyMultiplierValue, __ = ImGui.InputFloat("##WeeklyMultiplier", weeklyMultiplierValue)
     if ImGui.Button("Set Weekly Multiplier") then
-        globals.set_float(KCWMG, weeklyMultiplierValue)
-        gui.show_message("Kortz Center Heist", "Weekly multiplier set to " .. weeklyMultiplierValue .. "x")
+        ScriptGlobal.SetFloat(KCWMG, weeklyMultiplierValue)
+        Toast("Kortz Center Heist", "Weekly multiplier set to " .. weeklyMultiplierValue .. "x")
     end
-
-    ImGui.Separator()
-
-    local hard_stat = stats.get_int(MPX() .. "K26_GENERAL_BS")
+end)
+KortzCenterHeistMenu:Box("Difficulty")
+KortzCenterHeistMenu:Custom(function()
+    local hard_stat = GetStatInt(MPX() .. "K26_GENERAL_BS")
     local hard_active = (hard_stat & (1 << 28)) ~= 0
     if hard_active then
         ImGui.TextColored(1.0, 0.3, 0.3, 1.0, "HARD MODE: ACTIVE")
@@ -7296,67 +6593,64 @@ KortzCenterHeistMenu:add_imgui(function()
     end
 
     if ImGui.Button("Hard Mode") then
-        stats.set_int(MPX() .. "K26_GENERAL_BS", stats.get_int(MPX() .. "K26_GENERAL_BS") | (1 << 28))
+        Stats.SetInt(J(MPX() .. "K26_GENERAL_BS"), GetStatInt(MPX() .. "K26_GENERAL_BS") | (1 << 28))
         KortzReloadBoard()
-        gui.show_message("Kortz Center Heist", "Hard Mode enabled")
+        Toast("Kortz Center Heist", "Hard Mode enabled")
     end
     if ImGui.IsItemHovered() then
         ImGui.SetTooltip("Enable Hard Mode")
     end
     ImGui.SameLine()
     if ImGui.Button("Normal Mode") then
-        stats.set_int(MPX() .. "K26_GENERAL_BS", stats.get_int(MPX() .. "K26_GENERAL_BS") & ~(1 << 28))
+        Stats.SetInt(J(MPX() .. "K26_GENERAL_BS"), GetStatInt(MPX() .. "K26_GENERAL_BS") & ~(1 << 28))
         KortzReloadBoard()
-        gui.show_message("Kortz Center Heist", "Normal Mode enabled")
+        Toast("Kortz Center Heist", "Normal Mode enabled")
     end
     if ImGui.IsItemHovered() then
         ImGui.SetTooltip("Enable Normal Mode")
     end
-
-    ImGui.Separator()
-
+end)
+KortzCenterHeistMenu:Box("Misc")
+KortzCenterHeistMenu:Custom(function()
     if ImGui.Button("Skip Cooldown") then
         KortzSkipCooldown()
     end
-    ImGui.SameLine()
     if ImGui.Button("Unlock All Paintings") then
-        stats.set_int(MPX() .. "K26_TARGETS_OWNED_BS", -1)
-        gui.show_message("Kortz Center Heist", "All paintings unlocked")
+        Stats.SetInt(J(MPX() .. "K26_TARGETS_OWNED_BS"), -1)
+        Toast("Kortz Center Heist", "All paintings unlocked")
     end
-    ImGui.Dummy(0, 8)
 
     -- HIGH PRIORITY
-    ImGui.TextColored(1.0, 0.8, 0.0, 1.0, "HIGH PRIORITY (STRONGLY RECOMMENDED)")
-    ImGui.SameLine()
+end)
+KortzCenterHeistMenu:Box("High Priority Preps")
+KortzCenterHeistMenu:Custom(function()
     RainbowInfo("These preps make the heist much easier.\nStrongly recommended for a smooth run.")
-    ImGui.Separator()
 
     ToggleBitDropdown("Unmarked Weapons", "K26_ROBBERY_PROG", 128, "Weapons that can't be traced")
     ToggleBitDropdown("Getaway Vehicle", "K26_ROBBERY_PROG", 256, "Armored getaway vehicle")
     ToggleBitDropdown("Guard Routes", "K26_GENERAL_BS", 32, "Reveals guard patrol patterns")
     ToggleBitDropdown("Glass Cutter", "K26_GENERAL_BS", 64, "Tool for cutting display cases")
     ToggleBitDropdown("Power Drills", "K26_GENERAL_BS", 128, "Drills for certain locks")
-    ImGui.Dummy(0, 8)
 
     -- REQUIRED PREPS
-    ImGui.TextColored(1.0, 0.5, 0.5, 1.0, "REQUIRED PREPS")
-    ImGui.SameLine()
+end)
+KortzCenterHeistMenu:Box("Required Preps")
+KortzCenterHeistMenu:Custom(function()
     RainbowInfo("These are mandatory to start the heist.")
-    ImGui.Separator()
 
-    local scope_current = stats.get_int(MPX() .. "K26_ROBBERY_PROG")
+    local scope_current = GetStatInt(MPX() .. "K26_ROBBERY_PROG")
     local scope_done = (scope_current & 1) ~= 0
     local scope_idx = scope_done and 1 or 0
     local scope_new, scope_changed = ImGui.Combo("Scope Out Kortz Center", scope_idx, { "Not Done", "Done" }, 2)
     if scope_changed then
         if scope_new == 1 then
-            stats.set_int(MPX() .. "K26_ROBBERY_PROG", scope_current | 1)
-            stats.set_int(MPX() .. "K26_SCOPING_BS", -1)
-            stats.set_int(MPX() .. "K26_POI_BS", -1)
-            gui.show_message("Kortz Center Heist", "Scope Out completed")
+            Stats.SetInt(J(MPX() .. "K26_ROBBERY_PROG"), scope_current | 1)
+            Stats.SetInt(J(MPX() .. "K26_SCOPING_BS"), -1)
+            Stats.SetInt(J(MPX() .. "K26_POI_BS"), -1)
+            Toast("Kortz Center Heist", "Scope Out completed")
         else
-            stats.set_int(MPX() .. "K26_ROBBERY_PROG", scope_current & ~1)
-            gui.show_message("Kortz Center Heist", "Scope Out undone")
+            Stats.SetInt(J(MPX() .. "K26_ROBBERY_PROG"), scope_current & ~1)
+            Toast("Kortz Center Heist", "Scope Out undone")
         end
     end
 
@@ -7364,13 +6658,12 @@ KortzCenterHeistMenu:add_imgui(function()
     ToggleBitDropdown("Staff Key Card", "K26_ROBBERY_PROG", 8, "Access to staff areas")
     ToggleBitDropdown("Hacking Device", "K26_ROBBERY_PROG", 32, "Required for vault door")
     ToggleBitDropdown("Access Code", "K26_ROBBERY_PROG", 64, "Code for security terminal")
-    ImGui.Dummy(0, 8)
 
     -- OPTIONAL PREPS
-    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "OPTIONAL PREPS")
-    ImGui.SameLine()
+end)
+KortzCenterHeistMenu:Box("Optional Preps")
+KortzCenterHeistMenu:Custom(function()
     RainbowInfo("Optional preps that can help but aren't required.")
-    ImGui.Separator()
 
     ToggleBitDropdown("Hazmat Suit", "K26_ROBBERY_PROG", 4, "Access to chemical area")
     ToggleBitDropdown("Tactical Equipment", "K26_ROBBERY_PROG", 16, "Body armor and gear")
@@ -7378,13 +6671,12 @@ KortzCenterHeistMenu:add_imgui(function()
     ToggleBitDropdown("Manchez", "K26_ROBBERY_PROG", 1024, "Motorcycle")
     ToggleBitDropdown("EMP Charges", "K26_ROBBERY_PROG", 2048, "Disable electronics")
     ToggleBitDropdown("Guard Shipments", "K26_ROBBERY_PROG", 4096, "Weaken security")
-    ImGui.Dummy(0, 8)
 
     -- OPTIONAL UPGRADES
-    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "OPTIONAL UPGRADES")
-    ImGui.SameLine()
+end)
+KortzCenterHeistMenu:Box("Optional Upgrades")
+KortzCenterHeistMenu:Custom(function()
     RainbowInfo("Extra upgrades for loadouts, entrances, and vehicles.")
-    ImGui.Separator()
 
     ToggleBitDropdown("Vault Keypad", "K26_GENERAL_BS", 16, "Bypass vault keypad")
     ToggleBitDropdown("EMP Charges (Upgrade)", "K26_GENERAL_BS", 256, "EMP upgrade")
@@ -7401,208 +6693,158 @@ KortzCenterHeistMenu:add_imgui(function()
     ToggleBitDropdown("Advanced Avionics", "K26_GENERAL_BS", 8388608, "Better helicopter")
     ToggleBitDropdown("Manhole Key", "K26_GENERAL_BS", 134217728, "Sewer access key")
     ToggleBitDropdown("Weak Guards", "K26_GENERAL_BS", -2147483648, "Easier guards")
-    ImGui.Dummy(0, 8)
 
     -- POINTS OF INTEREST
-    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "POINTS OF INTEREST")
-    ImGui.SameLine()
+end)
+KortzCenterHeistMenu:Box("Scoping")
+KortzCenterHeistMenu:Custom(function()
     RainbowInfo("Scope all points of interest to unlock optional preps.")
-    ImGui.Separator()
 
-    local poi_current = stats.get_int(MPX() .. "K26_POI_BS")
+    local poi_current = GetStatInt(MPX() .. "K26_POI_BS")
     local poi_idx = (poi_current == -1) and 1 or 0
     local poi_new, poi_changed = ImGui.Combo("Points of Interest Scoped", poi_idx, { "Not Done", "Done" }, 2)
     if poi_changed then
-        stats.set_int(MPX() .. "K26_POI_BS", poi_new == 1 and -1 or 0)
-        gui.show_message("Kortz Center Heist", poi_new == 1 and "POI scoped" or "POI unscoped")
+        Stats.SetInt(J(MPX() .. "K26_POI_BS"), poi_new == 1 and -1 or 0)
+        Toast("Kortz Center Heist", poi_new == 1 and "POI scoped" or "POI unscoped")
     end
-    ImGui.Dummy(0, 8)
 
     -- SECONDARY TARGETS
-    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "SECONDARY TARGETS")
-    ImGui.SameLine()
-    RainbowInfo("Scope all secondary targets for extra loot.")
-    ImGui.Separator()
 
-    local scop_current = stats.get_int(MPX() .. "K26_SCOPING_BS")
+    local scop_current = GetStatInt(MPX() .. "K26_SCOPING_BS")
     local scop_idx = (scop_current == -1) and 1 or 0
     local scop_new, scop_changed = ImGui.Combo("All Secondary Targets Scoped", scop_idx, { "Not Done", "Done" }, 2)
     if scop_changed then
-        stats.set_int(MPX() .. "K26_SCOPING_BS", scop_new == 1 and -1 or 0)
-        gui.show_message("Kortz Center Heist", scop_new == 1 and "Secondary targets scoped" or "Secondary targets unscoped")
+        Stats.SetInt(J(MPX() .. "K26_SCOPING_BS"), scop_new == 1 and -1 or 0)
+        Toast("Kortz Center Heist", scop_new == 1 and "Secondary targets scoped" or "Secondary targets unscoped")
     end
-    ImGui.Dummy(0, 8)
 
     -- QUICK ACTIONS
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "QUICK ACTIONS")
-    ImGui.SameLine()
+end)
+KortzCenterHeistMenu:Box("Quick Actions")
+KortzCenterHeistMenu:Custom(function()
     RainbowInfo("Complete all selections or reset to just show selected target.")
-    ImGui.Separator()
 
     if ImGui.Button("Complete All Selections") then
         local general_bits = -1
         general_bits = general_bits & ~(1 << 28)
-        stats.set_int(MPX() .. "K26_GENERAL_BS", general_bits)
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", 65535)
-        stats.set_int(MPX() .. "K26_SCOPING_BS", -1)
-        stats.set_int(MPX() .. "K26_POI_BS", -1)
-        stats.set_int(MPX() .. "K26_HEIST_TARGET", k26_heist_target)
+        Stats.SetInt(J(MPX() .. "K26_GENERAL_BS"), general_bits)
+        Stats.SetInt(J(MPX() .. "K26_ROBBERY_PROG"), 65535)
+        Stats.SetInt(J(MPX() .. "K26_SCOPING_BS"), -1)
+        Stats.SetInt(J(MPX() .. "K26_POI_BS"), -1)
+        Stats.SetInt(J(MPX() .. "K26_HEIST_TARGET"), k26_heist_target)
         KortzReloadBoard()
-        gui.show_message("Kortz Center Heist", "All selections completed in Normal Mode")
+        Toast("Kortz Center Heist", "All selections completed in Normal Mode")
     end
     if ImGui.IsItemHovered() then
         ImGui.SetTooltip("Complete ALL dropdown selections.\nKeeps Normal Mode active (Hard Mode NOT enabled).")
     end
 
-    ImGui.SameLine()
 
     if ImGui.Button("Reset (Keep Target Only)") then
-        stats.set_int(MPX() .. "K26_ROBBERY_PROG", 1)
-        stats.set_int(MPX() .. "K26_SCOPING_BS", -1)
-        stats.set_int(MPX() .. "K26_POI_BS", -1)
-        stats.set_int(MPX() .. "K26_GENERAL_BS", 0)
-        stats.set_int(MPX() .. "K26_HEIST_TARGET", k26_heist_target)
+        Stats.SetInt(J(MPX() .. "K26_ROBBERY_PROG"), 1)
+        Stats.SetInt(J(MPX() .. "K26_SCOPING_BS"), -1)
+        Stats.SetInt(J(MPX() .. "K26_POI_BS"), -1)
+        Stats.SetInt(J(MPX() .. "K26_GENERAL_BS"), 0)
+        Stats.SetInt(J(MPX() .. "K26_HEIST_TARGET"), k26_heist_target)
         KortzReloadBoard()
-        gui.show_message("Kortz Center Heist", "Reset done, target kept: " .. targetShortNames[k26_heist_target + 1])
+        Toast("Kortz Center Heist", "Reset done, target kept: " .. targetShortNames[k26_heist_target + 1])
     end
     if ImGui.IsItemHovered() then
         ImGui.SetTooltip("Reset all preps and upgrades.\nOnly the currently selected target from dropdown will remain.")
     end
 
-    ImGui.Dummy(0, 8)
 
     -- BOARD MANAGEMENT
-    ImGui.TextColored(0.6, 0.6, 0.6, 1.0, "BOARD MANAGEMENT")
-    ImGui.SameLine()
-    RainbowInfo("Refresh the planning board to see changes.")
-    ImGui.Separator()
-
+end)
+KortzCenterHeistMenu:Box("Board & Extras")
+KortzCenterHeistMenu:Custom(function()
     if ImGui.Button("Reload Planning Board") then
         KortzReloadBoard()
     end
-    ImGui.Dummy(0, 8)
 
     -- EXTRAS
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "EXTRAS")
-    ImGui.SameLine()
-    RainbowInfo("Additional tools for the heist.")
-    ImGui.Separator()
 
     if ImGui.Button("Skip Cutscene") then
         SkipCutscene()
-        gui.show_message("Kortz Center Heist", "Cutscene skipped")
+        Toast("Kortz Center Heist", "Cutscene skipped")
     end
 end)
 
 -- MISSION CRACKER TAB
 
-KortzCenterCrackerMenu = KortzCenterHeistMenu:add_tab("Mission Cracker")
+KortzCenterCrackerMenu = KortzCenterHeistMenu:Tab("Mission Cracker")
 
-KortzCenterCrackerMenu:add_imgui(function()
-    if isOffline() then return end
-
+KortzCenterCrackerMenu:Box("Auto Door Hacks")
+KortzCenterCrackerMenu:Custom(function()
     local heistActive = isKortzHeistActive()
 
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "AUTO DOOR HACKS")
-    ImGui.SameLine()
     RainbowInfo("Automatically bypass hacks when they appear.")
-    ImGui.Separator()
 
     autoHacks, __ = ImGui.Checkbox("Enable Auto Door Hacks", autoHacks)
     if not heistActive then
         ImGui.TextColored(1.0, 0.8, 0.0, 1.0, "Start heist first to use auto hacks")
     end
-    ImGui.Dummy(0, 5)
-
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "MANUAL DOOR HACKS")
-    ImGui.SameLine()
+end)
+KortzCenterCrackerMenu:Box("Manual Door Hacks")
+KortzCenterCrackerMenu:Custom(function()
     RainbowInfo("Click to bypass hacks manually.")
-    ImGui.Separator()
 
     if ImGui.Button("Skip Data Crack") then KortzSkipDataCrack() end
-    ImGui.SameLine()
     if ImGui.Button("Skip Fingerprint Hack") then KortzSkipFingerprint() end
-    ImGui.SameLine()
     if ImGui.Button("Skip Vault Door Hack") then KortzSkipVaultDoor() end
-
-    ImGui.Dummy(0, 5)
-
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "ACCESS & SECURITY")
-    ImGui.SameLine()
+end)
+KortzCenterCrackerMenu:Box("Access & Security")
+KortzCenterCrackerMenu:Custom(function()
     RainbowInfo("Bypass security systems.")
-    ImGui.Separator()
 
     if ImGui.Button("Auto-Enter Access Code") then KortzAutoAccessCode() end
-    ImGui.SameLine()
     if ImGui.Button("Disable Lasers") then KortzDisableLasers() end
 
     if ImGui.Button("Lasers: Easy") then KortzSetLasersEasy() end
-    ImGui.SameLine()
     if ImGui.Button("Lasers: Hard") then KortzSetLasersHard() end
-    ImGui.SameLine()
     if ImGui.Button("No Damage Lasers") then KortzNoDamageLasers() end
-
-    ImGui.Dummy(0, 5)
-
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "GLASS CUTTING")
-    ImGui.SameLine()
+end)
+KortzCenterCrackerMenu:Box("Glass Cutting")
+KortzCenterCrackerMenu:Custom(function()
     RainbowInfo("Cut display case glass instantly.")
-    ImGui.Separator()
 
     if ImGui.Button("Cut All Glass") then KortzCutAllGlass() end
-    ImGui.SameLine()
     if ImGui.Button("Venus d'Algernon") then CutVenus() end
-    ImGui.SameLine()
     if ImGui.Button("Gemstone") then CutGemstone() end
 
     if ImGui.Button("Horse") then CutHorse() end
-    ImGui.SameLine()
     if ImGui.Button("Coquard Carcanet") then CutCoquard() end
-    ImGui.SameLine()
     if ImGui.Button("Memento Non Mori") then CutMemento() end
-
-    ImGui.Dummy(0, 5)
-
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "SOLO SECONDARY TARGETS")
-    ImGui.SameLine()
+end)
+KortzCenterCrackerMenu:Box("Solo Secondary Targets")
+KortzCenterCrackerMenu:Custom(function()
     RainbowInfo("Enable secondary targets for solo play.")
-    ImGui.Separator()
 
     if ImGui.Button("Enable Solo Secondary Targets (B2 Floor)") then
         EnableSoloSecondaryTargets()
     end
-
-    ImGui.Dummy(0, 5)
-
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "TARGETS")
-    ImGui.SameLine()
+end)
+KortzCenterCrackerMenu:Box("Targets")
+KortzCenterCrackerMenu:Custom(function()
     RainbowInfo("Grab targets instantly (stand near them).")
-    ImGui.Separator()
 
     if ImGui.Button("Take Primary Target") then KortzTakePrimary() end
-    ImGui.SameLine()
     if ImGui.Button("Take Secondary Target") then KortzTakeSecondary() end
-
-    ImGui.Dummy(0, 5)
-
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "LOOT TAKE")
-    ImGui.SameLine()
+end)
+KortzCenterCrackerMenu:Box("Loot Take")
+KortzCenterCrackerMenu:Custom(function()
     RainbowInfo("Set loot take value.")
-    ImGui.Separator()
 
     ImGui.Text(GetKortzTakeText())
     kortzLootTakeValue, __ = ImGui.InputInt("##KortzLootTake", kortzLootTakeValue)
     if ImGui.Button("Set Loot Take") then KortzSetLootTake(kortzLootTakeValue) end
-
-    ImGui.Dummy(0, 5)
-
-    ImGui.TextColored(1.0, 0.8, 0.2, 1.0, "GLASS CASE STATUS")
-    ImGui.SameLine()
+end)
+KortzCenterCrackerMenu:Box("Glass Case Status")
+KortzCenterCrackerMenu:Custom(function()
     RainbowInfo("Current status of all display cases.")
-    ImGui.Separator()
 
     for i = 0, 4 do
-        local progress = locals.get_float(FMCV3, KCCGL_BASE + (i * 13) + KCCGL_OFFSET)
+        local progress = ScriptLocal.GetFloat(J(FMCV3), KCCGL_BASE + (i * 13) + KCCGL_OFFSET)
         local status = "Available"
         local r, g, b = 1.0, 0.0, 0.0
         if progress >= 100.0 then
@@ -7620,8 +6862,8 @@ end)
 -- Flash Ops
 end)
 
-__uml_block("FlashOpsMenu = HeistsDataEditorMenu:add_tab(Flash Ops)", function()
-FlashOpsMenu = HeistsDataEditorMenu:add_tab("Flash Ops")
+Section("Flash Ops", function()
+FlashOpsMenu = HeistsDataEditorMenu:Tab("Flash Ops")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Agency tab
@@ -7645,82 +6887,81 @@ for i, contract in ipairs(AgencyContracts) do
     table.insert(contractNames, contract.name)
 end
 local sContract = 0
-local SN_Agency = FlashOpsMenu:add_tab("Agency")
-SN_Agency:add_text("Money")
-local agencySafe = SN_Agency:add_checkbox("Agency Safe Loop")
-script.register_looped("agencyloop", function(script)
-    script:yield()
-    if agencySafe:is_enabled() == true then
-        stats.set_int(MPX() .. "FIXER_COUNT", 500)
-        stats.set_int(MPX() .. "FIXER_PASSIVE_PAY_TIME_LEFT", -1)
-        script:sleep(1000)
+local SN_Agency = FlashOpsMenu:Tab("Agency")
+SN_Agency:Box("Information", 0) -- full width, above everything else
+SN_Agency:Text("Don't Fuck With Dre:")
+SN_Agency:Text("Max Payout 2.500.000$")
+SN_Agency:Text("Min Cooldown ≈ 15-20 minutes")
+SN_Agency:Columns(3)
+SN_Agency:Box("Preps")
+SN_Agency:Box("Misc")
+local agencySafe = SN_Agency:Toggle("Agency Safe Loop")
+Script.RegisterLooped(function()
+    Script.Yield()
+    if agencySafe:IsToggled() == true then
+        Stats.SetInt(J(MPX() .. "FIXER_COUNT"), 500)
+        Stats.SetInt(J(MPX() .. "FIXER_PASSIVE_PAY_TIME_LEFT"), -1)
+        Script.Yield(1000)
     else
-        script:sleep(500)
+        Script.Yield(500)
     end
 end)
-SN_Agency:add_separator()
-SN_Agency:add_imgui(function()
+SN_Agency:Box("Preps")
+SN_Agency:Custom(function()
     ImGui.Text("Contract:")
-    ImGui.SetNextItemWidth(200)
     local nSelected, clicked = ImGui.Combo("##AgencyContract", sContract, contractNames, #contractNames)
     if clicked then
         sContract = nSelected
         local contractD = AgencyContracts[sContract + 1]
         local contractId = contractD.index
 
-        stats.set_int(MPX() .. "FIXER_STORY_BS", contractId)
+        Stats.SetInt(J(MPX() .. "FIXER_STORY_BS"), contractId)
         if contractId < 18 then
-            stats.set_int(MPX() .. "FIXER_STORY_STRAND", 0)
+            Stats.SetInt(J(MPX() .. "FIXER_STORY_STRAND"), 0)
         elseif contractId < 128 then
-            stats.set_int(MPX() .. "FIXER_STORY_STRAND", 1)
+            Stats.SetInt(J(MPX() .. "FIXER_STORY_STRAND"), 1)
         elseif contractId < 2044 then
-            stats.set_int(MPX() .. "FIXER_STORY_STRAND", 2)
+            Stats.SetInt(J(MPX() .. "FIXER_STORY_STRAND"), 2)
         else
-            stats.set_int(MPX() .. "FIXER_STORY_STRAND", -1)
+            Stats.SetInt(J(MPX() .. "FIXER_STORY_STRAND"), -1)
         end
     end
 end)
 
-SN_Agency:add_button("Complete Preps", function()
-    stats.set_int(MPX() .. "FIXER_GENERAL_BS", -1)
-    stats.set_int(MPX() .. "FIXER_COMPLETED_BS", -1)
-    stats.set_int(MPX() .. "FIXER_STORY_COOLDOWN", -1)
-    gui.show_message("Agency", "Preps should've been completed")
+SN_Agency:Button("Complete Preps", function()
+    Stats.SetInt(J(MPX() .. "FIXER_GENERAL_BS"), -1)
+    Stats.SetInt(J(MPX() .. "FIXER_COMPLETED_BS"), -1)
+    Stats.SetInt(J(MPX() .. "FIXER_STORY_COOLDOWN"), -1)
+    Toast("Agency", "Preps should've been completed")
 end)
-SN_Agency:add_separator()
-SN_Agency:add_text("Payouts:")
-local agencyPayoutValue = 0
-SN_Agency:add_imgui(function()
-    agencyPayoutValue, __ = ImGui.InputInt("##AgencyPayout", agencyPayoutValue)
+SN_Agency:Box("Payout")
+local agencyPayout = SN_Agency:InputInt("Payout")
+SN_Agency:Button("Max", function()
+    agencyPayout:SetIntValue(2500000)
+    Toast("Agency", "Payout should've been maximized. Don't forget to apply")
 end)
-SN_Agency:add_button("Max", function()
-    agencyPayoutValue = 2500000
-    gui.show_message("Agency", "Payout should've been maximized. Don't forget to apply")
+SN_Agency:Button("Apply Payout", function()
+    local payout = agencyPayout:GetIntValue()
+    SetTunableInt("FIXER_FINALE_LEADER_CASH_REWARD", payout)
+    Toast("Agency", "Payout should've been applied")
 end)
-SN_Agency:add_button("Apply Payout", function()
-    local payout = agencyPayoutValue
-    tunables.set_int("FIXER_FINALE_LEADER_CASH_REWARD", payout)
-    gui.show_message("Agency", "Payout should've been applied")
+SN_Agency:Text("Use 'Apply Payout' after you can see the minimap.")
+SN_Agency:Box("Misc")
+SN_Agency:Button("Instant Finish", function()
+    ScriptLocal.SetInt(J(FMC2020), AGFl1, 51338752)
+    ScriptLocal.SetInt(J(FMC2020), AGFl2, 50)
+    Toast("Agency", "Heist should've been finished")
 end)
-SN_Agency:add_text("Use 'Apply Payout' after you can see the minimap.")
-SN_Agency:add_separator()
-SN_Agency:add_button("Instant Finish", function()
-    locals.set_int(FMC2020, AGFl1, 51338752)
-    locals.set_int(FMC2020, AGFl2, 50)
-    gui.show_message("Agency", "Heist should've been finished")
+SN_Agency:Button("Skip Cutscene", SkipCutscene)
+SN_Agency:Button("Kill Cooldowns", function()
+    SetTunableInt("FIXER_STORY_COOLDOWN_POSIX", 0)
+    SetTunableInt("FIXER_SECURITY_CONTRACT_COOLDOWN_TIME", 0)
+    SetTunableInt("REQUEST_FRANKLIN_PAYPHONE_HIT_COOLDOWN", 0)
+    Stats.SetInt(J(MPX() .. "FIXER_STORY_COOLDOWN"), -1)
+    Toast("Agency", "Cooldowns should've been killed")
 end)
-SN_Agency:add_sameline()
-SN_Agency:add_button("Skip Cutscene", SkipCutscene)
-SN_Agency:add_sameline()
-SN_Agency:add_button("Kill Cooldowns", function()
-    tunables.set_int("FIXER_STORY_COOLDOWN_POSIX", 0)
-    tunables.set_int("FIXER_SECURITY_CONTRACT_COOLDOWN_TIME", 0)
-    tunables.set_int("REQUEST_FRANKLIN_PAYPHONE_HIT_COOLDOWN", 0)
-    stats.set_int(MPX() .. "FIXER_STORY_COOLDOWN", -1)
-    gui.show_message("Agency", "Cooldowns should've been killed")
-end)
-SN_Agency:add_separator()
-SN_Agency:add_text("After all choices and pressing Complete Preps, wait for some time")
+SN_Agency:Box("Preps")
+SN_Agency:Text("After all choices and pressing Complete Preps, wait for some time")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Autoshop tab
@@ -7737,8 +6978,13 @@ local AutoShopContracts = {
 }
 
 local autoSelectedIndex = 0
-local SN_Autoshop = FlashOpsMenu:add_tab("Autoshop")
-SN_Autoshop:add_imgui(function()
+local SN_Autoshop = FlashOpsMenu:Tab("Autoshop")
+SN_Autoshop:Box("Information", 0) -- full width, above everything else
+SN_Autoshop:Text("Max Payout 2.000.000$")
+SN_Autoshop:Text("Min Cooldown ≈ 15-20 minutes")
+SN_Autoshop:Columns(3)
+SN_Autoshop:Box("Preps")
+SN_Autoshop:Custom(function()
     ImGui.Text("Contract:")
     autoSelectedIndex = ImGui.Combo(
         "##AutoContract",
@@ -7757,55 +7003,49 @@ SN_Autoshop:add_imgui(function()
         9
     )
 end)
-SN_Autoshop:add_button("Apply & Complete Preps", function()
+SN_Autoshop:Button("Apply & Complete Preps", function()
     local contract = AutoShopContracts[autoSelectedIndex + 1].index
-    stats.set_int(MPX() .. "TUNER_CURRENT", contract)
-    stats.set_int(MPX() .. "TUNER_GEN_BS", (contract == 1 and 4351 or 12543))
-    locals.set_int(TUNERPL, ASRBl, 2)
-    gui.show_message("Autoshop", "Preps should've been completed")
+    Stats.SetInt(J(MPX() .. "TUNER_CURRENT"), contract)
+    Stats.SetInt(J(MPX() .. "TUNER_GEN_BS"), (contract == 1 and 4351 or 12543))
+    ScriptLocal.SetInt(J(TUNERPL), ASRBl, 2)
+    Toast("Autoshop", "Preps should've been completed")
 end)
-SN_Autoshop:add_button("Reset Preps", function()
-    stats.set_int(MPX() .. "TUNER_GEN_BS", 12467)
-    locals.set_int(TUNERPL, ASRBl, 2)
-    gui.show_message("Autoshop", "Preps should've been reset")
+SN_Autoshop:Button("Reset Preps", function()
+    Stats.SetInt(J(MPX() .. "TUNER_GEN_BS"), 12467)
+    ScriptLocal.SetInt(J(TUNERPL), ASRBl, 2)
+    Toast("Autoshop", "Preps should've been reset")
 end)
-SN_Autoshop:add_button("Redraw Board", function()
-    locals.set_int(TUNERPL, ASRBl, 2)
-    gui.show_message("Autoshop", "Board should've been redrawn")
+SN_Autoshop:Button("Redraw Board", function()
+    ScriptLocal.SetInt(J(TUNERPL), ASRBl, 2)
+    Toast("Autoshop", "Board should've been redrawn")
 end)
-SN_Autoshop:add_separator()
-SN_Autoshop:add_text("Payouts:")
-local autoPayoutValue = 0
-SN_Autoshop:add_imgui(function()
-    autoPayoutValue, __ = ImGui.InputInt("##AutoPayout", autoPayoutValue)
+SN_Autoshop:Box("Payout")
+local autoPayout = SN_Autoshop:InputInt("Payout")
+SN_Autoshop:Button("Max", function()
+    autoPayout:SetIntValue(2000000)
+    Toast("Autoshop", "Payout should've been maximized. Don't forget to apply")
 end)
-SN_Autoshop:add_button("Max", function()
-    autoPayoutValue = 2000000
-    gui.show_message("Autoshop", "Payout should've been maximized. Don't forget to apply")
+SN_Autoshop:Button("Apply Payout", function()
+    local payout = autoPayout:GetIntValue()
+    SetTunableInt("TUNER_ROBBERY_LEADER_CASH_REWARD0", payout)
+    SetTunableInt("TUNER_ROBBERY_LEADER_CASH_REWARD1", payout)
+    SetTunableInt("TUNER_ROBBERY_LEADER_CASH_REWARD2", payout)
+    SetTunableInt("TUNER_ROBBERY_LEADER_CASH_REWARD3", payout)
+    SetTunableInt("TUNER_ROBBERY_LEADER_CASH_REWARD4", payout)
+    SetTunableInt("TUNER_ROBBERY_LEADER_CASH_REWARD5", payout)
+    SetTunableInt("TUNER_ROBBERY_LEADER_CASH_REWARD6", payout)
+    SetTunableInt("TUNER_ROBBERY_LEADER_CASH_REWARD7", payout)
+    SetTunableFloat("TUNER_ROBBERY_CONTACT_FEE", 0.0)
+    Toast("Autoshop", "Payout should've been applied")
 end)
-SN_Autoshop:add_button("Apply Payout", function()
-    local payout = autoPayoutValue
-    tunables.set_int("TUNER_ROBBERY_LEADER_CASH_REWARD0", payout)
-    tunables.set_int("TUNER_ROBBERY_LEADER_CASH_REWARD1", payout)
-    tunables.set_int("TUNER_ROBBERY_LEADER_CASH_REWARD2", payout)
-    tunables.set_int("TUNER_ROBBERY_LEADER_CASH_REWARD3", payout)
-    tunables.set_int("TUNER_ROBBERY_LEADER_CASH_REWARD4", payout)
-    tunables.set_int("TUNER_ROBBERY_LEADER_CASH_REWARD5", payout)
-    tunables.set_int("TUNER_ROBBERY_LEADER_CASH_REWARD6", payout)
-    tunables.set_int("TUNER_ROBBERY_LEADER_CASH_REWARD7", payout)
-    tunables.set_float("TUNER_ROBBERY_CONTACT_FEE", 0.0)
-    gui.show_message("Autoshop", "Payout should've been applied")
+SN_Autoshop:Text("Use 'Apply Payout' after you can see the minimap.")
+SN_Autoshop:Box("Misc")
+SN_Autoshop:Button("Instant Finish", function()
+    ScriptLocal.SetInt(J(FMC2020), ASIFl1, 51338977)
+    ScriptLocal.SetInt(J(FMC2020), ASIFl2, 101)
+    Toast("Autoshop", "Heist should've been finished")
 end)
-SN_Autoshop:add_text("Use 'Apply Payout' after you can see the minimap.")
-SN_Autoshop:add_separator()
-SN_Autoshop:add_text("Extras")
-SN_Autoshop:add_button("Instant Finish", function()
-    locals.set_int(FMC2020, ASIFl1, 51338977)
-    locals.set_int(FMC2020, ASIFl2, 101)
-    gui.show_message("Autoshop", "Heist should've been finished")
-end)
-SN_Autoshop:add_sameline()
-SN_Autoshop:add_button("Skip Cutscene", SkipCutscene)
+SN_Autoshop:Button("Skip Cutscene", SkipCutscene)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Cluckin Bell --
@@ -7818,9 +7058,11 @@ local cluckperps = {
     { id = 31, name = "Scene of Crime" },
 }
 
-local SN_Cluck = FlashOpsMenu:add_tab("Cluckin Bell Heist")
+local SN_Cluck = FlashOpsMenu:Tab("Cluckin Bell Heist")
+SN_Cluck:Box("Information", 0) -- full width, above everything else
+SN_Cluck:Text("Max Payout 1.000.000$")
+SN_Cluck:Text("Min Cooldown ≈ 15-20 minutes")
 
-SN_Cluck:add_text("Complete Preps")
 
 local cluckprepNames = {}
 for i, cluckprep in ipairs(cluckperps) do
@@ -7828,19 +7070,18 @@ for i, cluckprep in ipairs(cluckperps) do
 end
 local cluckprepIndex = 0
 
-SN_Cluck:add_imgui(function()
+SN_Cluck:Box("Preps")
+SN_Cluck:Custom(function()
     cluckprepIndex, __ = ImGui.Combo("##CluckPrep", cluckprepIndex, cluckprepNames, #cluckprepNames)
     if ImGui.Button("Apply & Complete Preps") then
-        script.run_in_fiber(function()
-            stats.set_int(MPX() .. "SALV23_INST_PROG", cluckperps[cluckprepIndex + 1].id)
+        Script.QueueJob(function()
+            Stats.SetInt(J(MPX() .. "SALV23_INST_PROG"), cluckperps[cluckprepIndex + 1].id)
         end)
     end
 
-    ImGui.Separator()
-    ImGui.Text("Reset preps")
     if ImGui.Button("Reset Preps") then
-        script.run_in_fiber(function()
-            stats.set_int(MPX() .. "SALV23_INST_PROG", 0)
+        Script.QueueJob(function()
+            Stats.SetInt(J(MPX() .. "SALV23_INST_PROG"), 0)
         end)
     end
 end)
@@ -7869,18 +7110,21 @@ local GuzmanBools = {
 
 local function guzmanSetBools(list, value)
     for _, id in ipairs(list) do
-        stats.set_packed_stat_bool(id, value)
+        Natives.InvokeVoid(N.SET_PACKED_STAT_BOOL_CODE, id, value, CharSlot())
     end
 end
 
 local function guzmanGetBool(list)
-    return stats.get_packed_stat_bool(list[1])
+    return Natives.InvokeBool(N.GET_PACKED_STAT_BOOL_CODE, list[1], CharSlot())
 end
 
 local guzmanStageIndex = 0
-local SN_Guzman = FlashOpsMenu:add_tab("Guzman Flies")
-SN_Guzman:add_text("Preps")
-SN_Guzman:add_imgui(function()
+local SN_Guzman = FlashOpsMenu:Tab("Guzman Flies")
+SN_Guzman:Box("Information", 0) -- full width, above everything else
+SN_Guzman:Text("Max Payout 2.160.000$")
+SN_Guzman:Text("Min Cooldown ≈ 15-20 minutes")
+SN_Guzman:Box("Preps")
+SN_Guzman:Custom(function()
     ImGui.Text("Stage:")
     guzmanStageIndex = ImGui.Combo(
         "##GuzmanStage",
@@ -7896,22 +7140,20 @@ SN_Guzman:add_imgui(function()
         6
     )
 end)
-SN_Guzman:add_button("Apply & Complete Preps", function()
-    stats.set_int(MPX() .. "HACKER24_INST_BS", GuzmanStages[guzmanStageIndex + 1].index)
-    gui.show_message("Guzman Flies", "Preps should've been completed")
+SN_Guzman:Button("Apply & Complete Preps", function()
+    Stats.SetInt(J(MPX() .. "HACKER24_INST_BS"), GuzmanStages[guzmanStageIndex + 1].index)
+    Toast("Guzman Flies", "Preps should've been completed")
 end)
-SN_Guzman:add_sameline()
-SN_Guzman:add_button("Reset Preps", function()
-    stats.set_int(MPX() .. "HACKER24_INST_BS", 0)
-    gui.show_message("Guzman Flies", "Preps should've been reset")
+SN_Guzman:Button("Reset Preps", function()
+    Stats.SetInt(J(MPX() .. "HACKER24_INST_BS"), 0)
+    Toast("Guzman Flies", "Preps should've been reset")
 end)
-SN_Guzman:add_text("Stage = next Mission.")
-SN_Guzman:add_text("Mogul = Up n Running finished.")
-SN_Guzman:add_text("Titan Job = all Preps finished.")
-SN_Guzman:add_separator()
+SN_Guzman:Text("Stage = next Mission.")
+SN_Guzman:Text("Mogul = Up n Running finished.")
+SN_Guzman:Text("Titan Job = all Preps finished.")
 
-SN_Guzman:add_text("Options")
-SN_Guzman:add_imgui(function()
+SN_Guzman:Box("Options")
+SN_Guzman:Custom(function()
     local function box(label, list, key)
         local cur = guzmanGetBool(list)
         local new, changed = ImGui.Checkbox(label .. "##Guzman" .. key, cur)
@@ -7927,90 +7169,82 @@ SN_Guzman:add_imgui(function()
     box("Heavy Armor", GuzmanBools.HeavyArmor, "Armor")
     box("Mogul Upgrades", GuzmanBools.MogulUpgrades, "Upgrades")
 end)
-SN_Guzman:add_button("Enable All Options", function()
+SN_Guzman:Button("Enable All Options", function()
     for key, list in pairs(GuzmanBools) do
         if key ~= "HardMode" then
             guzmanSetBools(list, true)
         end
     end
-    gui.show_message("Guzman Flies", "All options should've been enabled")
+    Toast("Guzman Flies", "All options should've been enabled")
 end)
-SN_Guzman:add_sameline()
-SN_Guzman:add_button("Disable All Options", function()
+SN_Guzman:Button("Disable All Options", function()
     for _, list in pairs(GuzmanBools) do
         guzmanSetBools(list, false)
     end
-    gui.show_message("Guzman Flies", "All options should've been disabled")
+    Toast("Guzman Flies", "All options should've been disabled")
 end)
-SN_Guzman:add_separator()
 
-SN_Guzman:add_text("Teleport")
-SN_Guzman:add_button("Teleport to Entrance", function()
-    script.run_in_fiber(function()
-        local blip = HUD.GET_FIRST_BLIP_INFO_ID(903) -- McKenzie Field Hangar
-        if HUD.DOES_BLIP_EXIST(blip) then
-            selfTP(true, false, HUD.GET_BLIP_COORDS(blip))
+SN_Guzman:Box("Teleport")
+SN_Guzman:Button("Teleport to Entrance", function()
+    Script.QueueJob(function()
+        local blip = Natives.InvokeInt(N.GET_FIRST_BLIP_INFO_ID, 903) -- McKenzie Field Hangar
+        if Natives.InvokeBool(N.DOES_BLIP_EXIST, blip) then
+            selfTP(true, false, V3.New(Natives.InvokeV3(N.GET_BLIP_COORDS, blip)))
         else
-            gui.show_message("Guzman Flies", "Field Hangar blip not found")
+            Toast("Guzman Flies", "Field Hangar blip not found")
         end
     end)
 end)
-SN_Guzman:add_sameline()
-SN_Guzman:add_button("Teleport to Laptop", function()
+SN_Guzman:Button("Teleport to Laptop", function()
     selfTP(false, true, { x = 2147.685, y = 4785.257, z = -46.374 }, 270.519)
 end)
-SN_Guzman:add_separator()
 
-SN_Guzman:add_text("Extras")
-SN_Guzman:add_button("Instant Finish", function()
-    script.run_in_fiber(function()
-        locals.set_int(FMC2020, 56070 + 1589, 5)
-        locals.set_int(FMC2020, 56070 + 1776 + 1, 999999)
-        local v = locals.get_int(FMC2020, 56070 + 1)
+SN_Guzman:Box("Misc")
+SN_Guzman:Button("Instant Finish", function()
+    Script.QueueJob(function()
+        ScriptLocal.SetInt(J(FMC2020), 56070 + 1589, 5)
+        ScriptLocal.SetInt(J(FMC2020), 56070 + 1776 + 1, 999999)
+        local v = ScriptLocal.GetInt(J(FMC2020), 56070 + 1)
         v = v | (1 << 9) | (1 << 16)
-        locals.set_int(FMC2020, 56070 + 1, v)
-        gui.show_message("Guzman Flies", "Heist should've been finished")
+        ScriptLocal.SetInt(J(FMC2020), 56070 + 1, v)
+        Toast("Guzman Flies", "Heist should've been finished")
     end)
 end)
-SN_Guzman:add_sameline()
-SN_Guzman:add_button("Skip Cutscene", SkipCutscene)
-SN_Guzman:add_sameline()
-SN_Guzman:add_button("Kill Cooldown", function()
-    stats.set_int(MPX() .. "HACKER24_MFM_COOLDOWN", -1)
-    gui.show_message("Guzman Flies", "Cooldown should've been killed")
+SN_Guzman:Button("Skip Cutscene", SkipCutscene)
+SN_Guzman:Button("Kill Cooldown", function()
+    Stats.SetInt(J(MPX() .. "HACKER24_MFM_COOLDOWN"), -1)
+    Toast("Guzman Flies", "Cooldown should've been killed")
 end)
-SN_Guzman:add_text("Use 'Instant Finish' after you can see the minimap.")
+SN_Guzman:Text("Use 'Instant Finish' after you can see the minimap.")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Heist Teleports (arcade, casino, robberies) --
 end)
 
-__uml_block("HeistTeleportsMenu = HeistsDataEditorMenu:add_tab(Heist Tele", function()
-HeistTeleportsMenu = HeistsDataEditorMenu:add_tab("Teleports")
+Section("Teleports", function()
+HeistTeleportsMenu = HeistsDataEditorMenu:Tab("Teleports")
 
 local function TP_BlipOrFixed(blipId, fx, fy, fz, keepVehicle)
-    script.run_in_fiber(function()
-        local blip = HUD.GET_FIRST_BLIP_INFO_ID(blipId)
-        if blip ~= 0 and HUD.DOES_BLIP_EXIST(blip) then
-            local p = HUD.GET_BLIP_COORDS(blip)
+    Script.QueueJob(function()
+        local blip = Natives.InvokeInt(N.GET_FIRST_BLIP_INFO_ID, blipId)
+        if blip ~= 0 and Natives.InvokeBool(N.DOES_BLIP_EXIST, blip) then
+            local p = V3.New(Natives.InvokeV3(N.GET_BLIP_COORDS, blip))
             selfTP(keepVehicle or false, false, p)
         else
-            selfTP(keepVehicle or false, false, vec3:new(fx, fy, fz))
+            selfTP(keepVehicle or false, false, V3.New(fx, fy, fz))
         end
     end)
 end
 
 local function TP_Fixed(fx, fy, fz, keepVehicle)
-    script.run_in_fiber(function()
-        selfTP(keepVehicle or false, false, vec3:new(fx, fy, fz))
+    Script.QueueJob(function()
+        selfTP(keepVehicle or false, false, V3.New(fx, fy, fz))
     end)
 end
 
-HeistTeleportsMenu:add_imgui(function()
-    if isOffline() then return end
-
-    ImGui.Text("Arcade / Casino Exterior")
-    ImGui.Separator()
+HeistTeleportsMenu:Columns(1)
+HeistTeleportsMenu:Box("Arcade / Casino Exterior")
+HeistTeleportsMenu:Custom(function()
     if ImGui.Button("Arcade (Owned)") then
         TP_BlipOrFixed(740, 1721.0, -1653.0, 13.0, false)
     end
@@ -8025,10 +7259,9 @@ HeistTeleportsMenu:add_imgui(function()
     if ImGui.Button("Casino Parking") then
         TP_Fixed(900.0, -103.0, 75.0, true)
     end
-
-    ImGui.Dummy(1, 8)
-    ImGui.Text("Casino Interior (from Kiddions)")
-    ImGui.Separator()
+end)
+HeistTeleportsMenu:Box("Casino Interior")
+HeistTeleportsMenu:Custom(function()
     if ImGui.Button("Vault 1") then TP_Fixed(2510.261475, -224.366699, -72.037163, false) end
     ImGui.SameLine()
     if ImGui.Button("Vault 2") then TP_Fixed(2533.521729, -225.209366, -72.037163, false) end
@@ -8042,10 +7275,9 @@ HeistTeleportsMenu:add_imgui(function()
     if ImGui.Button("Vault Lobby Enter") then TP_Fixed(2521.761719, -287.359192, -60.022976, false) end
     ImGui.SameLine()
     if ImGui.Button("Vault Lobby Exit") then TP_Fixed(2521.876709, -284.334869, -60.022999, false) end
-
-    ImGui.Dummy(1, 8)
-    ImGui.Text("Cayo Perico (from Kiddions)")
-    ImGui.Separator()
+end)
+HeistTeleportsMenu:Box("Cayo Perico")
+HeistTeleportsMenu:Custom(function()
     if ImGui.Button("Main Dock") then TP_Fixed(4947.496094, -5168.458008, 1.23427, true) end
     ImGui.SameLine()
     if ImGui.Button("Main Loot") then TP_Fixed(5010.06543, -5751.291504, 14.184451, false) end
@@ -8069,10 +7301,9 @@ HeistTeleportsMenu:add_imgui(function()
     if ImGui.Button("Cayo Exit") then TP_Fixed(4990.778809, -5716.004395, 18.58021, false) end
     ImGui.SameLine()
     if ImGui.Button("Cayo Airstrip") then TP_Fixed(4437.779785, -4447.757812, 3.028435, true) end
-
-    ImGui.Dummy(1, 8)
-    ImGui.Text("Classic Robberies")
-    ImGui.Separator()
+end)
+HeistTeleportsMenu:Box("Classic Robberies")
+HeistTeleportsMenu:Custom(function()
     if ImGui.Button("Fleeca Bank (Burton)") then
         TP_Fixed(147.0, -1045.0, 29.4, false)
     end
@@ -8083,10 +7314,9 @@ HeistTeleportsMenu:add_imgui(function()
     if ImGui.Button("Doomsday Facility (Owned)") then
         TP_BlipOrFixed(590, 1274.0, 4126.0, 31.0, true)
     end
-
-    ImGui.Dummy(1, 8)
-    ImGui.Text("Agency / Dre (from Kiddions)")
-    ImGui.Separator()
+end)
+HeistTeleportsMenu:Box("Agency / Dre")
+HeistTeleportsMenu:Custom(function()
     if ImGui.Button("Dre 1") then TP_Fixed(507.766602, -605.932678, 23.451139, false) end
     ImGui.SameLine()
     if ImGui.Button("Dre 2") then TP_Fixed(-927.370483, -2923.859131, 12.644426, false) end
@@ -8099,10 +7329,9 @@ HeistTeleportsMenu:add_imgui(function()
     if ImGui.Button("Intelligence A") then TP_Fixed(102.285995, -743.904236, 44.454739, false) end
     ImGui.SameLine()
     if ImGui.Button("Intelligence B") then TP_Fixed(853.439697, -2339.465088, 29.033638, true) end
-
-    ImGui.Dummy(1, 8)
-    ImGui.Text("New Robberies")
-    ImGui.Separator()
+end)
+HeistTeleportsMenu:Box("New Robberies")
+HeistTeleportsMenu:Custom(function()
     if ImGui.Button("Kortz Center Entrance") then
         TP_Fixed(-2243.0, -325.0, 33.0, false)
     end
@@ -8123,115 +7352,109 @@ HeistTeleportsMenu:add_imgui(function()
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("MissionsSelectorAndCooldownMenu = makeOnlineTab(L7NEG:add_ta", function()
-MissionsSelectorAndCooldownMenu = makeOnlineTab(L7NEG:add_tab("Missions"))
+Section("Missions", function()
+MissionsSelectorAndCooldownMenu = Menu:Tab("Missions"):RequireOnline()
 
-MissionsSelectorAndCooldownMenu:add_button("Remove Dax Fooligan Missions Cooldown", function()
-    stats.set_int(MPX() .. "XM22JUGGALOWORKCDTIMER", -1)
+MissionsSelectorAndCooldownMenu:Box("Missions")
+MissionsSelectorAndCooldownMenu:Button("Remove Dax Fooligan Missions Cooldown", function()
+    Stats.SetInt(J(MPX() .. "XM22JUGGALOWORKCDTIMER"), -1)
 end)
 
-MissionsSelectorAndCooldownMenu:add_button("Remove VIP/MC Cooldown", function()
-    stats.set_int("MPPLY_VIPGAMEPLAYDISABLEDTIMER", 0)
+MissionsSelectorAndCooldownMenu:Button("Remove VIP/MC Cooldown", function()
+    Stats.SetInt(J("MPPLY_VIPGAMEPLAYDISABLEDTIMER"), 0)
 end)
 
-MissionsSelectorAndCooldownMenu:add_button("Skip Yacht Missions", function()
-    stats.set_int(MPX() .. "YACHT_MISSION_PROG", 0)
-    stats.set_int(MPX() .. "YACHT_MISSION_FLOW", 21845)
-    stats.set_int(MPX() .. "CASINO_DECORATION_GIFT_1", -1)
+MissionsSelectorAndCooldownMenu:Button("Skip Yacht Missions", function()
+    Stats.SetInt(J(MPX() .. "YACHT_MISSION_PROG"), 0)
+    Stats.SetInt(J(MPX() .. "YACHT_MISSION_FLOW"), 21845)
+    Stats.SetInt(J(MPX() .. "CASINO_DECORATION_GIFT_1"), -1)
 end)
 
-MissionsSelectorAndCooldownMenu:add_button("LSA Operations Instant-Finish", function()
-    locals.set_int(SMUGOPS, LSAIFl1, 1)
-    locals.set_int(SMUGOPS, LSAIFl2, -2145370496)
-    gui.show_message("LSA Operations", "Mission should've been finished")
+MissionsSelectorAndCooldownMenu:Button("LSA Operations Instant-Finish", function()
+    ScriptLocal.SetInt(J(SMUGOPS), LSAIFl1, 1)
+    ScriptLocal.SetInt(J(SMUGOPS), LSAIFl2, -2145370496)
+    Toast("LSA Operations", "Mission should've been finished")
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("CreditsMenu = L7NEG:add_tab(Credits)", function()
-SettingsMenu = L7NEG:add_tab("Settings")
-SettingsMain = SettingsMenu:add_tab("Main")
-SettingsMain:add_text("Ultimate Menu 1.73 Legacy")
-SettingsMain:add_text("Cherax Beta")
-bypassOnlineCheckbox = SettingsMain:add_checkbox("Bypass Online Check")
-CreditsMenu = SettingsMenu:add_tab("Credits")
+Section("Settings", function()
+SettingsMenu = Menu:Tab("Settings")
+SettingsMain = SettingsMenu:Tab("Main")
+SettingsMain:Box("Ultimate Menu")
+SettingsMain:Text("Ultimate Menu 1.73 Legacy")
+SettingsMain:Text("Cherax Beta")
+BypassOnlineCheck = SettingsMain:Toggle("Bypass Online Check", "Shows the online-only tabs even when the online check fails.")
+CreditsMenu = SettingsMenu:Tab("Credits")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-__uml_block("Yimura = CreditsMenu:add_tab(Yimura and his team/maintainers", function()
-CreditsMenu:add_text("Yimura and his team/maintainers")
-CreditsMenu:add_text("Source:")
-CreditsMenu:add_text("https://github.com/Mr-X-GTA/YimMenu")
-CreditsMenu:add_text("https://github.com/YimMenu/YimMenuV2")
-
+Section("Credits: Yimura", function()
+CreditsMenu:Box("Yimura and his team/maintainers")
+CreditsMenu:Text("Source:")
+CreditsMenu:Text("https://github.com/Mr-X-GTA/YimMenu")
+CreditsMenu:Text("https://github.com/YimMenu/YimMenuV2")
 end)
 
-__uml_block("SILENTSALO = CreditsMenu:add_tab(Silent)", function()
-CreditsMenu:add_separator()
-CreditsMenu:add_text("Silent")
-CreditsMenu:add_text("Source:")
-CreditsMenu:add_text("https://github.com/SilentSal0/Silent-Night")
-CreditsMenu:add_text("Maintained by nightli:")
-CreditsMenu:add_text("https://github.com/xnightli06x/Silent-Night")
-
+Section("Credits: Silent", function()
+CreditsMenu:Box("Silent")
+CreditsMenu:Text("Source:")
+CreditsMenu:Text("https://github.com/SilentSal0/Silent-Night")
+CreditsMenu:Text("Maintained by nightli:")
+CreditsMenu:Text("https://github.com/xnightli06x/Silent-Night")
 end)
 
-__uml_block("XESDDOOG = CreditsMenu:add_tab(SAMURAI aka xesdoog)", function()
-CreditsMenu:add_separator()
-CreditsMenu:add_text("SAMURAI aka xesdoog")
-CreditsMenu:add_text("Source:")
-CreditsMenu:add_text("https://github.com/YimMenu-Lua/YimResupplier")
-
+Section("Credits: xesdoog", function()
+CreditsMenu:Box("SAMURAI aka xesdoog")
+CreditsMenu:Text("Source:")
+CreditsMenu:Text("https://github.com/YimMenu-Lua/YimResupplier")
 end)
 
-__uml_block("IMAGINENOTHING = CreditsMenu:add_tab(ImagineNothing)", function()
-CreditsMenu:add_separator()
-CreditsMenu:add_text("ImagineNothing")
-CreditsMenu:add_text("For Kortz Center Heist stats and Locals/globals:")
-CreditsMenu:add_text("https://www.unknowncheats.me/forum/4742522-post603.html")
-CreditsMenu:add_text("https://www.unknowncheats.me/forum/4746347-post762.html")
-
+Section("Credits: ImagineNothing", function()
+CreditsMenu:Box("ImagineNothing")
+CreditsMenu:Text("For Kortz Center Heist stats and Locals/globals:")
+CreditsMenu:Text("https://www.unknowncheats.me/forum/4742522-post603.html")
+CreditsMenu:Text("https://www.unknowncheats.me/forum/4746347-post762.html")
 end)
 
-__uml_block("SLON = CreditsMenu:add_tab(SLON)", function()
-CreditsMenu:add_separator()
-CreditsMenu:add_text("SLON")
-CreditsMenu:add_text("Source:")
-CreditsMenu:add_text("https://www.unknowncheats.me/forum/grand-theft-auto-v")
-CreditsMenu:add_text("/591335-yimceo-ceo-crates-method-yimmenu.html")
-
+Section("Credits: SLON", function()
+CreditsMenu:Box("SLON")
+CreditsMenu:Text("Source:")
+CreditsMenu:Text("https://www.unknowncheats.me/forum/grand-theft-auto-v")
+CreditsMenu:Text("/591335-yimceo-ceo-crates-method-yimmenu.html")
 end)
 
-__uml_block("Alestarov = CreditsMenu:add_tab(Alestarov)", function()
-CreditsMenu:add_separator()
-CreditsMenu:add_text("Alestarov")
-CreditsMenu:add_text("Source:")
-CreditsMenu:add_text("https://github.com/YimMenu-Lua/Alestarov-Menu")
-
+Section("Credits: Alestarov", function()
+CreditsMenu:Box("Alestarov")
+CreditsMenu:Text("Source:")
+CreditsMenu:Text("https://github.com/YimMenu-Lua/Alestarov-Menu")
 end)
 
-__uml_block("YOUMENU = CreditsMenu:add_tab(And You <3)", function()
-CreditsMenu:add_separator()
-CreditsMenu:add_text("And You <3")
-CreditsMenu:add_text(
+Section("Credits: You", function()
+CreditsMenu:Box("And You <3")
+CreditsMenu:Text(
     "Yes You Without You Or Your PRs and support You Give Me This Script Would Be Nothing Fr"
 )
-CreditsMenu:add_text("So Big Thanks To You All")
-CreditsMenu:add_text("You can report Bugs And Make PRs With Features Down Bellow:")
-CreditsMenu:add_text("https://github.com/UltimateMenu/UltimateMenu/issues")
+CreditsMenu:Text("So Big Thanks To You All")
+CreditsMenu:Text("You can report Bugs And Make PRs With Features Down Bellow:")
+CreditsMenu:Text("https://github.com/UltimateMenu/UltimateMenu/issues")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 end)
 
-UML.MoveTabAfter(L7NEG, "Heists", "Recovery")
+Menu:MoveTabAfter("Heists", "Recovery")
 
-SettingsTabs = SettingsMenu:add_tab("Tabs")
-SettingsTabs:add_imgui(function() UML.RenderTabToggles(L7NEG, "Settings") end)
+Section("Settings Tabs", function()
+SettingsTabs = SettingsMenu:Tab("Tabs")
+SettingsTabs:Box("Hidden Tabs")
+for _, tab in ipairs(Menu.tabs) do
+    if tab ~= SettingsMenu then
+        -- Saved with the Cherax settings, unlike the rest of the menu's features.
+        tab.hideToggle = SettingsTabs:Toggle("Hide " .. tab.title, "Hides the " .. tab.title .. " tab."):SetSaveable(true)
+    end
+end
+end)
