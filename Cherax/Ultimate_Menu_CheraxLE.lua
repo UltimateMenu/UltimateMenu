@@ -25,6 +25,7 @@ local N = {
     REQUEST_SCRIPT = 0x6EB5F71AA68F2E8E,
     SET_SCRIPT_AS_NO_LONGER_NEEDED = 0xC90D2DCACD56184C,
     START_NEW_SCRIPT = 0xE81651AD79516E48,
+    HAS_SCRIPT_LOADED = 0xE6CC9F3BA0FB9EF1,
     GET_CLOCK_HOURS = 0x25223CA6B4D20B7F,
     GET_CLOCK_MINUTES = 0x13D2B8ADD79640F2,
     SET_CONTROL_VALUE_NEXT_FRAME = 0xE8A25867FBA3B05E,
@@ -125,7 +126,7 @@ end
 -- Weapon names (the Gun Van section fills WeaponNames)
 WeaponNames = {}
 local EXTRA_WEAPONS = { "WEAPON_GRENADE", "WEAPON_BZGAS", "WEAPON_MOLOTOV", "WEAPON_STICKYBOMB", "WEAPON_PROXMINE",
-    "WEAPON_SNOWBALL", "WEAPON_PIPEBOMB", "WEAPON_SMOKEGRENADE", "WEAPON_FLARE", "WEAPON_BALL", "WEAPON_ACIDPACKAGE" }
+    "WEAPON_SNOWBALL", "WEAPON_PIPEBOMB", "WEAPON_SMOKEGRENADE", "WEAPON_FLARE", "WEAPON_BALL", "WEAPON_ACIDPACKAGE", "WEAPON_PETROLCAN" }
 local weaponByHash
 
 local function PrettyWeaponName(name)
@@ -139,10 +140,10 @@ local function WeaponDisplayName(weapon)
     end
     if not weaponByHash then
         weaponByHash = {}
-        for _, name in ipairs(WeaponNames) do weaponByHash[J(name)] = name end
-        for _, name in ipairs(EXTRA_WEAPONS) do weaponByHash[J(name)] = name end
+        for _, name in ipairs(WeaponNames) do weaponByHash[J(name) & 0xFFFFFFFF] = name end
+        for _, name in ipairs(EXTRA_WEAPONS) do weaponByHash[J(name) & 0xFFFFFFFF] = name end
     end
-    local name = weaponByHash[weapon]
+    local name = weaponByHash[weapon & 0xFFFFFFFF]
     return name and PrettyWeaponName(name) or ("Unknown (" .. tostring(weapon) .. ")")
 end
 
@@ -598,6 +599,27 @@ function MPX()
         return "MP1_"
     end
     return "MP0_"
+end
+
+function OpenScreenScript(name, stackSize)
+    local ok, err = pcall(function()
+        Natives.InvokeVoid(N.REQUEST_SCRIPT, name)
+        local waited = 0
+        while not Natives.InvokeBool(N.HAS_SCRIPT_LOADED, name) do
+            Script.Yield(50)
+            waited = waited + 50
+            if waited > 5000 then
+                Toast("Screen", "Script " .. name .. " did not load.")
+                return
+            end
+        end
+        Natives.InvokeInt(N.START_NEW_SCRIPT, name, stackSize)
+        Natives.InvokeVoid(N.SET_SCRIPT_AS_NO_LONGER_NEEDED, name)
+    end)
+    if not ok then
+        Logger.LogError("[" .. MENU_NAME .. "] Opening " .. name .. " failed: " .. tostring(err))
+        Toast("Screen", "Failed to open " .. name .. ", see the log.")
+    end
 end
 
 function SkipCutscene()
@@ -1814,7 +1836,8 @@ end)
 
 Section("Awards Unlocker", function()
 AUM = RecoveryMenu:Tab("Awards Unlocker")
-AUMMain = AUM:Tab("Main")
+AUM:Columns(3)
+AUMMain = AUM
 
 AUMMain:Box("Awards")
 AUMMain:Button("Victory", function()
@@ -2207,14 +2230,14 @@ end)
 end)
 
 Section("Heist Awards", function()
-HAUM = AUM:Tab("Heist")
+HAUM = AUM
 end)
 
 Section("Apartment Heist Awards", function()
 APARTMENTAUM = HAUM
 
 APARTMENTAUM:Box("Heist Awards")
-APARTMENTAUM:Button("Unlock All Apartment Heists Awards", function()
+APARTMENTAUM:Button("Apartment Heist", function()
     Stats.SetInt(J(MPX() .. "AWD_FINISH_HEISTS"), 50)
     Stats.SetInt(J(MPX() .. "AWD_FINISH_HEIST_SETUP_JOB"), 50)
     Stats.SetInt(J(MPX() .. "AWD_COMPLETE_HEIST_NOT_DIE"), -1)
@@ -2293,7 +2316,7 @@ end)
 Section("Diamond Casino Heist Awards", function()
 DIAMONHDAUM = HAUM
 
-DIAMONHDAUM:Button("Unlock All Diamond Casino Heist Awards", function()
+DIAMONHDAUM:Button("Diamond Casino Heist", function()
     Stats.SetInt(J(MPX() .. "CAS_HEIST_NOTS"), -1)
     Stats.SetInt(J(MPX() .. "CAS_HEIST_FLOW"), -1)
     Stats.SetInt(J(MPX() .. "SIGNAL_JAMMERS_COLLECTED"), 50)
@@ -2390,7 +2413,7 @@ end)
 Section("Cayo Perico Heist Awards", function()
 CAYOAUM = HAUM
 
-CAYOAUM:Button("Unlock All Cayo Heist Awards", function()
+CAYOAUM:Button("Cayo Perico Heist", function()
     Stats.SetBool(J(MPX() .. "AWD_INTELGATHER"), 1)
     Stats.SetBool(J(MPX() .. "AWD_COMPOUNDINFILT"), 1)
     Stats.SetBool(J(MPX() .. "AWD_LOOT_FINDER"), 1)
@@ -2441,7 +2464,7 @@ end)
 Section("Doomsday Heist Awards", function()
 DOOMSDAYAUM = HAUM
 
-DOOMSDAYAUM:Button("Unlock All Doomsday Heist Awards", function()
+DOOMSDAYAUM:Button("Doomsday Heist", function()
     Stats.SetInt(J(MPX() .. "GANGOPS_HEIST_STATUS"), -1)
     Stats.SetInt(J(MPX() .. "GANGOPS_HEIST_STATUS"), -229384)
     Stats.SetInt(J(MPX() .. "GANGOPS_FM_MISSION_PROG"), -1)
@@ -2494,7 +2517,7 @@ end)
 end)
 
 Section("DLC Awards", function()
-DLCAUM = AUM:Tab("DLC Awards")
+DLCAUM = AUM
 
 DLCAUM:Box("DLC Awards")
 DLCAUM:Button("The Kortz Center Heist", function()
@@ -3042,9 +3065,13 @@ Acv0 = false
 AG = 4525223 + 1 --("CHEAT_ACHIEVE")
 
 AcMenu:Columns(3)
-AcMenu:Box("All Achievements")
+AcMenu:Box("All Achievements", 0)
 AcMenu:Custom(function()
-    if ImGui.Button("Unlock All Achievements") then
+    local label = "Unlock All Achievements"
+    local text_width = ImGui.CalcTextSize(label)
+    local avail = ImGui.GetContentRegionAvail()
+    ImGui.SetCursorPosX(ImGui.GetCursorPosX() + math.max(0, (avail - (text_width + 24)) / 2))
+    if ImGui.Button(label) then
         Script.QueueJob(function()
             for i = 0, 77 do
                 Script.Yield(200)
@@ -3367,20 +3394,20 @@ LSCMNote:Text("toggle 'Bypass Online Check' in Settings.")
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end)
 
-Section("Money Methods", function()
-L7NEG7 = Menu:Tab("Money Methods"):RequireOnline()
+Section("Business", function()
+L7NEG7 = Menu:Tab("Business"):RequireOnline()
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end)
 
 Section("Businesses", function()
-BusinessesMenu = L7NEG7:Tab("Businesses")
+BusinessesMenu = L7NEG7
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end)
 
-Section("Air Cargo", function()
-AirCargoMenu = BusinessesMenu:Tab("Air Cargo")
+Section("Hangar Cargo", function()
+AirCargoMenu = BusinessesMenu:Tab("Hangar Cargo")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3446,201 +3473,587 @@ end)
 
 
 AirCargoMenu:Button("Open Hangar Screen", function()
-    Natives.InvokeVoid(N.REQUEST_SCRIPT, "apparcadebusinesshub")
-    Natives.InvokeInt(N.START_NEW_SCRIPT, "apparcadebusinesshub", 8344)
+    OpenScreenScript("appsmuggler", 4592)
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end)
 
-Section("Air Cargo Data Editor", function()
-AirCargoEditorMenu = AirCargoMenu:Tab("Air Cargo Data Editor")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-AirCargoEditorMenu:Box("Stats")
-AirCargoEditorMenu:Button("Reset Crate Sell Stats-0/0 Sales", function()
-    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_BUY_COMPLET"), 0)
-    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_BUY_UNDERTAK"), 0)
-    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_SEL_COMPLET"), 0)
-    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_SEL_UNDERTAK"), 0)
-    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_EARNINGS"), 0)
-    Stats.SetInt(J(MPX() .. "HANGAR_CONTRABAND_TOTAL"), 0)
-    Stats.SetInt(J(MPX() .. "LFETIME_HANGAR_EARN_BONUS"), 0)
-    Stats.SetInt(J(MPX() .. "RIVAL_HANGAR_CRATES_STOLEN"), 0)
-    ScriptGlobal.SetInt(CSg1, 11)
-    ScriptGlobal.SetInt(CSg2, 1)
-    ScriptGlobal.SetInt(CSg2, 0)
+Section("Hangar Cargo Stats", function()
+AirCargoEditorMenu = AirCargoMenu
 end)
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-end)
-
-Section("Use At Your Own Risk", function()
-UseAtYourOwnRiskMenu = L7NEG7:Tab("Use At Your Own Risk")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-end)
-
-Section("Ceo Manager", function()
-CeoManagerMenu = UseAtYourOwnRiskMenu:Tab("Ceo Manager")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-SMC1 = 574 + 1 --("gb_contraband_sell")
-SMC2 = 574 + 7 --("gb_contraband_sell")
-SMC3 = 574 + 584 --("gb_contraband_sell")
-SMC4 = 574 + 55 --("gb_contraband_sell")
-SMC5 = 574 + 595 --("gb_contraband_sell")
-SMC6 = 589 --("Popup_Confirm_Success") in ("appsecuroserv")
-SMC7 = 770 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
-SMC8 = 771 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
-SMC9 = 632 + 5 --("SPEECH_PARAMS_SHOUTED_CRITICAL") in ("gb_contraband_buy")
-SMC10 = 632 + 1 --func_91() in ("gb_contraband_buy")
-SMC11 = 632 + 191 --("gb_contraband_buy")
-SMC12 = 632 + 192 --("gb_contraband_buy")
-
-local cs = "appsecuroserv"
-
-local ci = "gb_contraband_sell"
-
-local cb = "gb_contraband_buy"
-
-local am = "am_mp_warehouse"
-
-local am2 = "am_mp_peds"
-
-cratevalue = 0
-CeoManagerMenu:Box("Ceo Manager")
-CeoManagerMenu:Custom(function()
-    cratevalue, used = ImGui.DragInt("Crate Value", cratevalue, 10000.0, 0, 6000000)
-    if used then
-        SetTunableInt("EXEC_CONTRABAND_SALE_VALUE_THRESHOLD1", cratevalue)
-    end
-end)
-
-checkbox = CeoManagerMenu:Toggle("Start Ceo Manager")
-
-PRPGD2 = CeoManagerMenu:Toggle("Disable Player RP Gain")
-Script.RegisterLooped(function()
-    Script.Yield()
-    if
-        not IsSessionStarted()
-        or IsScriptRunning("maintransition")
-    then
-        Script.Yield(500)
-        return
-    end
-    local want = PRPGD2:IsToggled() and 0 or 1
-    if want ~= _prpgd2Prev then
-        SetTunableFloat("XP_MULTIPLIER", want)
-        _prpgd2Prev = want
-    end
-    Script.Yield(500)
-end)
-
-CeoManagerMenu:Button("Open Warehouse Screen", function()
-    Natives.InvokeVoid(N.REQUEST_SCRIPT, "apparcadebusinesshub")
-    Natives.InvokeInt(N.START_NEW_SCRIPT, "apparcadebusinesshub", 8344)
-end)
-
-Script.RegisterLooped(function()
-    Script.Yield()
-    if
-        not IsSessionStarted()
-        or IsScriptRunning("maintransition")
-    then
-        return
-    end
-    -- removed useless call
-    SetTunableInt("EXEC_BUY_COOLDOWN", 0)
-    SetTunableInt("EXEC_SELL_COOLDOWN", 0)
-
-    if checkbox:IsToggled() == true then
-        if ScriptLocal.GetInt(J(ci), 2) == 1 then
-            ScriptLocal.SetInt(J(ci), SMC5, 1)
-            ScriptLocal.SetInt(J(ci), SMC4, 0)
-            ScriptLocal.SetInt(J(ci), SMC3, 0)
-            ScriptLocal.SetInt(J(ci), SMC2, 7)
-            Script.Yield(500)
-            ScriptLocal.SetInt(J(ci), SMC1, 99999)
+Section("Business Tools", function()
+local function BusinessStatEditor(page, title, entries, after)
+    page:Box(title)
+    local inputs, skips = {}, {}
+    for i, entry in ipairs(entries) do
+        inputs[i] = page:InputInt(entry[1])
+        local group = entry[3]
+        if group and not skips[group] then
+            skips[group] = page:Toggle("Don't Apply " .. group, "Decides whether the " .. group:lower() .. " values are applied or not.")
         end
-        if ScriptLocal.GetInt(J(cs), 2) == 1 then
-            Script.Yield(500)
-            ScriptLocal.SetInt(J(cs), SMC8, 1)
-            Script.Yield(200)
-            ScriptLocal.SetInt(J(cs), SMC7, 1)
-            Script.Yield(200)
-            ScriptLocal.SetInt(J(cs), SMC6, 3012)
-            Script.Yield(1000)
+    end
+    page:Button("Refresh " .. title, function()
+        for i, entry in ipairs(entries) do
+            inputs[i]:SetIntValue(GetStatInt(MPX() .. entry[2]))
         end
-        if ScriptLocal.GetInt(J(cb), 2) == 1 then
-            ScriptLocal.SetInt(J(cb), SMC9, 1)
-            ScriptLocal.SetInt(J(cb), SMC10, 111)
-            ScriptLocal.SetInt(J(cb), SMC11, 6)
-            ScriptLocal.SetInt(J(cb), SMC12, 4)
-            Toast("Your Warehouse is now full! 111/111 Crates")
-        end
-        if ScriptLocal.GetInt(J(ci), 2) ~= 1 then
-            Script.Yield(500)
-            if ScriptLocal.GetInt(J(am), 2) == 1 then
-                Natives.InvokeVoid(N.REQUEST_SCRIPT, "appsecuroserv")
-                Natives.InvokeInt(N.START_NEW_SCRIPT, "appsecuroserv", 8344)
-                Natives.InvokeVoid(N.SET_SCRIPT_AS_NO_LONGER_NEEDED, "appsecuroserv")
+        Toast(title, "Current values loaded")
+    end)
+    page:Button("Apply " .. title, function()
+        local values = {}
+        for i, entry in ipairs(entries) do
+            local group = entry[3]
+            if not (group and skips[group]:IsToggled()) then
+                local value = inputs[i]:GetIntValue()
+                Stats.SetInt(J(MPX() .. entry[2]), value)
+                values[entry[2]] = value
             end
         end
+        if after then after(values) end
+        Toast(title, "Stats should've been applied. Change session to see them")
+    end)
+end
+
+local function LoopToggle(page, name, desc, onTick, onOff, interval)
+    local toggle = page:Toggle(name, desc)
+    local wasOn = false
+    Script.RegisterLooped(function()
+        Script.Yield()
+        if not IsSessionStarted() or IsScriptRunning("maintransition") then
+            Script.Yield(500)
+            return
+        end
+        if toggle:IsToggled() then
+            wasOn = true
+            onTick()
+            Script.Yield(interval or 500)
+        elseif wasOn then
+            wasOn = false
+            if onOff then onOff() end
+            Script.Yield(500)
+        else
+            Script.Yield(500)
+        end
+    end)
+    return toggle
+end
+
+local function SetTunableList(list, restore)
+    for _, t in ipairs(list) do
+        local value = restore and t[2] or 0
+        if t[3] then SetTunableFloat(t[1], value) else SetTunableInt(t[1], value) end
     end
-    Script.Yield(500)
+end
+
+local function CooldownToggle(page, list)
+    LoopToggle(page, "Kill Cooldowns", "Skips almost all cooldowns.",
+        function() SetTunableList(list, false) end,
+        function() SetTunableList(list, true) end, 1000)
+end
+
+local function SetPackedBools(first, last)
+    for i = first, last or first do
+        Natives.InvokeVoid(N.SET_PACKED_STAT_BOOL_CODE, i, true, CharSlot())
+    end
+end
+
+local function SupplyGlobal(slot)
+    return 1673807 + slot + 1
+end
+
+local function BunkerTriggerProduction()
+    ScriptGlobal.SetInt(2708790 + 1 + 5 * 2, 0)
+    ScriptGlobal.SetBool(2708790 + 1 + 5 * 2 + 1, true)
+end
+
+local function SetXpGain(disabled)
+    SetTunableFloat("XP_MULTIPLIER", disabled and 0.0 or 1.0)
+end
+
+local function TeleportToBlip(sprite, label)
+    local blip = Natives.InvokeInt(N.GET_FIRST_BLIP_INFO_ID, sprite)
+    if blip ~= 0 and Natives.InvokeBool(N.DOES_BLIP_EXIST, blip) then
+        local x, y, z = Natives.InvokeV3(N.GET_BLIP_COORDS, blip)
+        selfTP(true, false, { x = x, y = y, z = z })
+    else
+        Toast(label, "Entrance blip not found. Do you own it?")
+    end
+end
+
+local function TeleportButtons(page, label, sprite, xyz, laptopName)
+    page:Button("Teleport to Entrance", function() TeleportToBlip(sprite, label) end, "Teleports you to the entrance of your " .. label .. ".")
+    page:Button("Teleport to " .. laptopName, function()
+        selfTP(false, true, { x = xyz[1], y = xyz[2], z = xyz[3] }, xyz[4])
+    end, "Teleports you to the " .. label .. " " .. laptopName:lower() .. ".")
+end
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local BunkerMenu = BusinessesMenu:Tab("Bunker")
+BunkerMenu:Box("Sale")
+local bunkerPrice = {
+    { "GR_MANU_PRODUCT_VALUE", 5000 },
+    { "GR_MANU_PRODUCT_VALUE_STAFF_UPGRADE", 1000 },
+    { "GR_MANU_PRODUCT_VALUE_EQUIPMENT_UPGRADE", 1000 },
+}
+LoopToggle(BunkerMenu, "Maximize Price", "CAUTION: might be unsafe, bans reported in the past.\nApplies the maximum price for your stock. Use it in a solo session with a filled stock.",
+    function()
+        local stock = GetStatInt(MPX() .. "PRODTOTALFORFACTORY5")
+        if stock > 0 then
+            SetTunableInt(bunkerPrice[1][1], math.floor((2500000 / 1.5) / stock))
+            SetTunableInt(bunkerPrice[2][1], 0)
+            SetTunableInt(bunkerPrice[3][1], 0)
+        else
+            ScriptGlobal.SetInt(SupplyGlobal(5), 1)
+            Script.Yield(1000)
+            BunkerTriggerProduction()
+        end
+    end,
+    function()
+        SetTunableList(bunkerPrice, true)
+    end, 1000)
+
+local bunkerNoXp = BunkerMenu:Toggle("No XP Gain", "Disables the XP gain for sell missions.")
+BunkerMenu:Button("Instant Sell", function()
+    SetXpGain(bunkerNoXp:IsToggled())
+    ScriptLocal.SetInt(J("gb_gunrunning"), 1266 + 774, 0)
+    Toast("Bunker", "Sell mission should've been finished")
+end, "Finishes the sell mission instantly. Use after you can see the minimap.")
+
+BunkerMenu:Box("Supplies")
+BunkerMenu:Button("Get Supplies", function()
+    ScriptGlobal.SetInt(SupplyGlobal(5), 1)
+    Toast("Bunker", "Supplies should've been received")
+end, "Gets supplies for your Bunker.")
+BunkerMenu:Button("Trigger Production", function()
+    if not IsScriptRunning("appbunkerbusiness") then
+        BunkerTriggerProduction()
+        Toast("Bunker", "Production should've been triggered")
+    end
+end, "Triggers production of your stock.")
+LoopToggle(BunkerMenu, "Turkish Supplier", "Fills your Bunker stock. Also gets supplies for your Bunker repeatedly.",
+    function()
+        if not IsScriptRunning("appbunkerbusiness") then
+            ScriptGlobal.SetInt(SupplyGlobal(5), 1)
+            BunkerTriggerProduction()
+        end
+    end,
+    function() ScriptGlobal.SetInt(SupplyGlobal(5), 0) end, 1000)
+
+BunkerMenu:Box("Misc")
+BunkerMenu:Button("Skip Setup", function()
+    Stats.SetInt(J(MPX() .. "FACTORYSETUP5"), 1)
+    Toast("Bunker", "Setup should've been skipped")
+end, "Skips the setup mission for your Bunker.")
+TeleportButtons(BunkerMenu, "Bunker", 557, { 907.515, -3207.357, -97.187, 245.099 }, "Laptop")
+BunkerMenu:Button("Open Laptop", function() OpenScreenScript("appbunkerbusiness", 4592) end, "Opens the Bunker's laptop screen.")
+
+BusinessStatEditor(BunkerMenu, "Bunker Stats", {
+    { "Sales Made", "LIFETIME_BKR_SEL_COMPLETBC5", "Sell" },
+    { "Sales Undertaken", "LIFETIME_BKR_SEL_UNDERTABC5", "Sell" },
+    { "Earnings", "LIFETIME_BKR_SELL_EARNINGS5", "Earnings" },
+}, function(values)
+    if values.LIFETIME_BKR_SEL_COMPLETBC5 then
+        Stats.SetInt(J(MPX() .. "BUNKER_UNITS_MANUFAC"), values.LIFETIME_BKR_SEL_COMPLETBC5 * 100)
+    end
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-end)
+local hangarPrice = { { "SMUG_SELL_PRICE_PER_CRATE_MIXED", 30000 }, { "SMUG_SELL_RONS_CUT", 0.025, true } }
+AirCargoMenu:Box("Sale")
+LoopToggle(AirCargoMenu, "Maximize Price", "CAUTION: might be unsafe, bans reported in the past.\nApplies the maximum price for your cargo. Use it in a solo session.",
+    function()
+        local total = GetStatInt(MPX() .. "HANGAR_CONTRABAND_TOTAL")
+        if total > 0 then
+            SetTunableInt(hangarPrice[1][1], math.floor(4000000 / total))
+        end
+    end,
+    function() SetTunableList(hangarPrice, true) end, 1000)
 
-Section("NightClub Safe Loop", function()
-NightClubSafeMenu = UseAtYourOwnRiskMenu:Tab("NightClub Safe Loop")
+local hangarNoXp = AirCargoMenu:Toggle("No XP Gain", "Disables the XP gain for sell missions.")
+AirCargoMenu:Button("Instant Air Cargo Sell", function()
+    SetXpGain(hangarNoXp:IsToggled())
+    ScriptLocal.SetInt(J("gb_smuggler"), 1989 + 1035, ScriptLocal.GetInt(J("gb_smuggler"), 1989 + 1078))
+    Toast("Hangar", "Sell mission should've been finished")
+end, "Finishes the air cargo sell mission instantly. Use after you can see the minimap.")
 
-SafeAmount = 300000
-SafeCapacity = 23769 --NIGHTCLUBMAXSAFEVALUE
-IncomeStart = 23746 --NIGHTCLUBINCOMEUPTOPOP5
-IncomeEnd = 23765 --NIGHTCLUBINCOMEUPTOPOP100
-
-NightClubSafeMenu:Box("Safe Loop")
-NCRSCB = NightClubSafeMenu:Toggle("Enable Nightclub $300k/5s (Safe Remote AFK)")
-Script.RegisterLooped(function()
-    Script.Yield()
-    if
-        not IsSessionStarted()
-        or IsScriptRunning("maintransition")
-    then
-        Script.Yield(500)
+AirCargoMenu:Box("Supplies")
+AirCargoMenu:Button("Get Cargo", function()
+    if IsScriptRunning("appsmuggler") then
+        Toast("Hangar", "Close the laptop first.")
         return
     end
-    if NCRSCB:IsToggled() == true then
-        SafeValue = 1845298 + GTA.GetLocalPlayerId() + 260 + 364 + 5 --("am_mp_nightclub") or we can just use TUNEABLE: NIGHTCLUBMAXSAFEVALUE
-        for i = IncomeStart, IncomeEnd do
-            ScriptGlobal.SetInt(FMg + i, SafeAmount)
+    SetPackedBools(36828)
+    Toast("Hangar", "Cargo should've been received")
+end, "Gets cargo for your Hangar.")
+LoopToggle(AirCargoMenu, "Turkish Supplier", "Fills your Hangar stock repeatedly.",
+    function()
+        if not IsScriptRunning("appsmuggler") then
+            SetPackedBools(36828)
         end
-        ScriptGlobal.SetInt(FMg + SafeCapacity, SafeAmount)
+    end, nil, 1000)
+
+
+AirCargoMenu:Box("Misc")
+AirCargoMenu:Button("Skip Setup", function()
+    SetPackedBools(15966)
+    Toast("Hangar", "Setup should've been skipped")
+end, "Skips the setup mission for your Hangar.")
+TeleportButtons(AirCargoMenu, "Hangar", 569, { -1239.059, -3001.454, -42.867, 146.258 }, "Laptop")
+CooldownToggle(AirCargoMenu, {
+    { "SMUG_STEAL_EASY_COOLDOWN_TIMER", 120000 },
+    { "SMUG_STEAL_MED_COOLDOWN_TIMER", 180000 },
+    { "SMUG_STEAL_HARD_COOLDOWN_TIMER", 240000 },
+    { "SMUG_STEAL_ADDITIONAL_CRATE_COOLDOWN_TIME", 60000 },
+    { "SMUG_SELL_SELL_COOLDOWN_TIMER", 180000 },
+})
+
+BusinessStatEditor(AirCargoMenu, "Hangar Stats", {
+    { "Buy Made", "LFETIME_HANGAR_BUY_COMPLET", "Buy" },
+    { "Buy Undertaken", "LFETIME_HANGAR_BUY_UNDETAK", "Buy" },
+    { "Sales Made", "LFETIME_HANGAR_SEL_COMPLET", "Sell" },
+    { "Sales Undertaken", "LFETIME_HANGAR_SEL_UNDETAK", "Sell" },
+    { "Earnings", "LFETIME_HANGAR_EARNINGS", "Earnings" },
+})
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local MoneyFrontsMenu = BusinessesMenu:Tab("Money Fronts")
+local fronts = {
+    { name = "Hands On Car Wash", short = "Car Wash", packed = 24924, blip = 931, blipHot = 933, xyz = { 23.684, -1400.633, -73.999, 357.518 } },
+    { name = "Smoke on the Water", short = "Weed Shop", packed = 24925, blip = 925, blipHot = 927, xyz = { -1160.636, -1535.462, -48.994, 180.271 } },
+    { name = "Higgins Helitours", short = "Tour Company", packed = 24926, blip = 928, blipHot = 930, xyz = { -1160.599, -1535.585, -48.999, 177.268 } },
+}
+
+local function GetHeat(front)
+    return Natives.InvokeInt(N.GET_PACKED_STAT_INT_CODE, front.packed, CharSlot())
+end
+
+local function SetHeat(front, value)
+    Natives.InvokeVoid(N.SET_PACKED_STAT_INT_CODE, front.packed, value, CharSlot())
+end
+
+for _, front in ipairs(fronts) do
+    MoneyFrontsMenu:Box(front.name)
+    MoneyFrontsMenu:Button("Teleport to Entrance", function()
+        TeleportToBlip(GetHeat(front) ~= 100 and front.blip or front.blipHot, front.short)
+    end, "Teleports you to the entrance of your " .. front.short .. ".")
+    MoneyFrontsMenu:Button("Teleport to Laptop", function()
+        selfTP(false, true, { x = front.xyz[1], y = front.xyz[2], z = front.xyz[3] }, front.xyz[4])
+    end, "Teleports you to the " .. front.short .. " laptop.")
+    local lockedHeat
+    LoopToggle(MoneyFrontsMenu, "Lock Heat", "Locks the heat of your " .. front.short .. " on the current level.",
+        function()
+            lockedHeat = lockedHeat or GetHeat(front)
+            SetHeat(front, lockedHeat)
+        end,
+        function() lockedHeat = nil end, 1000)
+    MoneyFrontsMenu:Button("Max Heat", function()
+        SetHeat(front, 100)
+        Toast(front.short, "Heat should've been maximized")
+    end)
+    MoneyFrontsMenu:Button("Min Heat", function()
+        SetHeat(front, 0)
+        Toast(front.short, "Heat should've been minimized")
+    end)
+    local heatInput = MoneyFrontsMenu:InputInt("Heat Percentage")
+    MoneyFrontsMenu:Button("Apply Heat Percentage", function()
+        local value = math.max(0, math.min(100, heatInput:GetIntValue()))
+        SetHeat(front, value)
+        Toast(front.short, "Heat set to " .. value .. "%")
+    end)
+end
+
+MoneyFrontsMenu:Box("Overall Heat")
+local overallLocks
+LoopToggle(MoneyFrontsMenu, "Lock Heat", "Locks the heat of all businesses on the current level.",
+    function()
+        if not overallLocks then
+            overallLocks = {}
+            for i, front in ipairs(fronts) do overallLocks[i] = GetHeat(front) end
+        end
+        for i, front in ipairs(fronts) do SetHeat(front, overallLocks[i]) end
+    end,
+    function() overallLocks = nil end, 1000)
+MoneyFrontsMenu:Button("Max Heat", function()
+    for _, front in ipairs(fronts) do SetHeat(front, 100) end
+    Toast("Money Fronts", "Heat should've been maximized")
+end)
+MoneyFrontsMenu:Button("Min Heat", function()
+    for _, front in ipairs(fronts) do SetHeat(front, 0) end
+    Toast("Money Fronts", "Heat should've been minimized")
+end)
+local overallHeatInput = MoneyFrontsMenu:InputInt("Heat Percentage")
+MoneyFrontsMenu:Button("Apply Heat Percentage", function()
+    local value = math.max(0, math.min(100, overallHeatInput:GetIntValue()))
+    for _, front in ipairs(fronts) do SetHeat(front, value) end
+    Toast("Money Fronts", "Heat set to " .. value .. "%")
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local NightclubMenu = BusinessesMenu:Tab("Nightclub")
+local nightclubPrice = {
+    { "BB_BUSINESS_BASIC_VALUE_WEAPONS", 5000, false, "HUB_PROD_TOTAL_1" },
+    { "BB_BUSINESS_BASIC_VALUE_COKE", 27000, false, "HUB_PROD_TOTAL_2" },
+    { "BB_BUSINESS_BASIC_VALUE_METH", 11475, false, "HUB_PROD_TOTAL_3" },
+    { "BB_BUSINESS_BASIC_VALUE_WEED", 2025, false, "HUB_PROD_TOTAL_4" },
+    { "BB_BUSINESS_BASIC_VALUE_FORGED_DOCUMENTS", 1350, false, "HUB_PROD_TOTAL_5" },
+    { "BB_BUSINESS_BASIC_VALUE_COUNTERFEIT_CASH", 4725, false, "HUB_PROD_TOTAL_6" },
+    { "BB_BUSINESS_BASIC_VALUE_CARGO", 10000, false, "HUB_PROD_TOTAL_0" },
+}
+NightclubMenu:Box("Sale")
+LoopToggle(NightclubMenu, "Maximize Price", "CAUTION: might be unsafe, bans reported in the past.\nApplies the maximum price for your goods. Use it in a solo session and don't use \"Sell All Goods\".",
+    function()
+        for _, product in ipairs(nightclubPrice) do
+            local total = GetStatInt(MPX() .. product[4])
+            if total > 0 then
+                SetTunableInt(product[1], math.floor(4000000 / total))
+            end
+        end
+    end,
+    function() SetTunableList(nightclubPrice, true) end, 1000)
+
+NightclubMenu:Box("Misc")
+NightclubMenu:Button("Skip Setups", function()
+    SetPackedBools(18161)
+    SetPackedBools(22067)
+    SetPackedBools(22068)
+    Toast("Nightclub", "Setups should've been skipped")
+end, "Skips the setup missions for your Nightclub.")
+TeleportButtons(NightclubMenu, "Nightclub", 614, { -1618.249, -3013.507, -75.205, 257.431 }, "Computer")
+NightclubMenu:Button("Open Computer", function() OpenScreenScript("appbusinesshub", 4592) end, "Opens the Nightclub's computer screen.")
+CooldownToggle(NightclubMenu, {
+    { "BB_CLUB_MANAGEMENT_CLUB_MANAGEMENT_MISSION_COOLDOWN", 300000 },
+    { "BB_SELL_MISSIONS_MISSION_COOLDOWN", 300000 },
+    { "BB_SELL_MISSIONS_DELIVERY_VEHICLE_COOLDOWN_AFTER_SELL_MISSION", 300000 },
+})
+
+NightclubMenu:Box("Safe")
+NightclubMenu:Button("Fill Safe", function()
+    SetTunableInt("NIGHTCLUBMAXSAFEVALUE", 300000)
+    for i = FMg + 23746, FMg + 23765 do
+        ScriptGlobal.SetInt(i, 300000)
+    end
+    Stats.SetInt(J(MPX() .. "CLUB_PAY_TIME_LEFT"), -1)
+    Toast("Nightclub", "Safe should've been filled")
+end, "ATTENTION: might be unsafe, if overused.\nFills your Nightclub safe with money.")
+local function CollectNightclubSafe()
+    -- Collect request: locals 267 and 265 are set together, the game reacts on its own (found by recording a working collect).
+    ScriptLocal.SetInt(J("am_mp_nightclub"), 267, 1)
+    ScriptLocal.SetInt(J("am_mp_nightclub"), 265, 1)
+end
+NightclubMenu:Button("Collect Safe", function()
+    local value = GetStatInt(MPX() .. "CLUB_SAFE_CASH_VALUE")
+    if value ~= 0 then
+        CollectNightclubSafe()
+        Toast("Nightclub", "Safe money should've been collected")
+    else
+        Toast("Nightclub", "Nightclub safe is empty")
+    end
+end, "ATTENTION: might be unsafe, if overused.\nCollects money from your Nightclub safe. Use inside your Nightclub.")
+NightclubMenu:Button("Unbrick Safe", function()
+    for i = FMg + 23746, FMg + 23765 do
+        ScriptGlobal.SetInt(i, 1)
+    end
+    Stats.SetInt(J(MPX() .. "CLUB_PAY_TIME_LEFT"), -1)
+    Script.Yield(3000)
+    CollectNightclubSafe()
+    Toast("Nightclub", "Safe should've been unbricked")
+end, "Unbricks your safe if it shows a dollar sign with $0 inside. Use inside your Nightclub.")
+LoopToggle(NightclubMenu, "Nightclub $300k/5s (Safe Remote AFK)", "ATTENTION: use at your own risk.\nFills the safe with $300k and collects it again, over and over.",
+    function()
+        for i = FMg + 23746, FMg + 23765 do
+            ScriptGlobal.SetInt(i, 300000)
+        end
+        ScriptGlobal.SetInt(FMg + 23769, 300000)
         Stats.SetInt(J(MPX() .. "CLUB_PAY_TIME_LEFT"), -1)
         Script.Yield(2500)
         if IsScriptRunning("am_mp_nightclub") then
-            ScriptLocal.SetInt(J("am_mp_nightclub"), NLCl, 1)
+            CollectNightclubSafe()
         end
         ScriptGlobal.SetInt(4516981, 0)
         ScriptGlobal.SetInt(4516982, 0)
         ScriptGlobal.SetInt(4516983, 0)
-        Script.Yield(2500)
-    else
-        Script.Yield(500)
-    end
+    end, nil, 2500)
+
+NightclubMenu:Box("Popularity")
+local lockedPopularity
+LoopToggle(NightclubMenu, "Lock Popularity", "Locks the popularity of your Nightclub on the current level.",
+    function()
+        lockedPopularity = lockedPopularity or GetStatInt(MPX() .. "CLUB_POPULARITY")
+        Stats.SetInt(J(MPX() .. "CLUB_POPULARITY"), lockedPopularity)
+    end,
+    function() lockedPopularity = nil end, 1000)
+NightclubMenu:Button("Max Popularity", function()
+    Stats.SetInt(J(MPX() .. "CLUB_POPULARITY"), 1000)
+    Toast("Nightclub", "Popularity should've been maximized")
+end)
+NightclubMenu:Button("Min Popularity", function()
+    Stats.SetInt(J(MPX() .. "CLUB_POPULARITY"), 0)
+    Toast("Nightclub", "Popularity should've been minimized")
+end)
+local popularityValue = NightclubMenu:InputInt("Popularity (0-100%)")
+NightclubMenu:Button("Apply Popularity", function()
+    local value = math.max(0, math.min(100, popularityValue:GetIntValue()))
+    Stats.SetInt(J(MPX() .. "CLUB_POPULARITY"), value * 10)
+    Toast("Nightclub", "Popularity set to " .. value .. "%")
 end)
 
-
-NightClubSafeMenu:Button("Open Nightclub Screen", function()
-    Natives.InvokeInt(N.START_NEW_SCRIPT, "appBusinessHub", 1424)
-end)
+BusinessStatEditor(NightclubMenu, "Nightclub Stats", {
+    { "Sales Made", "HUB_SALES_COMPLETED", "Sell" },
+    { "Earnings", "HUB_EARNINGS", "Earnings" },
+})
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local SpecialCargoMenu = BusinessesMenu:Tab("Special Cargo")
+local specialDivisors = { 1, 2, 3, 5, 7, 9, 14, 19, 24, 29, 34, 39, 44, 49, 59, 69, 79, 89, 99, 110, 111 }
+local specialDefaults = { 10000, 11000, 12000, 13000, 13500, 14000, 14500, 15000, 15500, 16000, 16500, 17000, 17500, 17750, 18000, 18250, 18500, 18750, 19000, 19500, 20000 }
+local specialPrice = {}
+for i = 1, 21 do
+    specialPrice[i] = { "EXEC_CONTRABAND_SALE_VALUE_THRESHOLD" .. i, specialDefaults[i] }
+end
+SpecialCargoMenu:Box("Sale")
+LoopToggle(SpecialCargoMenu, "Maximize Price", "CAUTION: might be unsafe, bans reported in the past.\nApplies the maximum price for your crates. Use it in a solo session.",
+    function()
+        for i, entry in ipairs(specialPrice) do
+            SetTunableInt(entry[1], math.floor(6000000 / specialDivisors[i]))
+        end
+    end,
+    function() SetTunableList(specialPrice, true) end, 1000)
+
+local specialNoXp = SpecialCargoMenu:Toggle("No XP Gain", "Disables the XP gain for sell missions.")
+local specialNoCrateBack = SpecialCargoMenu:Toggle("No CrateBack", "Disables the auto refill of the crates after Instant Sell.")
+SpecialCargoMenu:Button("Instant Sell", function()
+    if not specialNoCrateBack:IsToggled() and IsScriptRunning("gb_contraband_sell") then
+        SetPackedBools(32359, 32363)
+    end
+    SetXpGain(specialNoXp:IsToggled())
+    local sell = J("gb_contraband_sell")
+    ScriptLocal.SetInt(sell, 574 + 595, 1)
+    ScriptLocal.SetInt(sell, 574 + 55, 0)
+    ScriptLocal.SetInt(sell, 574 + 584, 0)
+    ScriptLocal.SetInt(sell, 574 + 7, 7)
+    Script.Yield(500)
+    ScriptLocal.SetInt(sell, 574 + 1, 99999)
+    Toast("Special Cargo", "Sell mission should've been finished")
+end, "Finishes the sell mission instantly. Use after you can see the minimap.")
+
+SpecialCargoMenu:Box("Supplies")
+local specialAmount = SpecialCargoMenu:InputInt("Crates Amount (0-111)")
+SpecialCargoMenu:Button("Max Crates Amount", function()
+    specialAmount:SetIntValue(111)
+end, "Maximizes the crates amount, but does not buy them.")
+SpecialCargoMenu:Button("Instant Buy", function()
+    ScriptLocal.SetInt(J("gb_contraband_buy"), 632 + 1, math.max(0, math.min(111, specialAmount:GetIntValue())))
+    ScriptLocal.SetInt(J("gb_contraband_buy"), 632 + 5, 1)
+    ScriptLocal.SetInt(J("gb_contraband_buy"), 632 + 191, 6)
+    ScriptLocal.SetInt(J("gb_contraband_buy"), 632 + 192, 4)
+    Toast("Special Cargo", "Buy mission should've been finished")
+end, "Finishes the buy mission instantly. Use after you can see the minimap.")
+SpecialCargoMenu:Button("Get Crates", function()
+    SetPackedBools(32359, 32363)
+    Toast("Special Cargo", "Crates should've been received")
+end, "Gets some crates for your Crate Warehouses.")
+LoopToggle(SpecialCargoMenu, "Turkish Supplier", "Fills your Crate Warehouse stock repeatedly.",
+    function() SetPackedBools(32359, 32363) end, nil, 1000)
+
+SpecialCargoMenu:Box("CEO Manager")
+local ceoCrateValue = 0
+SpecialCargoMenu:Custom(function()
+    local value, used = ImGui.InputInt("Crate Value", ceoCrateValue, 10000, 100000)
+    value = math.max(0, math.min(6000000, value))
+    ceoCrateValue = value
+    if used then
+        SetTunableInt("EXEC_CONTRABAND_SALE_VALUE_THRESHOLD1", ceoCrateValue)
+    end
+end)
+SpecialCargoMenu:Button("Open Warehouse Screen", function()
+    OpenScreenScript("appsecuroserv", 8344)
+end, "Opens the Warehouse computer screen.")
+LoopToggle(SpecialCargoMenu, "Start CEO Manager", "ATTENTION: use at your own risk.\nCompletes buy and sell missions automatically and keeps the Warehouse screen running.",
+    function()
+        local sell, shop, buy = J("gb_contraband_sell"), J("appsecuroserv"), J("gb_contraband_buy")
+        if ScriptLocal.GetInt(sell, 2) == 1 then
+            ScriptLocal.SetInt(sell, 574 + 595, 1)
+            ScriptLocal.SetInt(sell, 574 + 55, 0)
+            ScriptLocal.SetInt(sell, 574 + 584, 0)
+            ScriptLocal.SetInt(sell, 574 + 7, 7)
+            Script.Yield(500)
+            ScriptLocal.SetInt(sell, 574 + 1, 99999)
+        end
+        if ScriptLocal.GetInt(shop, 2) == 1 then
+            Script.Yield(500)
+            ScriptLocal.SetInt(shop, 771, 1)
+            Script.Yield(200)
+            ScriptLocal.SetInt(shop, 770, 1)
+            Script.Yield(200)
+            ScriptLocal.SetInt(shop, 589, 3012)
+            Script.Yield(1000)
+        end
+        if ScriptLocal.GetInt(buy, 2) == 1 then
+            ScriptLocal.SetInt(buy, 632 + 5, 1)
+            ScriptLocal.SetInt(buy, 632 + 1, 111)
+            ScriptLocal.SetInt(buy, 632 + 191, 6)
+            ScriptLocal.SetInt(buy, 632 + 192, 4)
+            Toast("CEO Manager", "Your Warehouse is now full! 111/111 Crates")
+        end
+        if ScriptLocal.GetInt(sell, 2) ~= 1 then
+            Script.Yield(500)
+            if ScriptLocal.GetInt(J("am_mp_warehouse"), 2) == 1 then
+                OpenScreenScript("appsecuroserv", 8344)
+            end
+        end
+    end, nil, 500)
+SpecialCargoMenu:Text("First enter your Warehouse.")
+SpecialCargoMenu:Text("Then stand in front of your Warehouse computer and activate Start CEO Manager.")
+
+SpecialCargoMenu:Box("Misc")
+SpecialCargoMenu:Button("Teleport to Office", function() TeleportToBlip(475, "Office") end, "Teleports you to the Office's entrance.")
+SpecialCargoMenu:Button("Teleport to Computer", function()
+    selfTP(false, true, { x = -81.345, y = -802.471, z = 243.387 }, 278.402)
+end, "Teleports you to the Office's computer.")
+SpecialCargoMenu:Button("Teleport to Warehouse", function() TeleportToBlip(473, "Warehouse") end, "Teleports you to the closest Crate Warehouse's entrance.")
+CooldownToggle(SpecialCargoMenu, {
+    { "EXEC_BUY_COOLDOWN", 300000 },
+    { "EXEC_SELL_COOLDOWN", 1800000 },
+})
+
+BusinessStatEditor(SpecialCargoMenu, "Special Cargo Stats", {
+    { "Buy Made", "LIFETIME_BUY_COMPLETE", "Buy" },
+    { "Buy Undertaken", "LIFETIME_BUY_UNDERTAKEN", "Buy" },
+    { "Sales Made", "LIFETIME_SELL_COMPLETE", "Sell" },
+    { "Sales Undertaken", "LIFETIME_SELL_UNDERTAKEN", "Sell" },
+    { "Earnings", "LIFETIME_CONTRA_EARNINGS", "Earnings" },
+})
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+local BusinessMiscMenu = BusinessesMenu:Tab("Misc")
+BusinessMiscMenu:Box("Supplies")
+local supplyBusinesses = { "MC Business 1", "MC Business 2", "MC Business 3", "MC Business 4", "MC Business 5", "Bunker", "Acid Lab", "All" }
+local supplyIndex = 0
+BusinessMiscMenu:Custom(function()
+    supplyIndex = ImGui.Combo("Business", supplyIndex, supplyBusinesses, #supplyBusinesses)
+end)
+BusinessMiscMenu:Button("Resupply", function()
+    if supplyIndex == 7 then
+        for slot = 0, 6 do
+            ScriptGlobal.SetInt(SupplyGlobal(slot), 1)
+            Script.Yield(3000)
+        end
+        Toast("Supplies", "Supplies for all business stocks should've been resupplied")
+    else
+        ScriptGlobal.SetInt(SupplyGlobal(supplyIndex), 1)
+        Toast("Supplies", "Supplies for the business stock should've been resupplied")
+    end
+end, "Resupplies the selected business.")
+
+BusinessMiscMenu:Box("Bail Office")
+TeleportButtons(BusinessMiscMenu, "Bail Office", 893, { 562.959, -2705.590, -48.997, 31.983 }, "Computer")
+BusinessMiscMenu:Box("Garment Factory")
+TeleportButtons(BusinessMiscMenu, "Garment Factory", 900, { 749.337, -995.654, -46.376, 50.750 }, "Computer")
+BusinessMiscMenu:Button("Unbrick Computer", function()
+    Stats.SetInt(J(MPX() .. "HACKER24_GEN_BS"), -24607)
+    Toast("Garment Factory", "Computer should've been unbricked")
+end, "Unbricks your computer after using features like Unlock All Awards.")
 end)
 
 Section("Gun Van", function()
@@ -3816,6 +4229,97 @@ weapon_name = ""
 
 gun_van_loc = 0
 discount = false
+gv_defaults = nil
+gv_discount_pct = 100
+throwable_slot = 0
+throwable_pick = 0
+
+local throwable_labels = { "Grenade", "Molotov", "Pipe Bomb", "Proximity Mine", "Tear Gas", "Sticky Bomb", "Jerry Can" }
+local throwable_hashes = { "WEAPON_GRENADE", "WEAPON_MOLOTOV", "WEAPON_PIPEBOMB", "WEAPON_PROXMINE", "WEAPON_BZGAS", "WEAPON_STICKYBOMB", "WEAPON_PETROLCAN" }
+local optimal_weapons = { "weapon_navyrevolver", "weapon_gadgetpistol", "weapon_stungun_mp", "weapon_doubleaction", "weapon_railgunxm3",
+    "weapon_minigun", "weapon_heavysniper_mk2", "weapon_combatmg_mk2", "weapon_tacticalrifle", "weapon_specialcarbine_mk2" }
+local optimal_throwables = { "weapon_stickybomb", "weapon_molotov", "weapon_pipebomb" }
+
+local GV = {
+    SET_ENTITY_SHOULD_FREEZE_WAITING_ON_COLLISION = 0x3910051CCECDB00C,
+    FREEZE_ENTITY_POSITION = 0x428CA6DBD1094446,
+    SET_DONT_ALLOW_PLAYER_TO_ENTER_VEHICLE_IF_LOCKED_FOR_PLAYER = 0xDBC631F109350B8C,
+    SET_VEHICLE_RESPECTS_LOCKS_WHEN_HAS_DRIVER = 0x2311DD7159F00582,
+    SET_VEHICLE_DOORS_LOCKED = 0xB664292EAECF7FA6,
+    SET_ENTITY_COLLISION = 0x1A9205C1B9EE827F,
+    SET_ENTITY_INVINCIBLE = 0x3882114BDE571AD4,
+    CLEAR_RAGDOLL_BLOCKING_FLAGS = 0xD86D101FCFD00A4B,
+    SET_PED_CONFIG_FLAG = 0x1913FE4CBF41C463,
+    SET_ENTITY_PROOFS = 0xFAEE099C6F890BB8,
+    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS = 0x9F8AA94D6D97DBF4,
+    SET_ENTITY_CAN_BE_DAMAGED = 0x1760FFA8AB074D66,
+    SET_PED_TREATED_AS_FRIENDLY = 0x0F62619393661D6E,
+    SET_PED_CAN_BE_TARGETTED = 0x63F58F7C80513AAD,
+    REMOVE_RELATIONSHIP_GROUP = 0xB6BA2444AB393DA2,
+    SET_PED_INTO_VEHICLE = 0xF75B0D629E1C063D,
+    ADD_BLIP_FOR_COORD = 0x5A039BB0BCA604B6,
+    SET_BLIP_SPRITE = 0xDF735600A4696DAF,
+    SET_BLIP_SCALE = 0xD38744167B2FA257,
+    SET_NEW_WAYPOINT = 0xFE43368D2AA4F2FC,
+    GET_CURRENT_PED_WEAPON = 0x3A87E44BB9A01D54,
+    GET_ENTITY_FORWARD_VECTOR = 0x0A794A5A57F8DF91,
+    GET_ENTITY_COORDS = 0x3FEF770D40960D5A,
+}
+
+local function GetGunVanLoc()
+    local loc = ScriptGlobal.GetInt(2652581 + 2706)
+    return loc or 0
+end
+
+local function FindByModel(model_name, vehicle)
+    local hash = J(model_name) & 0xFFFFFFFF
+    local count = vehicle and PoolMgr.GetCurrentVehicleCount() or PoolMgr.GetCurrentPedCount()
+    for i = 0, count do
+        local handle = vehicle and PoolMgr.GetVehicle(i) or PoolMgr.GetPed(i)
+        if handle and handle ~= 0 and (Natives.InvokeInt(N.GET_ENTITY_MODEL, handle) & 0xFFFFFFFF) == hash then
+            return handle
+        end
+    end
+    local rendered = vehicle and PoolMgr.GetRenderedVehicles() or PoolMgr.GetRenderedPeds()
+    for _, ptr in pairs(rendered) do
+        local handle = GTA.PointerToHandle(ptr)
+        if handle and handle ~= 0 and (Natives.InvokeInt(N.GET_ENTITY_MODEL, handle) & 0xFFFFFFFF) == hash then
+            return handle
+        end
+    end
+    return 0
+end
+
+local function UnlockGunVan(van)
+    Natives.InvokeVoid(GV.SET_ENTITY_SHOULD_FREEZE_WAITING_ON_COLLISION, van, false)
+    Natives.InvokeVoid(GV.FREEZE_ENTITY_POSITION, van, false)
+    Natives.InvokeVoid(GV.SET_DONT_ALLOW_PLAYER_TO_ENTER_VEHICLE_IF_LOCKED_FOR_PLAYER, van, false)
+    Natives.InvokeVoid(GV.SET_VEHICLE_RESPECTS_LOCKS_WHEN_HAS_DRIVER, van, false)
+    Natives.InvokeVoid(GV.SET_VEHICLE_DOORS_LOCKED, van, 1)
+end
+
+local function MakeSellerShootable(seller)
+    Natives.InvokeVoid(GV.SET_ENTITY_COLLISION, seller, true, true)
+    Natives.InvokeVoid(GV.FREEZE_ENTITY_POSITION, seller, false)
+    Natives.InvokeVoid(GV.SET_ENTITY_INVINCIBLE, seller, false, false)
+    for i = 0, 17 do
+        Natives.InvokeVoid(GV.CLEAR_RAGDOLL_BLOCKING_FLAGS, seller, i)
+    end
+    Natives.InvokeVoid(GV.SET_PED_CONFIG_FLAG, seller, 128, true)
+    Natives.InvokeVoid(GV.SET_PED_CONFIG_FLAG, seller, 179, false)
+    Natives.InvokeVoid(GV.SET_PED_CONFIG_FLAG, seller, 208, false)
+    Natives.InvokeVoid(GV.SET_PED_CONFIG_FLAG, seller, 294, false)
+    Natives.InvokeVoid(GV.SET_PED_CONFIG_FLAG, seller, 430, true)
+    Natives.InvokeVoid(GV.SET_PED_CONFIG_FLAG, seller, 118, true)
+    Natives.InvokeVoid(GV.SET_PED_CONFIG_FLAG, seller, 116, false)
+    Natives.InvokeVoid(GV.SET_PED_CONFIG_FLAG, seller, 461, true)
+    Natives.InvokeVoid(GV.SET_ENTITY_PROOFS, seller, false, false, false, false, false, false, false, false)
+    Natives.InvokeVoid(GV.SET_BLOCKING_OF_NON_TEMPORARY_EVENTS, seller, false)
+    Natives.InvokeVoid(GV.SET_ENTITY_CAN_BE_DAMAGED, seller, true)
+    Natives.InvokeVoid(GV.SET_PED_TREATED_AS_FRIENDLY, seller, false, false)
+    Natives.InvokeVoid(GV.SET_PED_CAN_BE_TARGETTED, seller, true)
+    Natives.InvokeVoid(GV.REMOVE_RELATIONSHIP_GROUP, seller, J("SHOPKEEPER_GUN_VAN"))
+end
 
 function render_weapon_editor()
     ImGui.SetNextWindowSize(700, 420)
@@ -3867,6 +4371,24 @@ function render_weapon_editor()
             SetTunableInt("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. selected_slot, 0)
         end
 
+        ImGui.SameLine()
+
+        if ImGui.Button("Set To Current Weapon") then
+            local slot = selected_slot
+            Script.QueueJob(function()
+                local out = Memory.AllocInt()
+                local has_weapon = Natives.InvokeBool(GV.GET_CURRENT_PED_WEAPON, Natives.InvokeInt(N.PLAYER_PED_ID), out, true)
+                local hash = Memory.ReadInt(out)
+                Memory.Free(out)
+                if has_weapon then
+                    SetTunableInt("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. slot, hash)
+                    Toast("Gun Van", "Applied the current weapon to slot " .. (slot + 1) .. ".")
+                else
+                    Toast("Gun Van", "No current weapon.")
+                end
+            end)
+        end
+
         if ImGui.Button("Close") then
             selected_slot = 0
             filter_text = ""
@@ -3885,10 +4407,21 @@ Script.RegisterLooped(function()
         not IsSessionStarted()
         or IsScriptRunning("maintransition")
     then
+        gv_defaults = nil
         Script.Yield(500)
         return
     end
     gun_van_loc = ScriptGlobal.GetInt(2652581 + 2706)
+
+    if not gv_defaults then
+        gv_defaults = { weapons = {}, throwables = {}, position = gun_van_loc }
+        for i = 0, 9 do
+            gv_defaults.weapons[i] = GetTunableInt("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. i)
+        end
+        for i = 0, 2 do
+            gv_defaults.throwables[i] = GetTunableInt("XM22_GUN_VAN_SLOT_THROWABLE_TYPE_" .. i)
+        end
+    end
 
     if is_typing then
         Natives.InvokeVoid(N.DISABLE_ALL_CONTROL_ACTIONS, 0)
@@ -3942,6 +4475,70 @@ GVMENU:Custom(function()
         end)
     end
 end)
+GVMENU:Button("Teleport To Gun Van", function()
+    local coords = gunvan_locations[GetGunVanLoc() + 1]
+    if not coords then return end
+    Natives.InvokeVoid(N.SET_PED_COORDS_KEEP_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), coords.x, coords.y, coords.z)
+    Script.Yield(1000)
+    local van = FindByModel("Speedo4", true)
+    if van ~= 0 then
+        local ped = Natives.InvokeInt(N.PLAYER_PED_ID)
+        local fx, fy, fz = Natives.InvokeV3(GV.GET_ENTITY_FORWARD_VECTOR, van)
+        local px, py, pz = Natives.InvokeV3(GV.GET_ENTITY_COORDS, ped, true)
+        Natives.InvokeVoid(N.SET_ENTITY_COORDS, ped, px - fx * 3.5, py - fy * 3.5, pz - fz * 3.5, false, false, false, true)
+    end
+end, "Teleports you behind the gun van, wherever it currently is.")
+GVMENU:Button("Reset Position", function()
+    if gv_defaults and gv_defaults.position ~= -1 then
+        ScriptGlobal.SetInt(2652581 + 2706, gv_defaults.position)
+        Toast("Gun Van", "The gun van was moved back to its original position.")
+    else
+        Toast("Gun Van", "Original position is not known yet.")
+    end
+end)
+GVMENU:Button("Set Waypoint", function()
+    local coords = gunvan_locations[GetGunVanLoc() + 1]
+    if not coords then return end
+    Natives.InvokeVoid(GV.SET_NEW_WAYPOINT, coords.x, coords.y)
+    Toast("Gun Van", "Your waypoint was set to the gun van.")
+end)
+GVMENU:Button("Mark On Map", function()
+    local coords = gunvan_locations[GetGunVanLoc() + 1]
+    if not coords then return end
+    local blip = Natives.InvokeInt(GV.ADD_BLIP_FOR_COORD, coords.x, coords.y, coords.z)
+    Natives.InvokeVoid(GV.SET_BLIP_SPRITE, blip, 844)
+    Natives.InvokeVoid(GV.SET_BLIP_SCALE, blip, 1.2)
+    Toast("Gun Van", "You can now find the gun van on the map.")
+end, "Places a gun van blip on the map no matter how far away you are.")
+GVMENU:Box("Van")
+GVMENU:Button("Unlock Gun Van", function()
+    local van = FindByModel("Speedo4", true)
+    if van == 0 then
+        Toast("Gun Van", "Failed to find the gun van.")
+        return
+    end
+    UnlockGunVan(van)
+    Toast("Gun Van", "The gun van should now be unlocked.")
+end, "Unlocks the gun van doors so you can drive it.")
+GVMENU:Button("Drive Gun Van", function()
+    local van = FindByModel("Speedo4", true)
+    if van == 0 then
+        Toast("Gun Van", "Failed to find the gun van.")
+        return
+    end
+    UnlockGunVan(van)
+    Natives.InvokeVoid(GV.SET_PED_INTO_VEHICLE, Natives.InvokeInt(N.PLAYER_PED_ID), van, -1)
+    Toast("Gun Van", "The gun van should now be unlocked.")
+end, "Same as unlock, but puts you into the driver seat too.")
+GVMENU:Button("Seller Shootable", function()
+    local seller = FindByModel("IG_GunVanSeller", false)
+    if seller == 0 then
+        Toast("Gun Van", "Failed to find the gun van seller.")
+        return
+    end
+    MakeSellerShootable(seller)
+    Toast("Gun Van", "The gun van seller should now be shootable.")
+end, "Allows the gun van seller to be shot.")
 GVMENU:Box("Options")
 GVMENU:Custom(function()
     weapon_skins, on_tick = ImGui.Checkbox("Weapon Skins", weapon_skins)
@@ -4008,6 +4605,26 @@ GVMENU:Custom(function()
         end
     end
 end)
+GVMENU:Box("Discount")
+GVMENU:Custom(function()
+    gv_discount_pct, __ = ImGui.InputInt("Discount %", gv_discount_pct)
+    gv_discount_pct = math.max(-100, math.min(100, gv_discount_pct))
+    help_marker("Discount applied to every item in the gun van, from -100 to 100.")
+
+    if ImGui.Button("Apply Discounts") then
+        local pct = gv_discount_pct / 100.0
+        for i = 0, 4 do
+            SetTunableFloat("XM22_GUN_VAN_SLOT_ARMOUR_DISCOUNT_" .. i, pct)
+        end
+        for i = 0, 2 do
+            SetTunableFloat("XM22_GUN_VAN_SLOT_THROWABLE_DISCOUNT_" .. i, pct)
+        end
+        for i = 0, 9 do
+            SetTunableFloat("XM22_GUN_VAN_SLOT_WEAPON_DISCOUNT_" .. i, pct)
+        end
+        Toast("Gun Van", "Discounts have been applied.")
+    end
+end)
 GVMENU:Box("Stock")
 GVMENU:Custom(function()
     if ImGui.TreeNode("Weapons") then
@@ -4064,6 +4681,39 @@ GVMENU:Custom(function()
         ImGui.TreePop()
     end
 end)
+GVMENU:Box("Slots")
+GVMENU:Custom(function()
+    ImGui.Text("Throwable Slot")
+    throwable_slot = ImGui.Combo("##gv_throwable_slot", throwable_slot, { "1", "2", "3" }, 3)
+    throwable_pick = ImGui.Combo("##gv_throwable_pick", throwable_pick, throwable_labels, #throwable_labels)
+
+    if ImGui.Button("Set Throwable") then
+        SetTunableInt("XM22_GUN_VAN_SLOT_THROWABLE_TYPE_" .. throwable_slot, J(throwable_hashes[throwable_pick + 1]))
+        Toast("Gun Van", "Throwable set in slot " .. (throwable_slot + 1) .. ".")
+    end
+end)
+GVMENU:Button("Optimal Gun Van Slots", function()
+    for i, weapon in ipairs(optimal_weapons) do
+        SetTunableInt("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. (i - 1), J(weapon))
+    end
+    for i, throwable in ipairs(optimal_throwables) do
+        SetTunableInt("XM22_GUN_VAN_SLOT_THROWABLE_TYPE_" .. (i - 1), J(throwable))
+    end
+    Toast("Gun Van", "Better weapons are now in the gun van.")
+end, "Fills the gun van with strong weapons like the Navy Revolver and the Railgun.")
+GVMENU:Button("Reset Gun Van Slots", function()
+    if not gv_defaults then
+        Toast("Gun Van", "No default slots cached yet.")
+        return
+    end
+    for i = 0, 9 do
+        SetTunableInt("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. i, gv_defaults.weapons[i])
+    end
+    for i = 0, 2 do
+        SetTunableInt("XM22_GUN_VAN_SLOT_THROWABLE_TYPE_" .. i, gv_defaults.throwables[i])
+    end
+    Toast("Gun Van", "The gun van slots were restored.")
+end, "Restores the slots to the state they had when you joined the session.")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end)
@@ -4090,38 +4740,6 @@ ReportsMenu:Custom(function()
     ImGui.Text("Friendly: " .. GetStatInt("MPPLY_FRIENDLY"))
     ImGui.Text("Helpful: " .. GetStatInt("MPPLY_HELPFUL"))
 end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-end)
-
-Section("WareHouse Data Editor", function()
-WareHouseDataEditorMenu = L7NEG7:Tab("WareHouse Data Editor")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-WareHouseDataEditorMenu:Box("Stats")
-WareHouseDataEditorMenu:Button("Auto-Reset stats-0/0 Sales", function()
-    Stats.SetInt(J(MPX() .. "LIFETIME_BUY_COMPLETE"), 0)
-    Stats.SetInt(J(MPX() .. "LIFETIME_BUY_UNDERTAKEN"), 0)
-    Stats.SetInt(J(MPX() .. "LIFETIME_SELL_COMPLETE"), 0)
-    Stats.SetInt(J(MPX() .. "LIFETIME_SELL_UNDERTAKEN"), 0)
-    Stats.SetInt(J(MPX() .. "LIFETIME_CONTRA_EARNINGS"), 0)
-    ScriptGlobal.SetInt(CSg1, 11)
-    ScriptGlobal.SetInt(CSg2, 1)
-    Script.Yield(300)
-    ScriptGlobal.SetInt(CSg2, 0)
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-end)
-
-Section("Tutorial", function()
-L7NEG7N = L7NEG7:Tab("Tutorial")
-
-L7NEG7N:Box("Ceo Crates Method")
-L7NEG7N:Text("First Enter Your Warehouse")
-L7NEG7N:Text("Then Stand In Front Of Your Warehouse Computer And Then Activate The Enable Ceo Manager")
-L7NEG7N:Text("https://l7neg.is-a.dev/discord")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end)
@@ -6102,6 +6720,8 @@ glassCaseTypes = {
 }
 
 -- Create menu tab
+CayoHeistEditorMenu:Box("Misc")
+SN_Salvage:Box("Misc")
 end)
 
 Section("Kortz", function()
@@ -6860,6 +7480,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Flash Ops
+KortzCenterHeistMenu:Box("Misc")
 end)
 
 Section("Flash Ops", function()
@@ -7219,6 +7840,10 @@ SN_Guzman:Text("Use 'Instant Finish' after you can see the minimap.")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Heist Teleports (arcade, casino, robberies) --
+SN_Agency:Box("Misc")
+SN_Autoshop:Box("Misc")
+SN_Cluck:Box("Misc")
+SN_Guzman:Box("Misc")
 end)
 
 Section("Teleports", function()
@@ -7387,6 +8012,18 @@ SettingsMain = SettingsMenu:Tab("Main")
 SettingsMain:Box("Ultimate Menu")
 SettingsMain:Text("Ultimate Menu 1.73 Legacy")
 SettingsMain:Text("Cherax Beta")
+SettingsMain:Button("Copy Discord Link", function()
+    ImGui.SetClipboardText("https://dc.gg/l7neg")
+    Toast("Discord", "Link copied to clipboard")
+end)
+SettingsMain:Button("Copy GitHub Link", function()
+    ImGui.SetClipboardText("https://github.com/UltimateMenu/UltimateMenu")
+    Toast("GitHub", "Link copied to clipboard")
+end)
+SettingsMain:Button("Copy Website Link", function()
+    ImGui.SetClipboardText("https://ultimatemenu.github.io/")
+    Toast("Website", "Link copied to clipboard")
+end)
 BypassOnlineCheck = SettingsMain:Toggle("Bypass Online Check", "Shows the online-only tabs even when the online check fails.")
 CreditsMenu = SettingsMenu:Tab("Credits")
 
@@ -7424,14 +8061,26 @@ end)
 Section("Credits: SLON", function()
 CreditsMenu:Box("SLON")
 CreditsMenu:Text("Source:")
-CreditsMenu:Text("https://www.unknowncheats.me/forum/grand-theft-auto-v")
-CreditsMenu:Text("/591335-yimceo-ceo-crates-method-yimmenu.html")
+CreditsMenu:Text("https://www.unknowncheats.me/forum/grand-theft-auto-v/591335-yimceo-ceo-crates-method-yimmenu.html")
 end)
 
 Section("Credits: Alestarov", function()
 CreditsMenu:Box("Alestarov")
 CreditsMenu:Text("Source:")
 CreditsMenu:Text("https://github.com/YimMenu-Lua/Alestarov-Menu")
+end)
+
+Section("Credits: oreganolaborant", function()
+CreditsMenu:Box("oreganolaborant")
+CreditsMenu:Text("Cherax Port")
+CreditsMenu:Text("Source:")
+CreditsMenu:Text("https://github.com/UltimateMenu/UltimateMenu/tree/main/Cherax")
+end)
+
+Section("Credits: Ji9sw - Gun Van", function()
+CreditsMenu:Box("Ji9sw - Gun Van")
+CreditsMenu:Text("Source:")
+CreditsMenu:Text("https://cherax.menu/scripts/189")
 end)
 
 Section("Credits: You", function()
@@ -7442,6 +8091,7 @@ CreditsMenu:Text(
 CreditsMenu:Text("So Big Thanks To You All")
 CreditsMenu:Text("You can report Bugs And Make PRs With Features Down Bellow:")
 CreditsMenu:Text("https://github.com/UltimateMenu/UltimateMenu/issues")
+
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 end)
