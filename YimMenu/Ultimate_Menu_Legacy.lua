@@ -173,6 +173,23 @@ function MPX()
     return "MP0_"
 end
 
+function OpenScreenScript(name, stackSize)
+    script.run_in_fiber(function(s)
+        SCRIPT.REQUEST_SCRIPT(name)
+        local waited = 0
+        while not SCRIPT.HAS_SCRIPT_LOADED(name) do
+            s:sleep(50)
+            waited = waited + 50
+            if waited > 5000 then
+                gui.show_error("Screen", "Script " .. name .. " did not load.")
+                return
+            end
+        end
+        SYSTEM.START_NEW_SCRIPT(name, stackSize)
+        SCRIPT.SET_SCRIPT_AS_NO_LONGER_NEEDED(name)
+    end)
+end
+
 function SkipCutscene()
     script.run_in_fiber(function(script)
         if CUTSCENE.IS_CUTSCENE_PLAYING() then
@@ -442,11 +459,19 @@ function initOnlineTab(tab)
                     widget.state, changed = ImGui.Checkbox(widget.label, widget.state)
                 elseif widget.type == "input_int" then
                     widget.value, _ = ImGui.InputInt(widget.label, widget.value)
+                elseif widget.type == "columns" then
+                    ImGui.Columns(widget.count, "##cols_" .. tostring(widget.id), false)
+                elseif widget.type == "nextcolumn" then
+                    ImGui.NextColumn()
+                elseif widget.type == "endcolumns" then
+                    ImGui.Columns(1)
                 end
             end
         end)
     end
 end
+
+local online_column_id = 0
 
 function addOnlineButton(tab, label, callback)
     initOnlineTab(tab)
@@ -531,6 +556,22 @@ function makeOnlineTab(tab)
 
     function wrapped:add_sameline()
         addOnlineSameline(tab)
+    end
+
+    function wrapped:add_columns(count)
+        initOnlineTab(tab)
+        online_column_id = online_column_id + 1
+        table.insert(online_widgets[tab], { type = "columns", count = count, id = online_column_id })
+    end
+
+    function wrapped:add_next_column()
+        initOnlineTab(tab)
+        table.insert(online_widgets[tab], { type = "nextcolumn" })
+    end
+
+    function wrapped:add_end_columns()
+        initOnlineTab(tab)
+        table.insert(online_widgets[tab], { type = "endcolumns" })
     end
 
     function wrapped:add_imgui(callback)
@@ -673,11 +714,74 @@ L7NEG = gui.get_tab("Ultimate Menu 1.73 By L7NEG")
 
 L7NEG:add_text("       Ultimate Menu 1.73 Legacy ")
 L7NEG:add_text("                       v3")
-bypassOnlineCheckbox = L7NEG:add_checkbox("Bypass Online Check")
+
+-- YimMenu cannot hide a tab while the script runs, so the choice is saved to a json file and applied on the next load.
+local HIDDEN_TABS_FILE = "Ultimate_Menu_hidden_tabs.json"
+local TOP_TABS = {
+    "Self Menu",
+    "Story Mode",
+    "Recovery Menu",
+    "Casino",
+    "Events Menu",
+    "Business",
+    "Gun Van Menu",
+    "YimResupplier",
+    "Heists Data Editor Menu",
+    "Missions Selector and Cooldown Menu",
+}
+local HIDDEN_TABS = {}
+
+local function SaveHiddenTabs()
+    local names = {}
+    for _, name in ipairs(TOP_TABS) do
+        if HIDDEN_TABS[name] then
+            names[#names + 1] = '"' .. name .. '"'
+        end
+    end
+    local file = io.open(HIDDEN_TABS_FILE, "w")
+    if not file then
+        return false
+    end
+    file:write('{\n  "hidden_tabs": [' .. table.concat(names, ", ") .. "]\n}\n")
+    file:close()
+    return true
+end
+
+if io.exists(HIDDEN_TABS_FILE) then
+    local file = io.open(HIDDEN_TABS_FILE, "r")
+    if file then
+        local content = file:read("*all") or ""
+        file:close()
+        local list = content:match("%[(.-)%]") or ""
+        for name in list:gmatch('"([^"]+)"') do
+            HIDDEN_TABS[name] = true
+        end
+    end
+else
+    SaveHiddenTabs()
+end
+
+local NullTab = setmetatable({}, {
+    __index = function(_, key)
+        if key == "is_enabled" then
+            return function() return false end
+        elseif key == "get_value" then
+            return function() return 0 end
+        end
+        return function(self) return self end
+    end,
+})
+
+function TopTab(name)
+    if HIDDEN_TABS[name] then
+        return NullTab
+    end
+    return L7NEG:add_tab(name)
+end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Self = makeOnlineTab(L7NEG:add_tab("Self Menu"))
+Self = makeOnlineTab(TopTab("Self Menu"))
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -805,7 +909,7 @@ Self:add_button("Execute", function()
     end
 end)
 
-StoryCharacters = makeStoryTab(L7NEG:add_tab("Story Mode"))
+StoryCharacters = makeStoryTab(TopTab("Story Mode"))
 
 StoryCharacters:add_imgui(function()
     local CurrentSPMoneyValue = stats.get_int(SPX() .. "TOTAL_CASH")
@@ -850,7 +954,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-RecoveryMenu = makeOnlineTab(L7NEG:add_tab("Recovery Menu"))
+RecoveryMenu = makeOnlineTab(TopTab("Recovery Menu"))
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1105,11 +1209,10 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-OnlineServicesMenu = L7NEG:add_tab("Online Services Menu")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CasinoServicesMenu = makeOnlineTab(OnlineServicesMenu:add_tab("Casino Services Menu"))
+CasinoServicesMenu = makeOnlineTab(TopTab("Casino"))
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1232,7 +1335,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CollectiblesMenu = makeOnlineTab(L7NEG:add_tab("Collectibles"))
+CollectiblesMenu = RecoveryMenu:add_tab("Collectibles")
 CollectiblesMenu:add_text("Los Santos Collectibles")
 CollectiblesMenu:add_separator()
 CollectiblesMenu:add_button("Collect All Action Figures", function()
@@ -1274,7 +1377,7 @@ CollectiblesMenu:add_separator()
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-EventsMenu = makeOnlineTab(L7NEG:add_tab("Events Menu"))
+EventsMenu = makeOnlineTab(TopTab("Events Menu"))
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1936,7 +2039,9 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-AUM = RecoveryMenu:add_tab("Awards Unlocker Menu")
+AUM = RecoveryMenu:add_tab("Awards Unlocker")
+AUM:add_text("Awards")
+AUM:add_separator()
 
 AUM:add_button("Victory", function()
     stats.set_int(MPX() .. "AWD_FM_DM_WINS", 50)
@@ -2326,11 +2431,14 @@ AUM:add_button("Combat", function()
     stats.set_int(MPX() .. "NUMBER_NEAR_MISS", 1000)
 end)
 
-HAUM = AUM:add_tab("Heists Awards Unlocker Menu")
+AUM:add_separator()
+AUM:add_text("Heist Awards")
+AUM:add_separator()
+HAUM = AUM
 
-APARTMENTAUM = HAUM:add_tab("Apartment Heist Menu")
+APARTMENTAUM = HAUM
 
-APARTMENTAUM:add_button("Unlock All Apartment Heists Awards", function()
+APARTMENTAUM:add_button("Apartment Heist", function()
     stats.set_int(MPX() .. "AWD_FINISH_HEISTS", 50)
     stats.set_int(MPX() .. "AWD_FINISH_HEIST_SETUP_JOB", 50)
     stats.set_int(MPX() .. "AWD_COMPLETE_HEIST_NOT_DIE", -1)
@@ -2405,9 +2513,9 @@ APARTMENTAUM:add_button("Unlock All Apartment Heists Awards", function()
     stats.set_int(MPX() .. "HEIST_PLANNING_STAGE", -1)
 end)
 
-DIAMONHDAUM = HAUM:add_tab("Diamond Casino Heist")
+DIAMONHDAUM = HAUM
 
-DIAMONHDAUM:add_button("Unlock All Diamond Casino Heist Awards", function()
+DIAMONHDAUM:add_button("Diamond Casino Heist", function()
     stats.set_int(MPX() .. "CAS_HEIST_NOTS", -1)
     stats.set_int(MPX() .. "CAS_HEIST_FLOW", -1)
     stats.set_int(MPX() .. "SIGNAL_JAMMERS_COLLECTED", 50)
@@ -2500,9 +2608,9 @@ DIAMONHDAUM:add_button("Unlock All Diamond Casino Heist Awards", function()
     end
 end)
 
-CAYOAUM = HAUM:add_tab("Cayo Heist Menu")
+CAYOAUM = HAUM
 
-CAYOAUM:add_button("Unlock All Cayo Heist Awards", function()
+CAYOAUM:add_button("Cayo Perico Heist", function()
     stats.set_bool(MPX() .. "AWD_INTELGATHER", true)
     stats.set_bool(MPX() .. "AWD_COMPOUNDINFILT", true)
     stats.set_bool(MPX() .. "AWD_LOOT_FINDER", true)
@@ -2549,9 +2657,9 @@ CAYOAUM:add_button("Unlock All Cayo Heist Awards", function()
     end
 end)
 
-DOOMSDAYAUM = HAUM:add_tab("Doomsday Heist Awards Menu")
+DOOMSDAYAUM = HAUM
 
-DOOMSDAYAUM:add_button("Unlock All Doomsday Heist Awards", function()
+DOOMSDAYAUM:add_button("Doomsday Heist", function()
     stats.set_int(MPX() .. "GANGOPS_HEIST_STATUS", -1)
     stats.set_int(MPX() .. "GANGOPS_HEIST_STATUS", -229384)
     stats.set_int(MPX() .. "GANGOPS_FM_MISSION_PROG", -1)
@@ -2602,7 +2710,10 @@ DOOMSDAYAUM:add_button("Unlock All Doomsday Heist Awards", function()
     stats.set_masked_int(MPX() .. "BUSINESSBATPSTAT_INT260", 3, 48, 8)
 end)
 
-DLCAUM = AUM:add_tab("DLC Awards Menu")
+AUM:add_separator()
+AUM:add_text("DLC Awards")
+AUM:add_separator()
+DLCAUM = AUM
 
 DLCAUM:add_button("The Kortz Center Heist", function()
     stats.set_bool(MPX() .. "AWD_SCOPING", true)
@@ -3162,26 +3273,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CSU = FAUT:add_tab("Character's Stats")
-
-CSU:add_imgui(function()
-    if isOffline() then
-        return
-    end
-
-    if ImGui.Button("Max Character Skills") then
-        stats.set_int(MPX() .. "SCRIPT_INCREASE_DRIV", 100)
-        stats.set_int(MPX() .. "SCRIPT_INCREASE_FLY", 100)
-        stats.set_int(MPX() .. "SCRIPT_INCREASE_LUNG", 100)
-        stats.set_int(MPX() .. "SCRIPT_INCREASE_SHO", 100)
-        stats.set_int(MPX() .. "SCRIPT_INCREASE_STAM", 100)
-        stats.set_int(MPX() .. "SCRIPT_INCREASE_STL", 100)
-        stats.set_int(MPX() .. "SCRIPT_INCREASE_STRN", 100)
-        gui.show_message("Character Skills", "Your Character Skills Is Maxxed Out.")
-    end
-end)
-
-AcMenu = CSU:add_tab("Achievements")
+AcMenu = FAUT:add_tab("Achievements")
 
 Acv0 = false
 AG = 4525223 + 1 --("CHEAT_ACHIEVE")
@@ -3190,7 +3282,12 @@ AcMenu:add_imgui(function()
     if isOffline() then
         return
     end
-    if ImGui.Button("Unlock All Achievements") then
+    ImGui.Text("All Achievements")
+    ImGui.Separator()
+    pcall(function()
+        ImGui.SetCursorPosX((ImGui.GetWindowWidth() - 220) / 2)
+    end)
+    if ImGui.Button("Unlock All Achievements", 220, 0) then
         script.run_in_fiber(function(script)
             for i = 0, 77 do
                 script:sleep(200)
@@ -3203,236 +3300,315 @@ AcMenu:add_imgui(function()
     end
 end)
 
-AcMMenu = AcMenu:add_tab("One By One Menu")
+AcMenu:add_separator()
+AcMenu:add_text("One By One")
+AcMenu:add_separator()
+AcMMenu = AcMenu
 
 AcMMenu:add_button("Welcome to Los Santos", function()
     globals.set_int(AG, 1)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("A Friendship Resurrected", function()
     globals.set_int(AG, 2)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("A Fair Day's Pay", function()
     globals.set_int(AG, 3)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("The Moment of Truth", function()
     globals.set_int(AG, 4)
 end)
+
 AcMMenu:add_button("To Live or Die in Los Santos", function()
     globals.set_int(AG, 5)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Diamond Hard", function()
     globals.set_int(AG, 6)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Subversive", function()
     globals.set_int(AG, 7)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Blitzed", function()
     globals.set_int(AG, 8)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Small Town, Big Job", function()
     globals.set_int(AG, 9)
 end)
+
 AcMMenu:add_button("The Government Gimps", function()
     globals.set_int(AG, 10)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("The Big One!", function()
     globals.set_int(AG, 11)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Solid Gold, Baby!", function()
     globals.set_int(AG, 12)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Career Criminal", function()
     globals.set_int(AG, 13)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("San Andreas Sightseer", function()
     globals.set_int(AG, 14)
 end)
+
 AcMMenu:add_button("All's Fare in Love and War", function()
     globals.set_int(AG, 15)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("TP Industries Arms Race", function()
     globals.set_int(AG, 16)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Multi-Disciplined", function()
     globals.set_int(AG, 17)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("From Beyond the Stars", function()
     globals.set_int(AG, 18)
 end)
+
 AcMMenu:add_button("A Mystery, Solved", function()
     globals.set_int(AG, 19)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Waste Management", function()
     globals.set_int(AG, 20)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Red Mist", function()
     globals.set_int(AG, 21)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Show Off", function()
     globals.set_int(AG, 22)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Kifflom!", function()
     globals.set_int(AG, 23)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Three Man Army", function()
     globals.set_int(AG, 24)
 end)
+
 AcMMenu:add_button("Out of Your Depth", function()
     globals.set_int(AG, 25)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Altruist Acolyte", function()
     globals.set_int(AG, 26)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("A Lot of Cheddar", function()
     globals.set_int(AG, 27)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Trading Pure Alpha", function()
     globals.set_int(AG, 28)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Pimp My Sidearm", function()
     globals.set_int(AG, 29)
 end)
+
 AcMMenu:add_button("Wanted:Alive Or Alive", function()
     globals.set_int(AG, 30)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Los Santos Customs", function()
     globals.set_int(AG, 31)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Close Shave", function()
     globals.set_int(AG, 32)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Off the Plane", function()
     globals.set_int(AG, 33)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Three-Bit Gangster", function()
     globals.set_int(AG, 34)
 end)
+
 AcMMenu:add_button("Making Moves", function()
     globals.set_int(AG, 35)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Above the Law", function()
     globals.set_int(AG, 36)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Numero Uno", function()
     globals.set_int(AG, 37)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("The Midnight Club", function()
     globals.set_int(AG, 38)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Unnatural Selection", function()
     globals.set_int(AG, 39)
 end)
+
 AcMMenu:add_button("Backseat Driver", function()
     globals.set_int(AG, 40)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Run Like The Wind", function()
     globals.set_int(AG, 41)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Clean Sweep", function()
     globals.set_int(AG, 42)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Decorated", function()
     globals.set_int(AG, 43)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Stick Up Kid", function()
     globals.set_int(AG, 44)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Enjoy Your Stay", function()
     globals.set_int(AG, 45)
 end)
+
 AcMMenu:add_button("Crew Cut", function()
     globals.set_int(AG, 46)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Full Refund", function()
     globals.set_int(AG, 47)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Dialling Digits", function()
     globals.set_int(AG, 48)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("American Dream", function()
     globals.set_int(AG, 49)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("A New Perspective", function()
     globals.set_int(AG, 50)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Be Prepared", function()
     globals.set_int(AG, 51)
 end)
+
 AcMMenu:add_button("In the Name of Science", function()
     globals.set_int(AG, 52)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Dead Presidents", function()
     globals.set_int(AG, 53)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Parole Day", function()
     globals.set_int(AG, 54)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Shot Caller", function()
     globals.set_int(AG, 55)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Four Way", function()
     globals.set_int(AG, 56)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Live a Little", function()
     globals.set_int(AG, 57)
 end)
+
 AcMMenu:add_button("Can't Touch This", function()
     globals.set_int(AG, 58)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Mastermind", function()
     globals.set_int(AG, 59)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Vinewood Visionary", function()
     globals.set_int(AG, 60)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Majestic", function()
     globals.set_int(AG, 61)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Humans of Los Santos", function()
     globals.set_int(AG, 62)
 end)
+
 AcMMenu:add_button("First Time Director", function()
     globals.set_int(AG, 63)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Animal Lover", function()
     globals.set_int(AG, 64)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Ensemble Piece", function()
     globals.set_int(AG, 65)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Cult Movie", function()
     globals.set_int(AG, 66)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Location Scout", function()
     globals.set_int(AG, 67)
 end)
+
 AcMMenu:add_button("Method Actor", function()
     globals.set_int(AG, 68)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Cryptozoologist", function()
     globals.set_int(AG, 69)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Getting Started", function()
     globals.set_int(AG, 70)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("The Data Breaches", function()
     globals.set_int(AG, 71)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("The Bogdan Problem", function()
     globals.set_int(AG, 72)
 end)
+
 AcMMenu:add_button("The Doomsday Scenario", function()
     globals.set_int(AG, 73)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("A World Worth Saving", function()
     globals.set_int(AG, 74)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Orbital Obliteration", function()
     globals.set_int(AG, 75)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Elitist", function()
     globals.set_int(AG, 76)
 end)
+AcMMenu:add_sameline()
 AcMMenu:add_button("Masterminds", function()
     globals.set_int(AG, 77)
 end)
@@ -3503,18 +3679,170 @@ LSCMNote:add_text("toggle 'Bypass Online Check' in the main tab.")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-L7NEG7 = makeOnlineTab(L7NEG:add_tab("Ultimate Money Methods Menu"))
+L7NEG7 = makeOnlineTab(TopTab("Business"))
+BusinessesMenu = L7NEG7
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-BusinessesMenu = L7NEG7:add_tab("Businesses Menu")
+do
+local biz_uid = 0
+
+local function BizId()
+    biz_uid = biz_uid + 1
+    return "##biz" .. biz_uid
+end
+
+local function BizSessionOK()
+    return network.is_session_started()
+        and not (SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0)
+end
+
+local function BizScriptRunning(name)
+    return SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat(name)) > 0
+end
+
+local function BizStat(name)
+    return stats.get_int(MPX() .. name)
+end
+
+local function BizCharSlot()
+    return stats.get_int("MPPLY_LAST_MP_CHAR")
+end
+
+local function Box(page, title)
+    page:add_separator()
+    page:add_text(title)
+    page:add_separator()
+end
+
+local function LoopToggle(page, name, desc, onTick, onOff, interval)
+    local toggle = page:add_checkbox(name)
+    if desc and (desc:find("^CAUTION") or desc:find("^ATTENTION")) then
+        page:add_text("  " .. desc:match("^[^\n]+"))
+    end
+    local wasOn = false
+    biz_uid = biz_uid + 1
+    script.register_looped("BizLoop" .. biz_uid, function(s)
+        s:yield()
+        if not BizSessionOK() then
+            s:sleep(500)
+            return
+        end
+        if toggle:is_enabled() then
+            wasOn = true
+            onTick(s)
+            s:sleep(interval or 500)
+        elseif wasOn then
+            wasOn = false
+            if onOff then
+                onOff(s)
+            end
+            s:sleep(500)
+        else
+            s:sleep(500)
+        end
+    end)
+    return toggle
+end
+
+local function SetTunableList(list, restore)
+    for _, t in ipairs(list) do
+        local value = restore and t[2] or 0
+        if t[3] then
+            tunables.set_float(t[1], value)
+        else
+            tunables.set_int(t[1], value)
+        end
+    end
+end
+
+local function CooldownToggle(page, list)
+    LoopToggle(page, "Kill Cooldowns", nil, function()
+        SetTunableList(list, false)
+    end, function()
+        SetTunableList(list, true)
+    end, 1000)
+end
+
+local function SetPackedBools(first, last)
+    for i = first, last or first do
+        stats.set_packed_stat_bool(i, true)
+    end
+end
+
+local function SupplyGlobal(slot)
+    return 1673807 + slot + 1
+end
+
+local function BunkerTriggerProduction()
+    globals.set_int(2708790 + 1 + 5 * 2, 0)
+    globals.set_int(2708790 + 1 + 5 * 2 + 1, 1)
+end
+
+local function SetXpGain(disabled)
+    tunables.set_float("XP_MULTIPLIER", disabled and 0.0 or 1.0)
+end
+
+local function TeleportToBlip(sprite, label)
+    script.run_in_fiber(function()
+        local blip = HUD.GET_FIRST_BLIP_INFO_ID(sprite)
+        if blip ~= 0 and HUD.DOES_BLIP_EXIST(blip) then
+            selfTP(true, false, HUD.GET_BLIP_COORDS(blip))
+        else
+            gui.show_error(label, "Entrance blip not found. Do you own it?")
+        end
+    end)
+end
+
+local function TeleportButtons(page, label, sprite, xyz, laptopName)
+    local id = BizId()
+    page:add_button("Teleport to Entrance" .. id, function()
+        TeleportToBlip(sprite, label)
+    end)
+    page:add_button("Teleport to " .. laptopName .. id, function()
+        selfTP(false, true, vec3:new(xyz[1], xyz[2], xyz[3]), xyz[4])
+    end)
+end
+
+local function BusinessStatEditor(page, title, entries, after)
+    Box(page, title)
+    local inputs, skips = {}, {}
+    for i, entry in ipairs(entries) do
+        inputs[i] = page:add_input_int(entry[1])
+        local group = entry[3]
+        if group and not skips[group] then
+            skips[group] = page:add_checkbox("Don't Apply " .. group)
+        end
+    end
+    page:add_button("Refresh " .. title, function()
+        for i, entry in ipairs(entries) do
+            inputs[i]:set_value(BizStat(entry[2]))
+        end
+        gui.show_message(title, "Current values loaded")
+    end)
+    page:add_button("Apply " .. title, function()
+        local values = {}
+        for i, entry in ipairs(entries) do
+            local group = entry[3]
+            if not (group and skips[group]:is_enabled()) then
+                local value = inputs[i]:get_value()
+                stats.set_int(MPX() .. entry[2], value)
+                values[entry[2]] = value
+            end
+        end
+        if after then
+            after(values)
+        end
+        gui.show_message(title, "Stats should've been applied. Change session to see them")
+    end)
+end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+do
 
-AirCargoMenu = BusinessesMenu:add_tab("Air Cargo Menu")
+AirCargoMenu = BusinessesMenu:add_tab("Hangar Cargo")
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+Box(AirCargoMenu, "Crate Value")
 local hanvalue = AirCargoMenu:add_input_int("Crate Value")
 
 AirCargoMenu:add_button("Set Value", function()
@@ -3535,15 +3863,11 @@ AirCargoMenu:add_button("Set Value", function()
     gui.show_message("Crate Value Setter", "Your Crates Values was set to " .. HangarCrateVlaue .. ".")
 end)
 
-AirCargoMenu:add_separator()
-
+Box(AirCargoMenu, "Options")
 RCRT = AirCargoMenu:add_checkbox("Remove Ron's Cut")
 script.register_looped("RonCutRemover", function(script)
     script:yield()
-    if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
-    then
+    if not BizSessionOK() then
         script:sleep(500)
         return
     end
@@ -3555,15 +3879,10 @@ script.register_looped("RonCutRemover", function(script)
     script:sleep(500)
 end)
 
-AirCargoMenu:add_separator()
-
 PRPGD = AirCargoMenu:add_checkbox("Disable Player RP Gain")
 script.register_looped("PlayerRPGainDisabler", function(script)
     script:yield()
-    if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
-    then
+    if not BizSessionOK() then
         script:sleep(500)
         return
     end
@@ -3575,199 +3894,531 @@ script.register_looped("PlayerRPGainDisabler", function(script)
     script:sleep(500)
 end)
 
-AirCargoMenu:add_separator()
-
 AirCargoMenu:add_button("Open Hangar Screen", function()
-    SCRIPT.REQUEST_SCRIPT("apparcadebusinesshub")
-    SYSTEM.START_NEW_SCRIPT("apparcadebusinesshub", 8344)
+    OpenScreenScript("appsmuggler", 4592)
 end)
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Box(AirCargoMenu, "Sale")
+local hangarPrice = { { "SMUG_SELL_PRICE_PER_CRATE_MIXED", 30000 }, { "SMUG_SELL_RONS_CUT", 0.025, true } }
+LoopToggle(AirCargoMenu, "Maximize Price",
+    "CAUTION: might be unsafe, bans reported in the past.\nApplies the maximum price for your cargo. Use it in a solo session.",
+    function()
+        local total = BizStat("HANGAR_CONTRABAND_TOTAL")
+        if total > 0 then
+            tunables.set_int(hangarPrice[1][1], math.floor(4000000 / total))
+        end
+    end, function()
+        SetTunableList(hangarPrice, true)
+    end, 1000)
 
-AirCargoEditorMenu = AirCargoMenu:add_tab("Air Cargo Data Editor")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-AirCargoEditorMenu:add_button("Reset Crate Sell Stats-0/0 Sales", function()
-    stats.set_int(MPX() .. "LFETIME_HANGAR_BUY_COMPLET", 0)
-    stats.set_int(MPX() .. "LFETIME_HANGAR_BUY_UNDERTAK", 0)
-    stats.set_int(MPX() .. "LFETIME_HANGAR_SEL_COMPLET", 0)
-    stats.set_int(MPX() .. "LFETIME_HANGAR_SEL_UNDERTAK", 0)
-    stats.set_int(MPX() .. "LFETIME_HANGAR_EARNINGS", 0)
-    stats.set_int(MPX() .. "HANGAR_CONTRABAND_TOTAL", 0)
-    stats.set_int(MPX() .. "LFETIME_HANGAR_EARN_BONUS", 0)
-    stats.set_int(MPX() .. "RIVAL_HANGAR_CRATES_STOLEN", 0)
-    globals.set_int(CSg1, 11)
-    globals.set_int(CSg2, 1)
-    globals.set_int(CSg2, 0)
+local hangarNoXp = AirCargoMenu:add_checkbox("No XP Gain")
+AirCargoMenu:add_button("Instant Air Cargo Sell", function()
+    SetXpGain(hangarNoXp:is_enabled())
+    locals.set_int("gb_smuggler", 1989 + 1035, locals.get_int("gb_smuggler", 1989 + 1078))
+    gui.show_message("Hangar", "Sell mission should've been finished")
 end)
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-UseAtYourOwnRiskMenu = L7NEG7:add_tab("Use At Your Own Risk Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-CeoManagerMenu = UseAtYourOwnRiskMenu:add_tab("Ceo Manager Menu")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-SMC1 = 574 + 1 --("gb_contraband_sell")
-SMC2 = 574 + 7 --("gb_contraband_sell")
-SMC3 = 574 + 584 --("gb_contraband_sell")
-SMC4 = 574 + 55 --("gb_contraband_sell")
-SMC5 = 574 + 595 --("gb_contraband_sell")
-SMC6 = 589 --("Popup_Confirm_Success") in ("appsecuroserv")
-SMC7 = 770 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
-SMC8 = 771 --("MP_WH_SELL") or ("WH_MFREASON_12") in ("appsecuroserv")
-SMC9 = 632 + 5 --("SPEECH_PARAMS_SHOUTED_CRITICAL") in ("gb_contraband_buy")
-SMC10 = 632 + 1 --func_91() in ("gb_contraband_buy")
-SMC11 = 632 + 191 --("gb_contraband_buy")
-SMC12 = 632 + 192 --("gb_contraband_buy")
-
-local cs = "appsecuroserv"
-
-local ci = "gb_contraband_sell"
-
-local cb = "gb_contraband_buy"
-
-local am = "am_mp_warehouse"
-
-local am2 = "am_mp_peds"
-
-cratevalue = 0
-CeoManagerMenu:add_imgui(function()
-    if isOffline() then
+Box(AirCargoMenu, "Supplies")
+AirCargoMenu:add_button("Get Cargo", function()
+    if BizScriptRunning("appsmuggler") then
+        gui.show_error("Hangar", "Close the laptop first.")
         return
     end
-    cratevalue, used = ImGui.DragInt("Crate Value", cratevalue, 10000, 0, 6000000)
-    if used then
-        tunables.set_int("EXEC_CONTRABAND_SALE_VALUE_THRESHOLD1", cratevalue)
+    SetPackedBools(36828)
+    gui.show_message("Hangar", "Cargo should've been received")
+end)
+LoopToggle(AirCargoMenu, "Turkish Supplier", nil, function()
+    if not BizScriptRunning("appsmuggler") then
+        SetPackedBools(36828)
     end
+end, nil, 1000)
+
+Box(AirCargoMenu, "Misc")
+AirCargoMenu:add_button("Skip Setup", function()
+    SetPackedBools(15966)
+    gui.show_message("Hangar", "Setup should've been skipped")
+end)
+TeleportButtons(AirCargoMenu, "Hangar", 569, { -1239.059, -3001.454, -42.867, 146.258 }, "Laptop")
+CooldownToggle(AirCargoMenu, {
+    { "SMUG_STEAL_EASY_COOLDOWN_TIMER", 120000 },
+    { "SMUG_STEAL_MED_COOLDOWN_TIMER", 180000 },
+    { "SMUG_STEAL_HARD_COOLDOWN_TIMER", 240000 },
+    { "SMUG_STEAL_ADDITIONAL_CRATE_COOLDOWN_TIME", 60000 },
+    { "SMUG_SELL_SELL_COOLDOWN_TIMER", 180000 },
+})
+
+BusinessStatEditor(AirCargoMenu, "Hangar Stats", {
+    { "Buy Made", "LFETIME_HANGAR_BUY_COMPLET", "Buy" },
+    { "Buy Undertaken", "LFETIME_HANGAR_BUY_UNDETAK", "Buy" },
+    { "Sales Made", "LFETIME_HANGAR_SEL_COMPLET", "Sell" },
+    { "Sales Undertaken", "LFETIME_HANGAR_SEL_UNDETAK", "Sell" },
+    { "Earnings", "LFETIME_HANGAR_EARNINGS", "Earnings" },
+})
+end
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+do
+
+local BunkerMenu = BusinessesMenu:add_tab("Bunker")
+Box(BunkerMenu, "Sale")
+local bunkerPrice = {
+    { "GR_MANU_PRODUCT_VALUE", 5000 },
+    { "GR_MANU_PRODUCT_VALUE_STAFF_UPGRADE", 1000 },
+    { "GR_MANU_PRODUCT_VALUE_EQUIPMENT_UPGRADE", 1000 },
+}
+LoopToggle(BunkerMenu, "Maximize Price",
+    "CAUTION: might be unsafe, bans reported in the past.\nApplies the maximum price for your stock. Use it in a solo session with a filled stock.",
+    function(s)
+        local stock = BizStat("PRODTOTALFORFACTORY5")
+        if stock > 0 then
+            tunables.set_int(bunkerPrice[1][1], math.floor((2500000 / 1.5) / stock))
+            tunables.set_int(bunkerPrice[2][1], 0)
+            tunables.set_int(bunkerPrice[3][1], 0)
+        else
+            globals.set_int(SupplyGlobal(5), 1)
+            s:sleep(1000)
+            BunkerTriggerProduction()
+        end
+    end, function()
+        SetTunableList(bunkerPrice, true)
+    end, 1000)
+
+local bunkerNoXp = BunkerMenu:add_checkbox("No XP Gain")
+BunkerMenu:add_button("Instant Sell", function()
+    SetXpGain(bunkerNoXp:is_enabled())
+    locals.set_int("gb_gunrunning", 1266 + 774, 0)
+    gui.show_message("Bunker", "Sell mission should've been finished")
 end)
 
-checkbox = CeoManagerMenu:add_checkbox("Start Ceo Manager")
+Box(BunkerMenu, "Supplies")
+BunkerMenu:add_button("Get Supplies", function()
+    globals.set_int(SupplyGlobal(5), 1)
+    gui.show_message("Bunker", "Supplies should've been received")
+end)
+BunkerMenu:add_button("Trigger Production", function()
+    if not BizScriptRunning("appbunkerbusiness") then
+        BunkerTriggerProduction()
+        gui.show_message("Bunker", "Production should've been triggered")
+    end
+end)
+LoopToggle(BunkerMenu, "Turkish Supplier", nil, function()
+    if not BizScriptRunning("appbunkerbusiness") then
+        globals.set_int(SupplyGlobal(5), 1)
+        BunkerTriggerProduction()
+    end
+end, function()
+    globals.set_int(SupplyGlobal(5), 0)
+end, 1000)
 
-PRPGD2 = CeoManagerMenu:add_checkbox("Disable Player RP Gain")
-script.register_looped("PlayerRPGainDisabler2", function(script)
-    script:yield()
-    if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
-    then
-        script:sleep(500)
-        return
-    end
-    local want = PRPGD2:is_enabled() and 0 or 1
-    if want ~= _prpgd2Prev then
-        tunables.set_float("XP_MULTIPLIER", want)
-        _prpgd2Prev = want
-    end
-    script:sleep(500)
+Box(BunkerMenu, "Misc")
+BunkerMenu:add_button("Skip Setup", function()
+    stats.set_int(MPX() .. "FACTORYSETUP5", 1)
+    gui.show_message("Bunker", "Setup should've been skipped")
+end)
+TeleportButtons(BunkerMenu, "Bunker", 557, { 907.515, -3207.357, -97.187, 245.099 }, "Laptop")
+BunkerMenu:add_button("Open Laptop", function()
+    OpenScreenScript("appbunkerbusiness", 4592)
 end)
 
-CeoManagerMenu:add_button("Open Warehouse Screen", function()
-    SCRIPT.REQUEST_SCRIPT("apparcadebusinesshub")
-    SYSTEM.START_NEW_SCRIPT("apparcadebusinesshub", 8344)
-end)
-
-script.register_looped("yimceoloop", function(script)
-    script:yield()
-    if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
-    then
-        return
+BusinessStatEditor(BunkerMenu, "Bunker Stats", {
+    { "Sales Made", "LIFETIME_BKR_SEL_COMPLETBC5", "Sell" },
+    { "Sales Undertaken", "LIFETIME_BKR_SEL_UNDERTABC5", "Sell" },
+    { "Earnings", "LIFETIME_BKR_SELL_EARNINGS5", "Earnings" },
+}, function(values)
+    if values.LIFETIME_BKR_SEL_COMPLETBC5 then
+        stats.set_int(MPX() .. "BUNKER_UNITS_MANUFAC", values.LIFETIME_BKR_SEL_COMPLETBC5 * 100)
     end
-    -- removed useless call
-    tunables.set_int("EXEC_BUY_COOLDOWN", 0)
-    tunables.set_int("EXEC_SELL_COOLDOWN", 0)
+end)
+end
 
-    if checkbox:is_enabled() == true then
-        if locals.get_int(ci, 2) == 1 then
-            locals.set_int(ci, SMC5, 1)
-            locals.set_int(ci, SMC4, 0)
-            locals.set_int(ci, SMC3, 0)
-            locals.set_int(ci, SMC2, 7)
-            script:sleep(500)
-            locals.set_int(ci, SMC1, 99999)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+do
+
+local MoneyFrontsMenu = BusinessesMenu:add_tab("Money Fronts")
+local fronts = {
+    { name = "Hands On Car Wash", short = "Car Wash", packed = 24924, blip = 931, blipHot = 933, xyz = { 23.684, -1400.633, -73.999, 357.518 } },
+    { name = "Smoke on the Water", short = "Weed Shop", packed = 24925, blip = 925, blipHot = 927, xyz = { -1160.636, -1535.462, -48.994, 180.271 } },
+    { name = "Higgins Helitours", short = "Tour Company", packed = 24926, blip = 928, blipHot = 930, xyz = { -1160.599, -1535.585, -48.999, 177.268 } },
+}
+
+local function GetHeat(front)
+    return STATS.GET_PACKED_STAT_INT_CODE(front.packed, BizCharSlot())
+end
+
+local function SetHeat(front, value)
+    STATS.SET_PACKED_STAT_INT_CODE(front.packed, value, BizCharSlot())
+end
+
+for _, front in ipairs(fronts) do
+    local id = BizId()
+    Box(MoneyFrontsMenu, front.name)
+    MoneyFrontsMenu:add_button("Teleport to Entrance" .. id, function()
+        TeleportToBlip(GetHeat(front) ~= 100 and front.blip or front.blipHot, front.short)
+    end)
+    MoneyFrontsMenu:add_button("Teleport to Laptop" .. id, function()
+        selfTP(false, true, vec3:new(front.xyz[1], front.xyz[2], front.xyz[3]), front.xyz[4])
+    end)
+    local lockedHeat
+    LoopToggle(MoneyFrontsMenu, "Lock Heat" .. id, nil, function()
+        lockedHeat = lockedHeat or GetHeat(front)
+        SetHeat(front, lockedHeat)
+    end, function()
+        lockedHeat = nil
+    end, 1000)
+    MoneyFrontsMenu:add_button("Max Heat" .. id, function()
+        SetHeat(front, 100)
+        gui.show_message(front.short, "Heat should've been maximized")
+    end)
+    MoneyFrontsMenu:add_button("Min Heat" .. id, function()
+        SetHeat(front, 0)
+        gui.show_message(front.short, "Heat should've been minimized")
+    end)
+    local heatInput = MoneyFrontsMenu:add_input_int("Heat Percentage" .. id)
+    MoneyFrontsMenu:add_button("Apply Heat Percentage" .. id, function()
+        local value = math.max(0, math.min(100, heatInput:get_value()))
+        SetHeat(front, value)
+        gui.show_message(front.short, "Heat set to " .. value .. "%")
+    end)
+end
+
+local overallId = BizId()
+Box(MoneyFrontsMenu, "Overall Heat")
+local overallLocks
+LoopToggle(MoneyFrontsMenu, "Lock Heat" .. overallId, nil, function()
+    if not overallLocks then
+        overallLocks = {}
+        for i, front in ipairs(fronts) do
+            overallLocks[i] = GetHeat(front)
         end
-        if locals.get_int(cs, 2) == 1 then
-            script:sleep(500)
-            locals.set_int(cs, SMC8, 1)
-            script:sleep(200)
-            locals.set_int(cs, SMC7, 1)
-            script:sleep(200)
-            locals.set_int(cs, SMC6, 3012)
-            script:sleep(1000)
-        end
-        if locals.get_int(cb, 2) == 1 then
-            locals.set_int(cb, SMC9, 1)
-            locals.set_int(cb, SMC10, 111)
-            locals.set_int(cb, SMC11, 6)
-            locals.set_int(cb, SMC12, 4)
-            gui.show_message("Your Warehouse is now full! 111/111 Crates")
-        end
-        if locals.get_int(ci, 2) ~= 1 then
-            script:sleep(500)
-            if locals.get_int(am, 2) == 1 then
-                SCRIPT.REQUEST_SCRIPT("appsecuroserv")
-                SYSTEM.START_NEW_SCRIPT("appsecuroserv", 8344)
-                SCRIPT.SET_SCRIPT_AS_NO_LONGER_NEEDED("appsecuroserv")
+    end
+    for i, front in ipairs(fronts) do
+        SetHeat(front, overallLocks[i])
+    end
+end, function()
+    overallLocks = nil
+end, 1000)
+MoneyFrontsMenu:add_button("Max Heat" .. overallId, function()
+    for _, front in ipairs(fronts) do
+        SetHeat(front, 100)
+    end
+    gui.show_message("Money Fronts", "Heat should've been maximized")
+end)
+MoneyFrontsMenu:add_button("Min Heat" .. overallId, function()
+    for _, front in ipairs(fronts) do
+        SetHeat(front, 0)
+    end
+    gui.show_message("Money Fronts", "Heat should've been minimized")
+end)
+local overallHeatInput = MoneyFrontsMenu:add_input_int("Heat Percentage" .. overallId)
+MoneyFrontsMenu:add_button("Apply Heat Percentage" .. overallId, function()
+    local value = math.max(0, math.min(100, overallHeatInput:get_value()))
+    for _, front in ipairs(fronts) do
+        SetHeat(front, value)
+    end
+    gui.show_message("Money Fronts", "Heat set to " .. value .. "%")
+end)
+end
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+do
+
+local NightclubMenu = BusinessesMenu:add_tab("Nightclub")
+local nightclubPrice = {
+    { "BB_BUSINESS_BASIC_VALUE_WEAPONS", 5000, false, "HUB_PROD_TOTAL_1" },
+    { "BB_BUSINESS_BASIC_VALUE_COKE", 27000, false, "HUB_PROD_TOTAL_2" },
+    { "BB_BUSINESS_BASIC_VALUE_METH", 11475, false, "HUB_PROD_TOTAL_3" },
+    { "BB_BUSINESS_BASIC_VALUE_WEED", 2025, false, "HUB_PROD_TOTAL_4" },
+    { "BB_BUSINESS_BASIC_VALUE_FORGED_DOCUMENTS", 1350, false, "HUB_PROD_TOTAL_5" },
+    { "BB_BUSINESS_BASIC_VALUE_COUNTERFEIT_CASH", 4725, false, "HUB_PROD_TOTAL_6" },
+    { "BB_BUSINESS_BASIC_VALUE_CARGO", 10000, false, "HUB_PROD_TOTAL_0" },
+}
+Box(NightclubMenu, "Sale")
+LoopToggle(NightclubMenu, "Maximize Price",
+    "CAUTION: might be unsafe, bans reported in the past.\nApplies the maximum price for your goods. Use it in a solo session and don't use \"Sell All Goods\".",
+    function()
+        for _, product in ipairs(nightclubPrice) do
+            local total = BizStat(product[4])
+            if total > 0 then
+                tunables.set_int(product[1], math.floor(4000000 / total))
             end
         end
-    end
-    script:sleep(500)
+    end, function()
+        SetTunableList(nightclubPrice, true)
+    end, 1000)
+
+Box(NightclubMenu, "Misc")
+NightclubMenu:add_button("Skip Setups", function()
+    SetPackedBools(18161)
+    SetPackedBools(22067)
+    SetPackedBools(22068)
+    gui.show_message("Nightclub", "Setups should've been skipped")
 end)
+TeleportButtons(NightclubMenu, "Nightclub", 614, { -1618.249, -3013.507, -75.205, 257.431 }, "Computer")
+NightclubMenu:add_button("Open Computer", function()
+    OpenScreenScript("appbusinesshub", 4592)
+end)
+CooldownToggle(NightclubMenu, {
+    { "BB_CLUB_MANAGEMENT_CLUB_MANAGEMENT_MISSION_COOLDOWN", 300000 },
+    { "BB_SELL_MISSIONS_MISSION_COOLDOWN", 300000 },
+    { "BB_SELL_MISSIONS_DELIVERY_VEHICLE_COOLDOWN_AFTER_SELL_MISSION", 300000 },
+})
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-NightClubSafeMenu = UseAtYourOwnRiskMenu:add_tab("NightClub Safe Loop Menu")
-
-SafeAmount = 300000
-SafeCapacity = 23769 --NIGHTCLUBMAXSAFEVALUE
-IncomeStart = 23746 --NIGHTCLUBINCOMEUPTOPOP5
-IncomeEnd = 23765 --NIGHTCLUBINCOMEUPTOPOP100
-
-NCRSCB = NightClubSafeMenu:add_checkbox("Enable Nitghtclub $300k/5s (Safe Remote AFK)")
-script.register_looped("nightclubremotelooptest", function(script)
-    script:yield()
-    if
-        not network.is_session_started()
-        or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
-    then
-        script:sleep(500)
-        return
+Box(NightclubMenu, "Safe")
+NightclubMenu:add_button("Fill Safe", function()
+    tunables.set_int("NIGHTCLUBMAXSAFEVALUE", 300000)
+    for i = FMg + 23746, FMg + 23765 do
+        globals.set_int(i, 300000)
     end
-    if NCRSCB:is_enabled() == true then
-        SafeValue = 1845298 + self.get_id() + 260 + 364 + 5 --("am_mp_nightclub") or we can just use TUNEABLE: NIGHTCLUBMAXSAFEVALUE
-        for i = IncomeStart, IncomeEnd do
-            globals.set_int(FMg + i, SafeAmount)
+    stats.set_int(MPX() .. "CLUB_PAY_TIME_LEFT", -1)
+    gui.show_message("Nightclub", "Safe should've been filled")
+end)
+NightclubMenu:add_text("  ATTENTION: might be unsafe, if overused.")
+
+local function CollectNightclubSafe()
+    -- Collect request: locals 267 and 265 are set together, the game reacts on its own (found by recording a working collect).
+    locals.set_int("am_mp_nightclub", 267, 1)
+    locals.set_int("am_mp_nightclub", 265, 1)
+end
+NightclubMenu:add_button("Collect Safe", function()
+    if BizStat("CLUB_SAFE_CASH_VALUE") ~= 0 then
+        CollectNightclubSafe()
+        gui.show_message("Nightclub", "Safe money should've been collected")
+    else
+        gui.show_message("Nightclub", "Nightclub safe is empty")
+    end
+end)
+NightclubMenu:add_button("Unbrick Safe", function()
+    script.run_in_fiber(function(s)
+        for i = FMg + 23746, FMg + 23765 do
+            globals.set_int(i, 1)
         end
-        globals.set_int(FMg + SafeCapacity, SafeAmount)
         stats.set_int(MPX() .. "CLUB_PAY_TIME_LEFT", -1)
-        script:sleep(2500)
-        if SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("am_mp_nightclub")) > 0 then
-            locals.set_int("am_mp_nightclub", NLCl, 1)
+        s:sleep(3000)
+        CollectNightclubSafe()
+        gui.show_message("Nightclub", "Safe should've been unbricked")
+    end)
+end)
+LoopToggle(NightclubMenu, "Nightclub $300k/5s (Safe Remote AFK)",
+    "ATTENTION: use at your own risk.\nFills the safe with $300k and collects it again, over and over.",
+    function(s)
+        for i = FMg + 23746, FMg + 23765 do
+            globals.set_int(i, 300000)
+        end
+        globals.set_int(FMg + 23769, 300000)
+        stats.set_int(MPX() .. "CLUB_PAY_TIME_LEFT", -1)
+        s:sleep(2500)
+        if BizScriptRunning("am_mp_nightclub") then
+            CollectNightclubSafe()
         end
         globals.set_int(4516981, 0)
         globals.set_int(4516982, 0)
         globals.set_int(4516983, 0)
-        script:sleep(2500)
-    else
-        script:sleep(500)
-    end
+    end, nil, 2500)
+
+Box(NightclubMenu, "Popularity")
+local lockedPopularity
+LoopToggle(NightclubMenu, "Lock Popularity", nil, function()
+    lockedPopularity = lockedPopularity or BizStat("CLUB_POPULARITY")
+    stats.set_int(MPX() .. "CLUB_POPULARITY", lockedPopularity)
+end, function()
+    lockedPopularity = nil
+end, 1000)
+NightclubMenu:add_button("Max Popularity", function()
+    stats.set_int(MPX() .. "CLUB_POPULARITY", 1000)
+    gui.show_message("Nightclub", "Popularity should've been maximized")
+end)
+NightclubMenu:add_button("Min Popularity", function()
+    stats.set_int(MPX() .. "CLUB_POPULARITY", 0)
+    gui.show_message("Nightclub", "Popularity should've been minimized")
+end)
+local popularityValue = NightclubMenu:add_input_int("Popularity (0-100%)")
+NightclubMenu:add_button("Apply Popularity", function()
+    local value = math.max(0, math.min(100, popularityValue:get_value()))
+    stats.set_int(MPX() .. "CLUB_POPULARITY", value * 10)
+    gui.show_message("Nightclub", "Popularity set to " .. value .. "%")
 end)
 
-NightClubSafeMenu:add_separator()
-
-NightClubSafeMenu:add_button("Open Nightclub Screen", function()
-    SYSTEM.START_NEW_SCRIPT("appBusinessHub", 1424)
-end)
+BusinessStatEditor(NightclubMenu, "Nightclub Stats", {
+    { "Sales Made", "HUB_SALES_COMPLETED", "Sell" },
+    { "Earnings", "HUB_EARNINGS", "Earnings" },
+})
+end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+do
 
-local GVMENU = makeOnlineTab(L7NEG:add_tab("Gun Van Menu"))
+local SpecialCargoMenu = BusinessesMenu:add_tab("Special Cargo")
+local specialDivisors = { 1, 2, 3, 5, 7, 9, 14, 19, 24, 29, 34, 39, 44, 49, 59, 69, 79, 89, 99, 110, 111 }
+local specialDefaults = { 10000, 11000, 12000, 13000, 13500, 14000, 14500, 15000, 15500, 16000, 16500, 17000, 17500, 17750, 18000, 18250, 18500, 18750, 19000, 19500, 20000 }
+local specialPrice = {}
+for i = 1, 21 do
+    specialPrice[i] = { "EXEC_CONTRABAND_SALE_VALUE_THRESHOLD" .. i, specialDefaults[i] }
+end
+Box(SpecialCargoMenu, "Sale")
+LoopToggle(SpecialCargoMenu, "Maximize Price",
+    "CAUTION: might be unsafe, bans reported in the past.\nApplies the maximum price for your crates. Use it in a solo session.",
+    function()
+        for i, entry in ipairs(specialPrice) do
+            tunables.set_int(entry[1], math.floor(6000000 / specialDivisors[i]))
+        end
+    end, function()
+        SetTunableList(specialPrice, true)
+    end, 1000)
+
+local specialNoXp = SpecialCargoMenu:add_checkbox("No XP Gain")
+local specialNoCrateBack = SpecialCargoMenu:add_checkbox("No CrateBack")
+SpecialCargoMenu:add_button("Instant Sell", function()
+    script.run_in_fiber(function(s)
+        if not specialNoCrateBack:is_enabled() and BizScriptRunning("gb_contraband_sell") then
+            SetPackedBools(32359, 32363)
+        end
+        SetXpGain(specialNoXp:is_enabled())
+        local sell = "gb_contraband_sell"
+        locals.set_int(sell, 574 + 595, 1)
+        locals.set_int(sell, 574 + 55, 0)
+        locals.set_int(sell, 574 + 584, 0)
+        locals.set_int(sell, 574 + 7, 7)
+        s:sleep(500)
+        locals.set_int(sell, 574 + 1, 99999)
+        gui.show_message("Special Cargo", "Sell mission should've been finished")
+    end)
+end)
+
+Box(SpecialCargoMenu, "Supplies")
+local specialAmount = SpecialCargoMenu:add_input_int("Crates Amount (0-111)")
+SpecialCargoMenu:add_button("Max Crates Amount", function()
+    specialAmount:set_value(111)
+end)
+SpecialCargoMenu:add_button("Instant Buy", function()
+    local buy = "gb_contraband_buy"
+    locals.set_int(buy, 632 + 1, math.max(0, math.min(111, specialAmount:get_value())))
+    locals.set_int(buy, 632 + 5, 1)
+    locals.set_int(buy, 632 + 191, 6)
+    locals.set_int(buy, 632 + 192, 4)
+    gui.show_message("Special Cargo", "Buy mission should've been finished")
+end)
+SpecialCargoMenu:add_button("Get Crates", function()
+    SetPackedBools(32359, 32363)
+    gui.show_message("Special Cargo", "Crates should've been received")
+end)
+LoopToggle(SpecialCargoMenu, "Turkish Supplier", nil, function()
+    SetPackedBools(32359, 32363)
+end, nil, 1000)
+
+Box(SpecialCargoMenu, "CEO Manager")
+local ceoCrateValue = 0
+SpecialCargoMenu:add_imgui(function()
+    local value, used = ImGui.InputInt("Crate Value##ceo", ceoCrateValue, 10000, 100000)
+    value = math.max(0, math.min(6000000, value))
+    ceoCrateValue = value
+    if used then
+        tunables.set_int("EXEC_CONTRABAND_SALE_VALUE_THRESHOLD1", ceoCrateValue)
+    end
+end)
+SpecialCargoMenu:add_button("Open Warehouse Screen", function()
+    OpenScreenScript("appsecuroserv", 8344)
+end)
+LoopToggle(SpecialCargoMenu, "Start CEO Manager",
+    "ATTENTION: use at your own risk.\nCompletes buy and sell missions automatically and keeps the Warehouse screen running.",
+    function(s)
+        local sell, shop, buy = "gb_contraband_sell", "appsecuroserv", "gb_contraband_buy"
+        if locals.get_int(sell, 2) == 1 then
+            locals.set_int(sell, 574 + 595, 1)
+            locals.set_int(sell, 574 + 55, 0)
+            locals.set_int(sell, 574 + 584, 0)
+            locals.set_int(sell, 574 + 7, 7)
+            s:sleep(500)
+            locals.set_int(sell, 574 + 1, 99999)
+        end
+        if locals.get_int(shop, 2) == 1 then
+            s:sleep(500)
+            locals.set_int(shop, 771, 1)
+            s:sleep(200)
+            locals.set_int(shop, 770, 1)
+            s:sleep(200)
+            locals.set_int(shop, 589, 3012)
+            s:sleep(1000)
+        end
+        if locals.get_int(buy, 2) == 1 then
+            locals.set_int(buy, 632 + 5, 1)
+            locals.set_int(buy, 632 + 1, 111)
+            locals.set_int(buy, 632 + 191, 6)
+            locals.set_int(buy, 632 + 192, 4)
+            gui.show_message("CEO Manager", "Your Warehouse is now full! 111/111 Crates")
+        end
+        if locals.get_int(sell, 2) ~= 1 then
+            s:sleep(500)
+            if locals.get_int("am_mp_warehouse", 2) == 1 then
+                OpenScreenScript("appsecuroserv", 8344)
+            end
+        end
+    end, nil, 500)
+SpecialCargoMenu:add_text("First enter your Warehouse.")
+SpecialCargoMenu:add_text("Then stand in front of your Warehouse computer and activate Start CEO Manager.")
+
+Box(SpecialCargoMenu, "Misc")
+SpecialCargoMenu:add_button("Teleport to Office", function()
+    TeleportToBlip(475, "Office")
+end)
+SpecialCargoMenu:add_button("Teleport to Computer", function()
+    selfTP(false, true, vec3:new(-81.345, -802.471, 243.387), 278.402)
+end)
+SpecialCargoMenu:add_button("Teleport to Warehouse", function()
+    TeleportToBlip(473, "Warehouse")
+end)
+CooldownToggle(SpecialCargoMenu, {
+    { "EXEC_BUY_COOLDOWN", 300000 },
+    { "EXEC_SELL_COOLDOWN", 1800000 },
+})
+
+BusinessStatEditor(SpecialCargoMenu, "Special Cargo Stats", {
+    { "Buy Made", "LIFETIME_BUY_COMPLETE", "Buy" },
+    { "Buy Undertaken", "LIFETIME_BUY_UNDERTAKEN", "Buy" },
+    { "Sales Made", "LIFETIME_SELL_COMPLETE", "Sell" },
+    { "Sales Undertaken", "LIFETIME_SELL_UNDERTAKEN", "Sell" },
+    { "Earnings", "LIFETIME_CONTRA_EARNINGS", "Earnings" },
+})
+end
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+do
+
+local BusinessMiscMenu = BusinessesMenu:add_tab("Misc")
+Box(BusinessMiscMenu, "Supplies")
+local supplyBusinesses = { "MC Business 1", "MC Business 2", "MC Business 3", "MC Business 4", "MC Business 5", "Bunker", "Acid Lab", "All" }
+local supplyIndex = 0
+BusinessMiscMenu:add_imgui(function()
+    supplyIndex = ImGui.Combo("Business", supplyIndex, supplyBusinesses, #supplyBusinesses)
+end)
+BusinessMiscMenu:add_button("Resupply", function()
+    script.run_in_fiber(function(s)
+        if supplyIndex == 7 then
+            for slot = 0, 6 do
+                globals.set_int(SupplyGlobal(slot), 1)
+                s:sleep(3000)
+            end
+            gui.show_message("Supplies", "Supplies for all business stocks should've been resupplied")
+        else
+            globals.set_int(SupplyGlobal(supplyIndex), 1)
+            gui.show_message("Supplies", "Supplies for the business stock should've been resupplied")
+        end
+    end)
+end)
+
+Box(BusinessMiscMenu, "Bail Office")
+TeleportButtons(BusinessMiscMenu, "Bail Office", 893, { 562.959, -2705.590, -48.997, 31.983 }, "Computer")
+Box(BusinessMiscMenu, "Garment Factory")
+TeleportButtons(BusinessMiscMenu, "Garment Factory", 900, { 749.337, -995.654, -46.376, 50.750 }, "Computer")
+BusinessMiscMenu:add_button("Unbrick Computer", function()
+    stats.set_int(MPX() .. "HACKER24_GEN_BS", -24607)
+    gui.show_message("Garment Factory", "Computer should've been unbricked")
+end)
+end
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+end
+
+local GVMENU = makeOnlineTab(TopTab("Gun Van Menu"))
 
 local gunvan_locations = {
     vec3:new(-29.532, 6435.136, 31.162),
@@ -3938,6 +4589,68 @@ weapon_name = ""
 
 gun_van_loc = 0
 discount = false
+gv_defaults = nil
+gv_discount_pct = 100
+throwable_slot = 0
+throwable_pick = 0
+
+local throwable_labels =
+    { "Grenade", "Molotov", "Pipe Bomb", "Proximity Mine", "Tear Gas", "Sticky Bomb", "Jerry Can" }
+local throwable_hashes =
+    { "WEAPON_GRENADE", "WEAPON_MOLOTOV", "WEAPON_PIPEBOMB", "WEAPON_PROXMINE", "WEAPON_BZGAS", "WEAPON_STICKYBOMB", "WEAPON_PETROLCAN" }
+local optimal_weapons = {
+    "weapon_navyrevolver",
+    "weapon_gadgetpistol",
+    "weapon_stungun_mp",
+    "weapon_doubleaction",
+    "weapon_railgunxm3",
+    "weapon_minigun",
+    "weapon_heavysniper_mk2",
+    "weapon_combatmg_mk2",
+    "weapon_tacticalrifle",
+    "weapon_specialcarbine_mk2",
+}
+local optimal_throwables = { "weapon_stickybomb", "weapon_molotov", "weapon_pipebomb" }
+
+local function GV_FindByModel(model_name, vehicle)
+    local hash = joaat(model_name) & 0xFFFFFFFF
+    local list = vehicle and entities.get_all_vehicles_as_handles() or entities.get_all_peds_as_handles()
+    for _, handle in ipairs(list) do
+        if (ENTITY.GET_ENTITY_MODEL(handle) & 0xFFFFFFFF) == hash then
+            return handle
+        end
+    end
+    return 0
+end
+
+local function GV_Unlock(van)
+    ENTITY.SET_ENTITY_SHOULD_FREEZE_WAITING_ON_COLLISION(van, false)
+    ENTITY.FREEZE_ENTITY_POSITION(van, false)
+    VEHICLE.SET_DONT_ALLOW_PLAYER_TO_ENTER_VEHICLE_IF_LOCKED_FOR_PLAYER(van, false)
+    VEHICLE.SET_VEHICLE_RESPECTS_LOCKS_WHEN_HAS_DRIVER(van, false)
+    VEHICLE.SET_VEHICLE_DOORS_LOCKED(van, 1)
+end
+
+local function GV_MakeSellerShootable(seller)
+    ENTITY.SET_ENTITY_COLLISION(seller, true, true)
+    ENTITY.FREEZE_ENTITY_POSITION(seller, false)
+    ENTITY.SET_ENTITY_INVINCIBLE(seller, false)
+    for i = 0, 17 do
+        PED.CLEAR_RAGDOLL_BLOCKING_FLAGS(seller, i)
+    end
+    PED.SET_PED_CONFIG_FLAG(seller, 128, true)
+    PED.SET_PED_CONFIG_FLAG(seller, 179, false)
+    PED.SET_PED_CONFIG_FLAG(seller, 208, false)
+    PED.SET_PED_CONFIG_FLAG(seller, 294, false)
+    PED.SET_PED_CONFIG_FLAG(seller, 430, true)
+    PED.SET_PED_CONFIG_FLAG(seller, 118, true)
+    PED.SET_PED_CONFIG_FLAG(seller, 116, false)
+    PED.SET_PED_CONFIG_FLAG(seller, 461, true)
+    ENTITY.SET_ENTITY_PROOFS(seller, false, false, false, false, false, false, false, false)
+    PED.SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(seller, false)
+    ENTITY.SET_ENTITY_CAN_BE_DAMAGED(seller, true)
+    PED.SET_PED_CAN_BE_TARGETTED(seller, true)
+end
 
 function render_weapon_editor()
     ImGui.SetNextWindowSize(700, 420)
@@ -3989,6 +4702,21 @@ function render_weapon_editor()
             tunables.set_int("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. selected_slot, 0)
         end
 
+        ImGui.SameLine()
+
+        if ImGui.Button("Set To Current Weapon") then
+            local slot = selected_slot
+            script.run_in_fiber(function()
+                local has_weapon, hash = WEAPON.GET_CURRENT_PED_WEAPON(self.get_ped(), 0, true)
+                if has_weapon then
+                    tunables.set_int("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. slot, hash)
+                    gui.show_message("Gun Van", "Applied the current weapon to slot " .. (slot + 1) .. ".")
+                else
+                    gui.show_error("Gun Van", "No current weapon.")
+                end
+            end)
+        end
+
         if ImGui.Button("Close") then
             selected_slot = 0
             filter_text = ""
@@ -4007,10 +4735,21 @@ script.register_looped("Gun Van", function(script)
         not network.is_session_started()
         or SCRIPT.GET_NUMBER_OF_THREADS_RUNNING_THE_SCRIPT_WITH_THIS_HASH(joaat("maintransition")) > 0
     then
+        gv_defaults = nil
         script:sleep(500)
         return
     end
     gun_van_loc = globals.get_int(2652581 + 2706)
+
+    if not gv_defaults then
+        gv_defaults = { weapons = {}, throwables = {}, position = gun_van_loc }
+        for i = 0, 9 do
+            gv_defaults.weapons[i] = tunables.get_int("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. i)
+        end
+        for i = 0, 2 do
+            gv_defaults.throwables[i] = tunables.get_int("XM22_GUN_VAN_SLOT_THROWABLE_TYPE_" .. i)
+        end
+    end
 
     if is_typing then
         PAD.DISABLE_ALL_CONTROL_ACTIONS(0)
@@ -4184,6 +4923,166 @@ GVMENU:add_imgui(function()
 
         ImGui.TreePop()
     end
+
+    ImGui.Separator()
+    ImGui.Text("Location")
+
+    if ImGui.Button("Teleport To Gun Van") then
+        script.run_in_fiber(function(script)
+            local coords = gunvan_locations[gun_van_loc + 1]
+            if not coords then
+                return
+            end
+            PED.SET_PED_COORDS_KEEP_VEHICLE(self.get_ped(), coords.x, coords.y, coords.z)
+            script:sleep(1000)
+            local van = GV_FindByModel("Speedo4", true)
+            if van ~= 0 then
+                local ped = self.get_ped()
+                local fx, fy, fz = ENTITY.GET_ENTITY_FORWARD_VECTOR(van)
+                local px, py, pz = ENTITY.GET_ENTITY_COORDS(ped, true)
+                ENTITY.SET_ENTITY_COORDS(ped, px - fx * 3.5, py - fy * 3.5, pz - fz * 3.5, false, false, false, true)
+            end
+        end)
+    end
+    help_marker("Teleports you behind the gun van, wherever it currently is.")
+
+    ImGui.SameLine()
+
+    if ImGui.Button("Reset Position") then
+        if gv_defaults and gv_defaults.position ~= -1 then
+            globals.set_int(2652581 + 2706, gv_defaults.position)
+            gui.show_message("Gun Van", "The gun van was moved back to its original position.")
+        else
+            gui.show_error("Gun Van", "Original position is not known yet.")
+        end
+    end
+
+    if ImGui.Button("Set Waypoint") then
+        local coords = gunvan_locations[gun_van_loc + 1]
+        if coords then
+            HUD.SET_NEW_WAYPOINT(coords.x, coords.y)
+            gui.show_message("Gun Van", "Your waypoint was set to the gun van.")
+        end
+    end
+
+    ImGui.SameLine()
+
+    if ImGui.Button("Mark On Map") then
+        local coords = gunvan_locations[gun_van_loc + 1]
+        if coords then
+            local blip = HUD.ADD_BLIP_FOR_COORD(coords.x, coords.y, coords.z)
+            HUD.SET_BLIP_SPRITE(blip, 844)
+            HUD.SET_BLIP_SCALE(blip, 1.2)
+            gui.show_message("Gun Van", "You can now find the gun van on the map.")
+        end
+    end
+    help_marker("Places a gun van blip on the map no matter how far away you are.")
+
+    ImGui.Separator()
+    ImGui.Text("Van")
+
+    if ImGui.Button("Unlock Gun Van") then
+        script.run_in_fiber(function()
+            local van = GV_FindByModel("Speedo4", true)
+            if van == 0 then
+                gui.show_error("Gun Van", "Failed to find the gun van.")
+                return
+            end
+            GV_Unlock(van)
+            gui.show_message("Gun Van", "The gun van should now be unlocked.")
+        end)
+    end
+    help_marker("Unlocks the gun van doors so you can drive it.")
+
+    ImGui.SameLine()
+
+    if ImGui.Button("Drive Gun Van") then
+        script.run_in_fiber(function()
+            local van = GV_FindByModel("Speedo4", true)
+            if van == 0 then
+                gui.show_error("Gun Van", "Failed to find the gun van.")
+                return
+            end
+            GV_Unlock(van)
+            PED.SET_PED_INTO_VEHICLE(self.get_ped(), van, -1)
+            gui.show_message("Gun Van", "The gun van should now be unlocked.")
+        end)
+    end
+    help_marker("Same as unlock, but puts you into the driver seat too.")
+
+    if ImGui.Button("Seller Shootable") then
+        script.run_in_fiber(function()
+            local seller = GV_FindByModel("IG_GunVanSeller", false)
+            if seller == 0 then
+                gui.show_error("Gun Van", "Failed to find the gun van seller.")
+                return
+            end
+            GV_MakeSellerShootable(seller)
+            gui.show_message("Gun Van", "The gun van seller should now be shootable.")
+        end)
+    end
+    help_marker("Allows the gun van seller to be shot.")
+
+    ImGui.Separator()
+    ImGui.Text("Discount")
+
+    gv_discount_pct = ImGui.InputInt("Discount %", gv_discount_pct)
+    gv_discount_pct = math.max(-100, math.min(100, gv_discount_pct))
+    help_marker("Discount applied to every item in the gun van, from -100 to 100.")
+
+    if ImGui.Button("Apply Discounts") then
+        local pct = gv_discount_pct / 100.0
+        for i = 0, 4 do
+            tunables.set_float("XM22_GUN_VAN_SLOT_ARMOUR_DISCOUNT_" .. i, pct)
+        end
+        for i = 0, 2 do
+            tunables.set_float("XM22_GUN_VAN_SLOT_THROWABLE_DISCOUNT_" .. i, pct)
+        end
+        for i = 0, 9 do
+            tunables.set_float("XM22_GUN_VAN_SLOT_WEAPON_DISCOUNT_" .. i, pct)
+        end
+        gui.show_message("Gun Van", "Discounts have been applied.")
+    end
+
+    ImGui.Separator()
+    ImGui.Text("Slots")
+
+    ImGui.Text("Throwable Slot")
+    throwable_slot = ImGui.Combo("##gv_throwable_slot", throwable_slot, { "1", "2", "3" }, 3)
+    throwable_pick = ImGui.Combo("##gv_throwable_pick", throwable_pick, throwable_labels, #throwable_labels)
+
+    if ImGui.Button("Set Throwable") then
+        tunables.set_int("XM22_GUN_VAN_SLOT_THROWABLE_TYPE_" .. throwable_slot, joaat(throwable_hashes[throwable_pick + 1]))
+        gui.show_message("Gun Van", "Throwable set in slot " .. (throwable_slot + 1) .. ".")
+    end
+
+    if ImGui.Button("Optimal Gun Van Slots") then
+        for i, weapon in ipairs(optimal_weapons) do
+            tunables.set_int("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. (i - 1), joaat(weapon))
+        end
+        for i, throwable in ipairs(optimal_throwables) do
+            tunables.set_int("XM22_GUN_VAN_SLOT_THROWABLE_TYPE_" .. (i - 1), joaat(throwable))
+        end
+        gui.show_message("Gun Van", "Better weapons are now in the gun van.")
+    end
+    help_marker("Fills the gun van with strong weapons like the Navy Revolver and the Railgun.")
+
+    ImGui.SameLine()
+
+    if ImGui.Button("Reset Gun Van Slots") then
+        if not gv_defaults then
+            gui.show_error("Gun Van", "No default slots cached yet.")
+        else
+            for i = 0, 9 do
+                tunables.set_int("XM22_GUN_VAN_SLOT_WEAPON_TYPE_" .. i, gv_defaults.weapons[i])
+            end
+            for i = 0, 2 do
+                tunables.set_int("XM22_GUN_VAN_SLOT_THROWABLE_TYPE_" .. i, gv_defaults.throwables[i])
+            end
+            gui.show_message("Gun Van", "The gun van slots were restored.")
+        end
+    end
+    help_marker("Restores the slots to the state they had when you joined the session.")
 end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -4760,7 +5659,7 @@ log.info(
     string.format("Ultimate_Menu_Legacy.lua: YimConfig v%s successfully loaded\n%s", CFG._version, CFG._credits)
 )
 
-yim_resupplier = L7NEG:add_tab("YimResupplier")
+yim_resupplier = TopTab("YimResupplier")
 
 hangarOwned = false
 fCashOwned = false
@@ -5778,7 +6677,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-ReportsMenu = makeOnlineTab(L7NEG:add_tab("Reports Menu"))
+ReportsMenu = Self:add_tab("Reports Menu")
 ReportsMenu:add_imgui(function()
     if isOffline() then
         return
@@ -5804,36 +6703,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-WareHouseDataEditorMenu = L7NEG7:add_tab("WareHouse Data Editor")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-WareHouseDataEditorMenu:add_button("Auto-Reset stats-0/0Sales", function()
-    script.run_in_fiber(function(script)
-        stats.set_int(MPX() .. "LIFETIME_BUY_COMPLETE", 0)
-        stats.set_int(MPX() .. "LIFETIME_BUY_UNDERTAKEN", 0)
-        stats.set_int(MPX() .. "LIFETIME_SELL_COMPLETE", 0)
-        stats.set_int(MPX() .. "LIFETIME_SELL_UNDERTAKEN", 0)
-        stats.set_int(MPX() .. "LIFETIME_CONTRA_EARNINGS", 0)
-        globals.set_int(CSg1, 11)
-        globals.set_int(CSg2, 1)
-        script:sleep(300)
-        globals.set_int(CSg2, 0)
-    end)
-end)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-L7NEG7N = L7NEG7:add_tab("Tutorial ReadMe")
-
-L7NEG7N:add_text("     Ceo Crates Method       ")
-L7NEG7N:add_text("   First Enter Your Warehouse   ")
-L7NEG7N:add_text("   Then Stand In Front Of Your Warehouse Computer And Then Active The Enable Ceo Manager    ")
-L7NEG7N:add_text("https://l7neg.is-a.dev/discord")
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-HeistsDataEditorMenu = makeOnlineTab(L7NEG:add_tab("Heists Data Editor Menu"))
+HeistsDataEditorMenu = makeOnlineTab(TopTab("Heists Data Editor Menu"))
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -8912,7 +9782,6 @@ for i, cluckprep in ipairs(cluckperps) do
 end
 local cluckprepIndex = 0
 
--- Dropdown und Button in einem Callback, damit die Reihenfolge sicher stimmt
 SN_Cluck:add_imgui(function()
     cluckprepIndex, _ = ImGui.Combo("##CluckPrep", cluckprepIndex, cluckprepNames, #cluckprepNames)
     if ImGui.Button("Apply & Complete Preps") then
@@ -9209,7 +10078,7 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-MissionsSelectorAndCooldownMenu = makeOnlineTab(L7NEG:add_tab("Missions Selector and Cooldown Menu"))
+MissionsSelectorAndCooldownMenu = makeOnlineTab(TopTab("Missions Selector and Cooldown Menu"))
 
 MissionsSelectorAndCooldownMenu:add_button("Remove Dax Fooligan missions CoolDown ", function()
     stats.set_int(MPX() .. "XM22JUGGALOWORKCDTIMER", -1)
@@ -9233,9 +10102,57 @@ end)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CreditsMenu = L7NEG:add_tab("Credits")
+SettingsMenu = L7NEG:add_tab("Ultimate Settings")
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+SettingsMain = SettingsMenu:add_tab("Main")
+SettingsMain:add_text("Ultimate Menu 1.73 Legacy")
+SettingsMain:add_text("YimMenu v3")
+
+local function CopyLink(name, link)
+    if ImGui.SetClipboardText then
+        ImGui.SetClipboardText(link)
+        gui.show_message(name, "Link copied to clipboard")
+    else
+        gui.show_message(name, link)
+    end
+end
+
+SettingsMain:add_button("Copy Discord Link", function()
+    CopyLink("Discord", "https://dc.gg/l7neg")
+end)
+SettingsMain:add_button("Copy GitHub Link", function()
+    CopyLink("GitHub", "https://github.com/UltimateMenu/UltimateMenu")
+end)
+SettingsMain:add_button("Copy Website Link", function()
+    CopyLink("Website", "https://ultimatemenu.github.io/")
+end)
+bypassOnlineCheckbox = SettingsMain:add_checkbox("Bypass Online Check")
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+SettingsTabs = SettingsMenu:add_tab("Tabs")
+SettingsTabs:add_text("Hidden Tabs")
+SettingsTabs:add_text("Tick a tab to hide it. The change is applied the next time the script is loaded (reload the script).")
+SettingsTabs:add_imgui(function()
+    for _, name in ipairs(TOP_TABS) do
+        local value, changed = ImGui.Checkbox("Hide " .. name, HIDDEN_TABS[name] == true)
+        if changed then
+            HIDDEN_TABS[name] = value or nil
+            if SaveHiddenTabs() then
+                log.info("Ultimate Menu: " .. name .. " will be " .. (value and "hidden" or "shown") .. " after the next script reload")
+                gui.show_message("Tabs", "Saved. Reload the script (unload and load it again) to apply it.")
+            else
+                gui.show_error("Tabs", "Could not write " .. HIDDEN_TABS_FILE)
+            end
+        end
+    end
+end)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CreditsMenu = SettingsMenu:add_tab("Credits")
 
 Yimura = CreditsMenu:add_tab("Yimura and his team/maintainers")
 Yimura:add_text("Source:")
@@ -9264,6 +10181,10 @@ SLON:add_text("https://www.unknowncheats.me/forum/grand-theft-auto-v/591335-yimc
 Alestarov = CreditsMenu:add_tab("Alestarov")
 Alestarov:add_text("Source:")
 Alestarov:add_text("https://github.com/YimMenu-Lua/Alestarov-Menu")
+
+Ji9sw = CreditsMenu:add_tab("Ji9sw - Gun Van")
+Ji9sw:add_text("Source:")
+Ji9sw:add_text("https://cherax.menu/scripts/189")
 
 YOUMENU = CreditsMenu:add_tab("And You <3")
 YOUMENU:add_text(
