@@ -49,19 +49,32 @@
 - For **YimMenu Legacy**:  
   Open YimMenu → `Settings` → `Lua` → `Open Folder` → `scripts`  
   → Paste the `.lua` file there. That’s it!
-  
+
 - For **YimMenuV2 Enhanced**:  
-  Coming Soon (WIP)
+  Copy the `Ultimate_Menu_Enhanced.lua` file from [`YimMenu`](YimMenu) to `C:\Users\YOURUSERNAME\AppData\Roaming\YimMenuV2\scripts`.
+
+  Go to `Settings` → `Lua` in YimmenuV2.
+
+  Select the Script and Load it.
 
 - For **Nenyoo GTA V Legacy or Enhanced**:
-  Copy the contents of [`Nenyoo`](Nenyoo) to `%LOCALAPPDATA%\Nenyoo\Plus\Scripts\User\UltimateMenu\`. In Nenyoo, open `Scripts` and select `Ultimate_Menu.lua` to load its menu page. The `lib` folder must stay beside the entry script. Join GTA Online before using online actions.
+  Copy the contents of [`Nenyoo`](Nenyoo) to `%LOCALAPPDATA%\Nenyoo\Plus\Scripts\User\UltimateMenu\`.
+
+  In Nenyoo, open `Scripts` and select `Ultimate_Menu.lua` to load its menu page. The `lib` folder must stay beside the entry script.
+
+  Join GTA Online before using online actions.
+
   Supported builds: Legacy 3889 and Enhanced 1158.13. The matching offsets are selected automatically.
 
 - For **Cherax GTA V Legacy**:
-  Copy `Ultimate_Menu_CheraxLE.lua` from [`Cherax`](Cherax) to `C:\Users\YOURUSERNAME\Documents\Cherax\Lua`. In Cherax, open `Lua Editor`, select `Ultimate_Menu_CheraxLE.lua` and Click on Start Script.
+  Copy `Ultimate_Menu_CheraxLE.lua` from [`Cherax`](Cherax) to `C:\Users\YOURUSERNAME\Documents\Cherax\Lua`.
+
+  In Cherax, open `Lua Editor`, select `Ultimate_Menu_CheraxLE.lua` and Click on Start Script.
 
 - For **Cherax GTA V Enhanced**:
-  Copy `Ultimate_Menu_CheraxEE.lua` from [`Cherax`](Cherax) to `C:\Users\YOURUSERNAME\Documents\Cherax\Lua`. In Cherax, open `Lua Editor`, select `Ultimate_Menu_CheraxLE.lua` and Click on Start Script.
+  Copy `Ultimate_Menu_CheraxEE.lua` from [`Cherax`](Cherax) to `C:\Users\YOURUSERNAME\Documents\Cherax\Lua`.
+
+  In Cherax, open `Lua Editor`, select `Ultimate_Menu_CheraxLE.lua` and Click on Start Script.
 </details>
 
 ---
