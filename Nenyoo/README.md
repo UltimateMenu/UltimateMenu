@@ -19,3 +19,13 @@ The correct offset catalog is selected automatically. Build-specific globals and
 
 - `lib/game_offsets_legacy.offsets`
 - `lib/game_offsets_enhanced.offsets`
+
+---
+
+<h2 align="center">📸 Nenyoo Preview (Legacy)</h2>
+
+<p align="center">
+  <img src="preview.jpg" alt="Ultimate Menu running in Nenyoo on GTA V Legacy">
+</p>
+
+---
