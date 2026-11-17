@@ -25,6 +25,16 @@
 
 ---
 
+---
+
+<h2 align="center">📸 YimMenuV2 Preview (Enhanced)</h2>
+
+<p align="center">
+  <img src="https://ultimatemenu.github.io/ScreenShots/YimMenuV2/1.png" alt="Ultimate Menu Preview">
+</p>
+
+---
+
 <h2 align="center">📸 Nenyoo Preview (Legacy)</h2>
 
 <p align="center">
@@ -348,9 +358,10 @@
 ## 📅 Update Info
 
 - **Ultimate Menu for ModestMenu**: Last updated on **Dec 12, 2024** *(Final Update)*  
-- **Ultimate Menu for YimMenu Legacy**: Last updated on **Jul 24, 2026**
+- **Ultimate Menu for YimMenu Legacy**: Last updated on **Nov 11, 2026**
 - **Ultimate Menu for YimMenuV2 Enhanced**: Released on **Nov 15, 2026**
-- **Ultimate Menu for Nenyoo**: Legacy and Enhanced support
+- **Ultimate Menu for Nenyoo Legacy**: Last updated on **Sep 20, 2026**
+- **Ultimate Menu for Nenyoo Enhanced**: Last updated on **Sep 20, 2026**
 - **Ultimate Menu for Cherax Legacy**: Last updated on **Nov 15, 2026**
 - **Ultimate Menu for Cherax Enhanced**: Released on **Nov 15, 2026**
 
